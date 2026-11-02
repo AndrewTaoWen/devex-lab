@@ -51,7 +51,7 @@ def tree(repo, rev, dst, src_rev=None, package=None):
 
 
 def trace(a, d, out):
-    env = {**os.environ, "PYTHONPATH": f"{d / Path(a.package).parent}:{HERE}", "REPOMAP_ROOT": a.package,
+    env = {**os.environ, "PYTHONPATH": f"{d / Path(a.package).parent}:{HERE / 'src/repomap/_plugin'}", "REPOMAP_ROOT": a.package,
            "REPOMAP_OUT": str(out), "REPOMAP_SAMPLES": "0"}
     subprocess.run([a.python, "-m", "pytest", "-q", "-p", "no:cacheprovider", "-p", "no:randomly", "-o", "addopts=",
                     "-p", "repomap_trace", a.tests], cwd=d, env=env, capture_output=True, timeout=3600)

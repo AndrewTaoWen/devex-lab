@@ -4,15 +4,15 @@ One engine, several front ends. The engine is **repomap** ([`cli/`](cli/README.m
 
 | Sub-project | Status | What it does |
 |---|---|---|
-| [`cli/`](cli/README.md) | Working prototype | `repomap.py record \| impact \| refresh \| status \| serve`, plus `mutbench.py` (fault-injection benchmark) and `impact.py` (scoring against real history) |
-| [`ai-skill/`](ai-skill/README.md) | Draft | A skill so Claude Code checks impact before an edit and runs only the affected tests after |
-| [`mcp-server/`](mcp-server/README.md) | Planned | The same lookups as MCP tools for any agent or IDE |
+| [`cli/`](cli/README.md) | v0.1, installable | The `repomap` package: `repomap record \| impact \| refresh \| status \| serve \| query`, plus `mutbench.py` (fault-injection benchmark) and `impact.py` (scoring against real history) |
+| [`ai-skill/`](ai-skill/README.md) | v0.1 | Claude Code plugin: a skill so the agent checks impact before an edit and runs only the affected tests after, plus the MCP server config |
+| [`mcp-server/`](mcp-server/README.md) | v0.1 | `repomap-mcp`: the same lookups as 8 MCP tools for any agent or IDE |
 | [`github-action/`](github-action/README.md) | Planned | Test selection in CI and an impact comment on every PR |
 | [`vscode-extension/`](vscode-extension/README.md) | Planned | "N tests run this line" in the gutter, value hovers, graph view of the current diff |
 
 ## Shared contract
 
-All front ends call the CLI rather than reimplementing it, so the first step for each is the same: package the CLI (`pip install repomap`, `pytest --repomap`) and give `impact` and `query` a `--json` output with a versioned schema. The memory lives in `.repomap/memory.json` and is tied to a commit via `refs/repomap/memory`.
+All front ends use the `repomap` package rather than reimplementing it. Every CLI command takes `--json`, and the MCP server returns the same dicts. Still to do: a versioned schema for that JSON and for the memory file, and a `pytest --repomap` entry point. The memory lives in `.repomap/memory.json` and is tied to a commit via `refs/repomap/memory`.
 
 ## Numbers to keep in mind
 
