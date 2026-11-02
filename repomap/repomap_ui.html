@@ -129,6 +129,33 @@ pre.diff .add { color: var(--add); } pre.diff .del { color: var(--chg); }
 .st { font: 500 10.5px var(--sans); text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; border-radius: 3px; }
 .st.broke { background: var(--chg-soft); color: var(--chg); }
 .st.passed { background: var(--bg); color: var(--muted); }
+.viewbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 12px; }
+.viewbar .legend { margin: 0; }
+.gwrap { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.gwrap svg { display: block; max-width: 100%; height: auto; }
+@media (max-width: 700px) { .gwrap svg { max-width: none; } }
+.gwrap .note { margin: 4px 0 8px; }
+svg .gh { font: 600 10.5px var(--sans); fill: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+svg .gn rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.2; }
+svg .gn.k0 rect { fill: var(--chg-soft); stroke: var(--chg); }
+svg .gn.k1 rect { fill: var(--l1-soft); stroke: var(--l1); }
+svg .gn.k2 rect { fill: var(--panel); stroke: var(--l2); }
+svg .gn.kt rect { fill: var(--accent-soft); stroke: var(--accent); }
+svg .gn.km rect { fill: none; stroke-dasharray: 3 3; }
+svg .gn.untested rect { stroke-dasharray: 4 3; }
+svg .gn .t1 { font: 500 11.5px var(--mono); fill: var(--fg); }
+svg .gn .t2 { font: 10.5px var(--mono); fill: var(--muted); }
+svg .gn .t2 .bk { fill: var(--chg); font-weight: 600; }
+svg .gn.fn { cursor: pointer; }
+svg .gn.sel rect { stroke: var(--fg); stroke-width: 2; }
+svg .ge { fill: none; stroke: var(--l1); stroke-opacity: .7; }
+svg .ge.et { stroke: var(--accent); stroke-opacity: .35; }
+svg .ge.e0 { stroke: var(--chg); }
+svg.fade .gn { opacity: .25; }
+svg.fade .ge { stroke-opacity: .08; }
+svg.fade .gn.hl { opacity: 1; }
+svg.fade .ge.hl { stroke-opacity: .95; }
+@media (prefers-reduced-motion: no-preference) { svg .gn, svg .ge { transition: opacity .12s, stroke-opacity .12s; } }
 @media (prefers-reduced-motion: no-preference) { .cell { transition: background-color .15s, opacity .15s; } }
 </style>
 </head>
@@ -150,8 +177,12 @@ pre.diff .add { color: var(--add); } pre.diff .del { color: var(--chg); }
   </header>
   <div class="grid">
     <section class="map" id="map">
-      <div class="legend" id="legend"></div>
+      <div class="viewbar">
+        <span class="depth" role="group" aria-label="View"><button data-view="map">Map</button><button data-view="graph">Graph</button></span>
+        <div class="legend" id="legend"></div>
+      </div>
       <div id="pkgs"></div>
+      <div id="graph" class="gwrap" hidden></div>
     </section>
     <aside>
       <div class="card" id="examples-card" hidden></div>
@@ -167,7 +198,9 @@ pre.diff .add { color: var(--add); } pre.diff .del { color: var(--chg); }
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[c]);
 let D, F = [], up = [], down = [], byKey = new Map(), live = true;
-const S = {targets: new Set(), testFiles: [], unknown: [], source: null, depth: 2, sel: null, stale: []};
+const S = {targets: new Set(), testFiles: [], unknown: [], source: null, depth: 2, sel: null, stale: [], view: null};
+let savedView = null;
+try { savedView = localStorage.getItem("repomap.view"); } catch {}
 const PROBES = {str: ["empty"], bytes: ["empty"], list: ["empty"], tuple: ["empty"], dict: ["empty"], int: ["zero", "negative"], float: ["zero", "negative"]};
 
 const file = k => k.split(":")[0];
@@ -200,6 +233,7 @@ async function boot() {
   if (S.examples.length) { $("#examples-card").hidden = false; useExample(0); }
   else if (changes) applyChanges(changes);
   else if (live) await loadMine(true);
+  S.view = savedView === "map" || savedView === "graph" ? savedView : (S.targets.size || S.testFiles.length ? "graph" : "map");
   render();
 }
 
@@ -287,7 +321,13 @@ function render() {
     m.classList.toggle("warm", on && !hotFiles.has(fl) && warmFiles.has(fl));
     m.classList.toggle("dim", on && !hotFiles.has(fl) && !warmFiles.has(fl));
   }
-  $("#legend").innerHTML = on
+  const graph = S.view === "graph";
+  $("#pkgs").hidden = graph; $("#graph").hidden = !graph;
+  for (const b of document.querySelectorAll("[data-view]")) b.classList.toggle("on", b.dataset.view === S.view);
+  if (graph) drawGraph(r, on, state);
+  $("#legend").innerHTML = graph
+    ? (on ? `<span><i style="background:var(--accent)"></i>test files that run the change</span><span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers</span><span>Arrows point from a function to its callers. Hover to trace, click to inspect, shift-click to add or remove</span>` : "")
+    : on
     ? `<span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers${S.depth > 2 ? " and up" : ""}</span><span><i style="background:var(--empty)"></i>not reached</span><span>Shift-click a cell to add or remove it from the change</span>`
     : `<span><i style="background:var(--heat)"></i>run by tests (darker = more tests)</span><span><i style="box-shadow:inset 0 0 0 1px var(--empty)"></i>no test runs it</span><span>Click a cell to inspect it, shift-click to add it to a change</span>`;
   renderImpact(r, on);
@@ -437,6 +477,7 @@ document.addEventListener("click", async e => {
   else if (t.dataset.rm !== undefined) { S.targets.delete(+t.dataset.rm); render(); }
   else if (t.dataset.ex !== undefined) { useExample(+t.dataset.ex); render(); }
   else if (t.dataset.depth) { S.depth = +t.dataset.depth; render(); }
+  else if (t.dataset.view) { S.view = t.dataset.view; try { localStorage.setItem("repomap.view", S.view); } catch {} render(); }
   else if (t.id === "toggle") toggleTarget(S.sel);
   else if (t.id === "clear") { S.targets.clear(); S.testFiles = []; S.unknown = []; S.source = null; S.picked = false; S.sel = null; render(); }
   else if (t.id === "mine") { if (live) { await loadMine(false); render(); } else { applyChanges(JSON.parse($("#embedded").textContent).changes); render(); } }
@@ -478,6 +519,148 @@ $("#q").addEventListener("keydown", e => {
 });
 $("#results").addEventListener("click", e => { const b = e.target.closest("[data-hit]"); if (b) pick(hits[+b.dataset.hit], e.shiftKey); });
 function pick(f, add) { $("#results").hidden = true; $("#q").value = ""; if (add) toggleTarget(f.i); select(f.i); }
+
+// ---------- graph view: test files <- changed functions -> callers, level by level ----------
+const G = {h: 36, gap: 8, colGap: 56, top: 26, per: 24, cw: 6.9};
+function drawGraph(r, on, state) {
+  const el = $("#graph");
+  if (!on) { el.innerHTML = `<p class="note">The graph shows a change as a picture: the changed functions in the middle, the test files that run them on the left, and their callers, level by level, on the right. Pick a change first: search above, shift-click cells in the map, ${live ? "press <b>My uncommitted changes</b>" : "or load the changes saved with this page"}.</p>`; return; }
+  const ex = S.source === "example" && !S.picked ? S.ex : null, broke = new Set(ex ? ex.broke : []);
+  const nodes = [], edges = [], cols = [];
+  const add = (c, n) => { n.col = c; n.id = nodes.length; nodes.push(n); (cols[c] = cols[c] || []).push(n); return n; };
+  // column 1: the change
+  const tgt = [...r.targets].sort((a, b) => F[a].k.localeCompare(F[b].k) || F[a].s - F[b].s);
+  const at = new Map();
+  for (const i of tgt) at.set(i, add(1, {fn: i, kind: "k0", untested: !F[i].mod && !F[i].t.length}));
+  for (const tf of S.testFiles) add(1, {kind: "km", label: tf, sub: "test file changed"});
+  // column 0: test files, linked to the changed functions they run
+  const tfOf = t => D.tests[t][0].split("::")[0];
+  const files = new Map();
+  for (const t of r.tests) { const f = tfOf(t); if (!files.has(f)) files.set(f, new Set()); files.get(f).add(t); }
+  const links = new Map();  // file -> Map(target node -> tests)
+  for (const n of cols[1]) if (n.fn !== undefined) for (const t of F[n.fn].t) {
+    const f = tfOf(t); if (!links.has(f)) links.set(f, new Map());
+    const m = links.get(f); m.set(n, (m.get(n) || 0) + 1);
+  }
+  const pos = col => new Map((cols[col] || []).map((n, j) => [n, j]));
+  const bary = (ns, p) => { let s = 0, c = 0; for (const n of ns) if (p.has(n)) { s += p.get(n); c++; } return c ? s / c : 1e9; };
+  let p1 = pos(1);
+  let tfs = [...files].map(([f, ts]) => ({f, ts, nb: [...(links.get(f) || new Map()).keys()]}));
+  tfs.sort((a, b) => b.ts.size - a.ts.size);
+  const tfMore = tfs.slice(G.per); tfs = tfs.slice(0, G.per);
+  tfs.sort((a, b) => bary(a.nb, p1) - bary(b.nb, p1) || b.ts.size - a.ts.size);
+  cols[0] = [];
+  for (const x of tfs) {
+    const nb = [...x.ts].filter(t => broke.has(D.tests[t][0])).length;
+    const n = add(0, {kind: "kt", label: x.f, tests: [...x.ts], sub: `${x.ts.size} test${x.ts.size > 1 ? "s" : ""}`, broke: ex ? nb : null});
+    for (const [tn, w] of links.get(x.f) || []) edges.push({a: n, b: tn, w, cls: "et"});
+  }
+  if (tfMore.length) add(0, {kind: "km", label: `+${tfMore.length} more files`, sub: `${tfMore.reduce((s, x) => s + x.ts.size, 0)} tests`});
+  // columns 2..: callers, each linked to the functions it calls in the column before
+  const node = new Map(at);
+  r.layers.forEach((layer, d) => {
+    const prev = cols[d + 1].filter(n => n.fn !== undefined), pp = pos(d + 1);
+    let cs = layer.map(i => ({i, nb: [...new Set(down[i])].map(j => node.get(j)).filter(n => n && prev.includes(n))}));
+    cs.sort((a, b) => b.nb.length - a.nb.length || F[b.i].t.length - F[a.i].t.length);
+    const more = cs.slice(G.per); cs = cs.slice(0, G.per);
+    cs.sort((a, b) => bary(a.nb, pp) - bary(b.nb, pp) || F[a.i].k.localeCompare(F[b.i].k));
+    for (const c of cs) {
+      const n = add(d + 2, {fn: c.i, kind: d === 0 ? "k1" : "k2"});
+      node.set(c.i, n);
+      for (const m of c.nb) edges.push({a: m, b: n, w: 1, cls: m.col === 1 ? "e0" : ""});
+    }
+    if (more.length) add(d + 2, {kind: "km", label: `+${more.length} more`, sub: `in ${new Set(more.map(c => modName(F[c.i].k))).size} modules`});
+  });
+  // labels and sizes (module names without the package's own name, which every node shares)
+  const pkgPrefix = D.package.split("/").pop() + ".";
+  const clip = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+  for (const n of nodes) {
+    if (n.fn !== undefined) {
+      const f = F[n.fn];
+      n.label = f.mod ? `${file(f.k).split("/").pop()} (module level)` : short(f.k);
+      n.sub = `${modName(f.k).replace(pkgPrefix, "") || modName(f.k)} · ${f.t.length} test${f.t.length === 1 ? "" : "s"}`;
+    }
+    n.label = clip(n.label, 34); n.sub = clip(n.sub, 40);
+    n.w = Math.max(n.label.length, n.sub.length + (n.broke ? 10 : 0)) * G.cw + 18;
+  }
+  const heads = ["Tests that run it", "Changed", "Direct callers", "Level 2", "Level 3", "Level 4"];
+  let x = 0;
+  const colX = [], colW = [];
+  cols.forEach((c, j) => { colW[j] = Math.max(110, ...c.map(n => n.w)); colX[j] = x; x += colW[j] + G.colGap; });
+  const W = x - G.colGap + 2;
+  const colH = c => c.length * G.h + (c.length - 1) * G.gap;
+  const H = Math.max(...cols.map(colH));
+  cols.forEach((c, j) => {
+    const y0 = G.top + (H - colH(c)) / 2;
+    c.forEach((n, k) => { n.w = colW[j]; n.x = colX[j] + 1; n.y = y0 + k * (G.h + G.gap); });
+  });
+  const maxW = Math.max(1, ...edges.filter(e => e.cls === "et").map(e => e.w));
+  let svg = `<svg width="${W}" height="${G.top + H + 4}" viewBox="0 0 ${W} ${G.top + H + 4}" role="img" aria-label="Graph of the change: test files, changed functions and callers">`;
+  svg += `<defs><marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="context-stroke"/></marker></defs>`;
+  cols.forEach((c, j) => { if (c.length) svg += `<text class="gh" x="${colX[j] + 1}" y="12">${heads[j] || `Level ${j - 1}`}</text>`; });
+  edges.forEach((e, j) => {
+    const x1 = e.a.x + e.a.w, y1 = e.a.y + G.h / 2, x2 = e.b.x - (e.cls === "et" ? 0 : 2), y2 = e.b.y + G.h / 2, dx = (x2 - x1) / 2;
+    const sw = e.cls === "et" ? (1 + 4 * Math.log1p(e.w) / Math.log1p(maxW)).toFixed(1) : 1.4;
+    svg += `<path class="ge ${e.cls}" data-e="${j}" d="M${x1} ${y1}C${x1 + dx} ${y1} ${x2 - dx} ${y2} ${x2} ${y2}" stroke-width="${sw}"${e.cls === "et" ? "" : ` marker-end="url(#arr)"`}/>`;
+  });
+  for (const n of nodes) {
+    const cls = `gn ${n.kind}${n.fn !== undefined ? " fn" : ""}${n.untested ? " untested" : ""}${n.fn === S.sel && n.fn !== undefined ? " sel" : ""}`;
+    const sub = esc(n.sub) + (n.broke ? ` · <tspan class="bk">${n.broke} broke</tspan>` : "");
+    svg += `<g class="${cls}" data-n="${n.id}"${n.fn !== undefined ? ` tabindex="0" role="button" aria-label="${esc(qual(F[n.fn].k))}"` : ""}><rect x="${n.x}" y="${n.y}" width="${n.w}" height="${G.h}" rx="5"/>
+      <text class="t1" x="${n.x + 9}" y="${n.y + 15}">${esc(n.label)}</text><text class="t2" x="${n.x + 9}" y="${n.y + 29}">${sub}</text></g>`;
+  }
+  svg += `</svg>`;
+  el.innerHTML = svg;
+  G.nodes = nodes; G.edges = edges;
+}
+function graphTrace(id) {
+  const svg = $("#graph svg");
+  if (!svg) return;
+  if (id === null) { svg.classList.remove("fade"); return; }
+  const start = G.nodes[id], on = new Set([start]), onE = new Set();
+  for (const dir of [1, -1]) {  // walk outwards in both directions, never doubling back
+    let front = [start];
+    while (front.length) {
+      const nxt = [];
+      G.edges.forEach((e, j) => {
+        const [from, to] = dir === 1 ? [e.a, e.b] : [e.b, e.a];
+        if (front.includes(from)) { onE.add(j); if (!on.has(to)) { on.add(to); nxt.push(to); } }
+      });
+      front = nxt;
+    }
+  }
+  svg.classList.add("fade");
+  for (const g of svg.querySelectorAll(".gn")) g.classList.toggle("hl", on.has(G.nodes[+g.dataset.n]));
+  for (const p of svg.querySelectorAll(".ge")) p.classList.toggle("hl", onE.has(+p.dataset.e));
+}
+$("#graph").addEventListener("mouseover", e => {
+  const g = e.target.closest(".gn");
+  graphTrace(g ? +g.dataset.n : null);
+  const tip = $("#tip"), n = g && G.nodes[+g.dataset.n];
+  if (n && n.tests) {
+    const b = new Set(S.ex && S.source === "example" && !S.picked ? S.ex.broke : []);
+    tip.textContent = n.tests.slice(0, 10).map(t => { const id = D.tests[t][0]; return (b.has(id) ? "✗ " : "  ") + id.split("::").slice(1).join("::"); }).join("\n") + (n.tests.length > 10 ? `\n  +${n.tests.length - 10} more` : "");
+    tip.style.whiteSpace = "pre"; tip.hidden = false;
+  } else if (n && n.fn !== undefined) { tip.style.whiteSpace = ""; tip.textContent = `${file(F[n.fn].k)}${F[n.fn].s ? `:${F[n.fn].s}` : ""}  ${qual(F[n.fn].k)}`; tip.hidden = false; }
+  else tip.hidden = true;
+});
+$("#graph").addEventListener("mousemove", e => {
+  const tip = $("#tip");
+  if (tip.hidden) return;
+  tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px";
+});
+$("#graph").addEventListener("mouseleave", () => { graphTrace(null); $("#tip").hidden = true; $("#tip").style.whiteSpace = ""; });
+$("#graph").addEventListener("click", e => {
+  const g = e.target.closest(".gn.fn");
+  if (!g) return;
+  const i = G.nodes[+g.dataset.n].fn;
+  if (e.shiftKey || e.metaKey || e.ctrlKey) toggleTarget(i); else select(i);
+});
+$("#graph").addEventListener("keydown", e => {
+  const g = e.target.closest(".gn.fn");
+  if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); select(G.nodes[+g.dataset.n].fn); }
+});
+$("#graph").addEventListener("focusin", e => { const g = e.target.closest(".gn"); if (g) graphTrace(+g.dataset.n); });
 
 boot();
 </script>
