@@ -7,7 +7,13 @@ This project asks one question from two sides: **what happens to code after it i
 
 The two feed each other. The environment needs fast, precise "what does this change touch" answers to score and to guide agents, and the dev tools get a benchmark built from real repo history.
 
-The plan for both is in [ROADMAP.md](ROADMAP.md).
+## What I'm working on now
+
+- **Turning repomap into dev tools.** The CLI works (record, impact, refresh, serve with Map and Graph views). Next I'm wrapping it as an AI skill (draft in [`devtools/ai-skill/`](devtools/ai-skill/SKILL.md)) and an MCP server, then packaging it with `pip`.
+- **Turning the pilot into an RL environment.** The harness and five experiments are done. Next is a `reset` / `score` API with containerized episodes and the combined reward (future bug tests + verified regression tests − regressions − replay conflicts).
+- **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints.
+
+The full priority list is in [ROADMAP.md](ROADMAP.md).
 
 ## Layout
 
