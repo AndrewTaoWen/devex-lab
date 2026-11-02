@@ -1,8 +1,35 @@
-# Repo lifetime simulation
+# Repo lifetime: developer experience for code that has to last
 
-Can a model write code that survives a repository's future? We test this on real Python repos whose later history the model hasn't seen. Each repo is frozen at the model's knowledge cutoff (2026-06-01). An agent hardens that snapshot without seeing anything later. The repo's own later tests, run against the hardened code, then act as an automatic score.
+This project asks one question from two sides: **what happens to code after it is written?**
 
-A second thread grew out of this: **repomap**, a tool that traces a test suite once and then says, without running anything, which pieces of a repo and which tests a change will affect.
+1. **[RL environment](rl-env/README.md)** (`rl-env/`). Train and score models on whether their code survives a repository's real future. Each repo is frozen at the model's knowledge cutoff (2026-06-01), an agent hardens the snapshot blind, and the repo's own later tests become an automatic reward.
+2. **[Dev tools](devtools/README.md)** (`devtools/`). Tools that tell a developer (or an agent) what a change will affect before anything runs. They are built on **repomap**, which traces a test suite once and remembers which lines each test runs, who calls whom, and what values every function saw.
+
+The two feed each other. The environment needs fast, precise "what does this change touch" answers to score and to guide agents, and the dev tools get a benchmark built from real repo history.
+
+## What I'm working on now
+
+- **Turning repomap into dev tools.** The CLI works (record, impact, refresh, serve with Map and Graph views). Next I'm wrapping it as an AI skill (draft in [`devtools/ai-skill/`](devtools/ai-skill/SKILL.md)) and an MCP server, then packaging it with `pip`.
+- **Turning the pilot into an RL environment.** The harness and five experiments are done. Next is a `reset` / `score` API with containerized episodes and the combined reward (future bug tests + verified regression tests − regressions − replay conflicts).
+- **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints.
+
+The full priority list is in [ROADMAP.md](ROADMAP.md).
+
+## Layout
+
+```
+rl-env/
+  harness/          screen.py, blind.py, label.py, audit.py, replay.py, future_tests.sh
+  experiments/      01-pilot, 02-scale-up, 03-analysis, 04-ab-test, 05-replay (in the order they ran)
+  research/         survey of repo-evolution benchmarks and training data
+devtools/
+  cli/              repomap.py record | impact | refresh | status | serve, plus mutbench.py and impact.py
+  ai-skill/         plan and draft SKILL.md so coding agents use repomap        (planned)
+  mcp-server/       repomap as MCP tools for any agent                          (planned)
+  vscode-extension/ impact and coverage in the editor                           (planned)
+  github-action/    test selection and an impact comment on every PR            (planned)
+tests/              tests for the harness's shell and XML hardening
+```
 
 ## Headline findings
 
@@ -12,45 +39,19 @@ A second thread grew out of this: **repomap**, a tool that traces a test suite o
 4. **Hardening barely gets in the way of real history.** Replaying upstream's later commits onto agent-hardened code, 15% of run-commit pairs collide, about the same for both prompts.
 5. **A traced map predicts change impact almost perfectly.** On werkzeug, choosing tests by changed function caught all 85 tests whose result changed across 54 real commits, while running 24% of the suite. Against 200 injected bugs, every bug was caught and 99.7% of broken tests were selected, at a median of 0.6% of the suite.
 
-## Contents
-
-### Research
-
-- [`research/repo-evolution-training-data.md`](research/repo-evolution-training-data.md): survey of benchmarks (SWE-CI, SWE-Milestone, SWE-Chain, SWE-EVO), training datasets and synthetic repo-evolution work as of October 2026, and where the gaps are.
-
-### Future-requirements pilot ([`pilot/`](pilot/README.md))
-
-Run in this order, each building on the last:
-
-| Step | What it asks | Write-up |
-|---|---|---|
-| Pilot | Can an agent anticipate tinydb's and click's later bug fixes? (tinydb: future failures 9 → 5, 4 of 8 real bugs caught) | [`pilot/README.md`](pilot/README.md), [`pilot/tinydb/`](pilot/tinydb/) |
-| Scale-up | Same on 8 repos, 3 blind runs each, then bug vs feature labels and sandboxed reruns | [`pilot/scale-up/README.md`](pilot/scale-up/README.md) |
-| Analysis | Which future bugs do agents miss, and how many of their fixes are real? | [`pilot/analysis/README.md`](pilot/analysis/README.md) |
-| Prompt A/B | Does a prompt built from the miss analysis catch more, on 4 held-out repos? | [`pilot/ab-test/README.md`](pilot/ab-test/README.md) |
-| Replay | Do agent patches make upstream's real later commits harder to land? | [`pilot/replay/README.md`](pilot/replay/README.md) |
-
-Tools: `screen.py` finds repos and their failing future tests, `blind.py` runs and scores hardening agents, `label.py` labels target tests as bug or feature, `audit.py` checks agent transcripts for leaks of future data, and `replay.py` merges upstream history onto agent patches.
-
-### repomap ([`repomap/`](repomap/README.md))
-
-Traces the test suite once under Python's `sys.monitoring`, recording which lines each test runs, who calls whom, and the values every function saw. From that memory:
+## Quick start
 
 ```
-repomap.py record --package src/mypkg   # trace the suite once
-repomap.py impact Range.range_for_length # or path.py:LINE, or no argument for your uncommitted diff
-repomap.py refresh                       # re-trace only the tests a change touches
-repomap.py serve                         # the map and impact in your browser at http://localhost:8765
+# dev tools: trace a repo once, then ask what a change affects
+python devtools/cli/repomap.py record --package src/mypkg
+python devtools/cli/repomap.py impact          # your uncommitted diff
+python devtools/cli/repomap.py serve           # map and graph at http://localhost:8765
+
+# RL environment: find a repo's failing future tests, then run and score blind agents
+python rl-env/harness/screen.py --help
+python rl-env/harness/blind.py --help
 ```
 
-- Lookups take under a second. A refresh takes 2 to 16 s, compared with 33 s for a full record on werkzeug.
-- Accuracy is measured two ways: on werkzeug's real history (`impact.py`) and on 200 injected bugs (`mutbench.py`). Both are in the [repomap README](repomap/README.md).
-- [`repomap/examples/`](repomap/examples/README.md) walks through six small edits to a toy shop package, comparing what repomap predicts with the tests that really broke ([Shopkit Impact Examples](https://claude.ai/artifact/5QMS2QWpJhtr9LEPttiyeG)).
-- [Werkzeug Repo Map](https://claude.ai/artifact/RVd9ak5h1iP4Zhkck5CoPc) is a snapshot of the `serve` page. [Werkzeug Change Impact](https://claude.ai/artifact/9AEvdA1qQ2EcVkbdqfVmjq) shows predictions against each real commit. Both links are private until shared.
+Live pages (private until shared): [Werkzeug Repo Map](https://claude.ai/artifact/RVd9ak5h1iP4Zhkck5CoPc), [Werkzeug Change Impact](https://claude.ai/artifact/9AEvdA1qQ2EcVkbdqfVmjq), [Shopkit Impact Examples](https://claude.ai/artifact/5QMS2QWpJhtr9LEPttiyeG).
 
-## Next steps
-
-- **Reward signal.** Package the pilot as an RL environment. Reward = future tests fixed + verified regression tests that fail on the snapshot − conflicts with upstream history.
-- **More data.** More runs and repos, including larger ones and other languages.
-- **repomap for agents.** Give hardening agents repomap's value gaps (for example "this argument was never empty") and measure whether they catch more future bugs.
-- **repomap as a benchmark.** Run `record` and `mutbench.py` on the other 11 pilot repos and publish the faults, so any test-impact tool can be scored on them.
+The harness runs tests and setup code from cloned repos by design; see [SECURITY-SETUP.md](SECURITY-SETUP.md).

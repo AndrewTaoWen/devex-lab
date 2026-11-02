@@ -151,6 +151,6 @@ Both are places where werkzeug later fixed real bugs: float URLs for whole numbe
 
 ## Next
 
-- **A/B on hardening.** Give agents `query.py` (the gaps and value summaries) on the held-out repos and score them with future tests, as in `../pilot-future-reqs/ab-test/`.
+- **A/B on hardening.** Give agents `query.py` (the gaps and value summaries) on the held-out repos and score them with future tests, as in [`rl-env/experiments/04-ab-test/`](../../rl-env/experiments/04-ab-test/README.md).
 - **Pieces by clustering.** Group functions that the same tests run together, instead of grouping by module, and check whether later upstream commits stay inside one cluster.
 - **Patch impact for agents.** Show an agent's own patch in the viewer before it commits, so a reviewer sees what it reaches.
