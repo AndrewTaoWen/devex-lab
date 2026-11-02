@@ -2,9 +2,9 @@
 
 **Question.** Hardening agents change a lot of code (200 to 950 changed lines per run). Does that make the project's real later changes harder to land? This is a first, purely mechanical maintainability measure.
 
-**Answer.** Each run collided with 4 to 18 of upstream's later commits: 136 of 900 run × commit pairs (15%), almost all in package code. The improved prompt from `../ab-test/` was no worse than the baseline: 1.5 vs 1.75 colliding commits per 100 changed lines. The conflicts can't be resolved mechanically. Taking upstream's side of every conflict leaves half-merged functions (undefined names, missing imports) in 11 of 16 runs, so every collision would need a person or an agent to resolve it.
+**Answer.** Each run collided with 4 to 18 of upstream's later commits: 136 of 900 run × commit pairs (15%), almost all in package code. The improved prompt from `../04-ab-test/` was no worse than the baseline: 1.5 vs 1.75 colliding commits per 100 changed lines. The conflicts can't be resolved mechanically. Taking upstream's side of every conflict leaves half-merged functions (undefined names, missing imports) in 11 of 16 runs, so every collision would need a person or an agent to resolve it.
 
-## Method (`../replay.py`)
+## Method (`../../harness/replay.py`)
 
 For each of the 16 A/B runs:
 
@@ -38,7 +38,7 @@ For each of the 16 A/B runs:
 ## Files
 
 - `results.json`: per run, the upstream commit count, collisions (with each colliding commit's subject and files), final conflict hunks, diff size and `broken` tests.
-- `../replay.py`: the script; `python3 replay.py --screen SCR --patches ../ab-test/patches --out results.json [--tests] runs...`
+- `../../harness/replay.py`: the script; `python3 replay.py --screen SCR --patches ../04-ab-test/patches --out results.json [--tests] runs...`
 
 ## Next
 

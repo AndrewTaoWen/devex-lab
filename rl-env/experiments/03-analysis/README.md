@@ -1,10 +1,10 @@
 # What blind hardening misses, and how precise it is
 
-Two follow-ups to `../scale-up/README.md`, both using the 8 repos and the snapshot at 2026-06-01.
+Two follow-ups to `../02-scale-up/README.md`, both using the 8 repos and the snapshot at 2026-06-01.
 
 ## 1. What the agents miss
 
-Every target test labelled *bug* (see `../scale-up/labels.json`) was grouped by the upstream commit that fixed it, which gives **116 distinct real bugs**. Each was given one kind by hand (`bug-kinds.json`), then checked against all 32 hardening runs: the 24 from round 1 plus the 8 sandboxed ones. Per-bug results are in `bug-catch.json`.
+Every target test labelled *bug* (see `../02-scale-up/labels.json`) was grouped by the upstream commit that fixed it, which gives **116 distinct real bugs**. Each was given one kind by hand (`bug-kinds.json`), then checked against all 32 hardening runs: the 24 from round 1 plus the 8 sandboxed ones. Per-bug results are in `bug-catch.json`.
 
 | Kind | Bugs | Caught by any run | Per-run catch rate |
 |---|---|---|---|

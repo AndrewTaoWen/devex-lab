@@ -6,9 +6,9 @@
 
 ## Method
 
-1. **Screen** (`../screen.py`). For each candidate repo: take the last commit before 2026-06-01 (the snapshot) and the current HEAD. Run HEAD's test suite against HEAD's code, then against the snapshot's package code. Tests that pass on HEAD but fail on the snapshot are the *target*: future requirements the snapshot doesn't meet.
-2. **Blind hardening** (`../blind.py prep`). Three independent workspaces per repo, each a bare copy of the snapshot (its own git repo, no upstream history, no network instructions to fetch anything). A fresh agent is told only: find and fix latent bugs and edge cases a maintainer would want fixed, keep the existing tests passing, commit your work. It never sees the future tests.
-3. **Score** (`../blind.py score`). Swap each run's package code into the HEAD tree and run HEAD's tests. *Fixed* = target tests that now pass. *Regression* = a future test that passes on the untouched snapshot but fails after hardening.
+1. **Screen** (`../../harness/screen.py`). For each candidate repo: take the last commit before 2026-06-01 (the snapshot) and the current HEAD. Run HEAD's test suite against HEAD's code, then against the snapshot's package code. Tests that pass on HEAD but fail on the snapshot are the *target*: future requirements the snapshot doesn't meet.
+2. **Blind hardening** (`../../harness/blind.py prep`). Three independent workspaces per repo, each a bare copy of the snapshot (its own git repo, no upstream history, no network instructions to fetch anything). A fresh agent is told only: find and fix latent bugs and edge cases a maintainer would want fixed, keep the existing tests passing, commit your work. It never sees the future tests.
+3. **Score** (`../../harness/blind.py score`). Swap each run's package code into the HEAD tree and run HEAD's tests. *Fixed* = target tests that now pass. *Regression* = a future test that passes on the untouched snapshot but fails after hardening.
 
 19 repos were screened and 8 were run. Of the rest, 8 had no usable future tests or broke the harness (boltons, dateutil, humanize, markupsafe, packaging, platformdirs, tenacity, toolz), tomli had only 1, and python-dotenv (33) and cattrs (44) were found in a later screen and are good candidates for the next round.
 
@@ -31,7 +31,7 @@ Pooled: 267/1032 = 25.9% over 24 runs
 
 ## Bug vs feature
 
-Each target test was labelled by the upstream commit that added it (`../label.py` finds the commit; the labels themselves are by hand in `label-overrides.json`, with the per-test result in `labels.json`). *Bug* means a defect in behaviour that already existed at the snapshot; *feature* means a new API, option or deliberate behaviour change; *unclear* is a test-only refactor whose underlying change isn't identifiable.
+Each target test was labelled by the upstream commit that added it (`../../harness/label.py` finds the commit; the labels themselves are by hand in `label-overrides.json`, with the per-test result in `labels.json`). *Bug* means a defect in behaviour that already existed at the snapshot; *feature* means a new API, option or deliberate behaviour change; *unclear* is a test-only refactor whose underlying change isn't identifiable.
 
 | Repo | Bug | Feature | Unclear | Bug tests fixed per run (r1, r2, r3) | Bug recall (mean) |
 |---|---|---|---|---|---|
@@ -52,7 +52,7 @@ Feature tests fixed: 0 in all 24 runs. The labels were made from commit subjects
 Round 1's isolation was only instructions, and the repo clones with full future history sat in a sibling folder. Round 2 ran 1 fresh agent per repo with the same prompt and these changes:
 
 - New workspaces under `/srv/blind3`; the clones, future trees, screen results, labels and round-1 workspaces were moved out of the scratch area during the runs.
-- Every agent's tool calls were audited afterwards with `../audit.py`: no web tools, no network commands (pip, curl, git fetch...), no paths outside the workspace except the Python install. All 8 came back clean. The same audit on the 15 round-1 transcripts that still exist (the other 9 were lost when an earlier container was recycled) found no network use and no reads of future data, only the probe files written to the scratch root.
+- Every agent's tool calls were audited afterwards with `../../harness/audit.py`: no web tools, no network commands (pip, curl, git fetch...), no paths outside the workspace except the Python install. All 8 came back clean. The same audit on the 15 round-1 transcripts that still exist (the other 9 were lost when an earlier container was recycled) found no network use and no reads of future data, only the probe files written to the scratch root.
 - The agent could still in principle have read the shared project folder or session logs; the audit is what shows it didn't.
 
 | Repo | Bug tests fixed, round 1 mean | Round 2 (sandboxed) | Round 2 all targets | Regressions |
@@ -101,8 +101,8 @@ Agents claimed 4 to 22 fixes per run (about 14 on average). Most of those claims
 - `agents.txt`: run log.
 - `labels.json`, `label-overrides.json`: bug/feature label for every target test.
 - `sandboxed/`: round-2 scores, patches and audit report.
-- `../label.py`, `../audit.py`: labelling and transcript-audit scripts.
-- `../screen.py`, `../blind.py`: the harness.
+- `../../harness/label.py`, `../../harness/audit.py`: labelling and transcript-audit scripts.
+- `../../harness/screen.py`, `../../harness/blind.py`: the harness.
 
 ## Next
 

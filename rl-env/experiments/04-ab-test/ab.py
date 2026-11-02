@@ -5,7 +5,7 @@ usage: ab.py DIR OUT.json [SCORES.json]   (DIR holds labels-heldout.json)
 import json, re, sys, collections
 S = sys.argv[1]
 lab = json.load(open(f"{S}/labels-heldout.json"))
-ov = json.load(open(__import__("os").path.join(__import__("os").path.dirname(__file__), "..", "scale-up", "label-overrides.json")))
+ov = json.load(open(__import__("os").path.join(__import__("os").path.dirname(__file__), "..", "02-scale-up", "label-overrides.json")))
 sc = json.load(open(sys.argv[3] if len(sys.argv) > 3 else "/srv/blind4/scores.json"))
 def final(repo, r):
     o = ov.get(repo, {})
