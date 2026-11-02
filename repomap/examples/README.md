@@ -6,7 +6,7 @@
 run_examples.py --python PY     # PY: an interpreter with pytest, Python 3.12+
 ```
 
-[Shopkit Impact Examples](https://claude.ai/artifact/5QMS2QWpJhtr9LEPttiyeG) shows all six on the map page, with each selected test marked "broke" or "passed". `shopkit-map.html` is the same page as a file.
+[Shopkit Impact Examples](https://claude.ai/artifact/5QMS2QWpJhtr9LEPttiyeG) shows all six on the map page, with each selected test marked "broke" or "passed". `shopkit-map.html` is the same page as a file. Its Graph tab shows each edit as a graph of test files, the changed function and its callers, with the number of broken tests on each test file.
 
 ## The six edits
 
