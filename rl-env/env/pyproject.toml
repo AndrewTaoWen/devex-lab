@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "futurebench"
+version = "0.1.0"
+description = "Reward-signal environment: harden a repo snapshot, get scored on the repo's own future tests"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["defusedxml>=0.7.1"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+futurebench = ["tasks/*.json", "prompts/*.txt"]
