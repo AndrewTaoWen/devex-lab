@@ -1,0 +1,95 @@
+{
+ "cachetools-r1": {
+  "total": 0.180769,
+  "terms": {
+   "bugs": 0.5,
+   "tests": 0.075,
+   "regressions": -0.125,
+   "collisions": -0.269231
+  },
+  "parts": {
+   "bugs_available": 8,
+   "bugs_fixed": 4.0,
+   "verified_tests": 6,
+   "regressions": 1,
+   "collisions": 7,
+   "changed_lines": 260,
+   "detail": {
+    "task": "cachetools",
+    "units": {
+     "bug": {
+      "units": 8,
+      "all": 4.0,
+      "any": 4.0,
+      "fraction": 4.0
+     },
+     "feature": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 6,
+      "all": 0.0,
+      "any": 1.0,
+      "fraction": 0.4
+     }
+    },
+    "bugs_fixed_ids": [
+     "39b31bc",
+     "95e6add",
+     "aa73a19",
+     "c0fdf6a"
+    ],
+    "target_tests_fixed": [
+     "tests.test_cache.CacheTest::test_getsizeof_replace_grow",
+     "tests.test_cachedmethod.CacheMethodTest::test_multilevel_override",
+     "tests.test_cachedmethod.UnboundMethodTest::test_base_class_call",
+     "tests.test_cachedmethod.UnboundMethodTest::test_class_call",
+     "tests.test_cachedmethod.UnboundMethodTest::test_class_call_info",
+     "tests.test_cachedmethod.UnboundMethodTest::test_class_call_without_instance",
+     "tests.test_fifo.FIFOCacheTest::test_getsizeof_replace_grow",
+     "tests.test_lfu.LFUCacheTest::test_getsizeof_replace_grow",
+     "tests.test_lru.LRUCacheTest::test_getsizeof_replace_grow",
+     "tests.test_tlru.TLRUCacheTest::test_getsizeof_replace_grow",
+     "tests.test_tlru.TLRUCacheTest::test_overwrite_existing_with_expired",
+     "tests.test_ttl.TTLCacheTest::test_getsizeof_replace_grow"
+    ],
+    "target_tests": 41,
+    "verified_tests": [
+     "tests.test_cachedmethod.InstanceDictTest::test_call_through_class",
+     "tests.test_cachedmethod.InstanceDictTest::test_copy",
+     "tests.test_cachedmethod.InstanceDictTest::test_pickle",
+     "tests.test_cachedmethod.InstanceDictTest::test_super_does_not_shadow_override",
+     "tests.test_lru.LRUCacheTest::test_lru_update_no_unneeded_eviction",
+     "tests.test_tlru.TLRUExpiredUpdateTest::test_set_expired_replaces_existing"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [
+     "tests.test_cachedmethod.UnboundMethodTest::test_autospec_call"
+    ],
+    "changed_files": [
+     "src/cachetools/__init__.py",
+     "src/cachetools/_cachedmethod.py",
+     "tests/test_cachedmethod.py",
+     "tests/test_lru.py",
+     "tests/test_tlru.py"
+    ],
+    "replay": {
+     "collisions": 7,
+     "upstream_commits": 54,
+     "collisions_in_package": 4
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

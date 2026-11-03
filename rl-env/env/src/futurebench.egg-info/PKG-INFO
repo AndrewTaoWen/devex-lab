@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: futurebench
+Version: 0.1.0
+Summary: Reward-signal environment: harden a repo snapshot, get scored on the repo's own future tests
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: defusedxml>=0.7.1
+Provides-Extra: test
+Requires-Dist: pytest>=8; extra == "test"

@@ -1,0 +1,275 @@
+{
+ "pluggy-r1": {
+  "total": 0.205829,
+  "terms": {
+   "bugs": 0.285714,
+   "tests": 0.15,
+   "regressions": -0.0,
+   "collisions": -0.229885
+  },
+  "parts": {
+   "bugs_available": 14,
+   "bugs_fixed": 4.0,
+   "verified_tests": 12,
+   "regressions": 0,
+   "collisions": 10,
+   "changed_lines": 435,
+   "detail": {
+    "task": "pluggy",
+    "units": {
+     "bug": {
+      "units": 14,
+      "all": 4.0,
+      "any": 5.0,
+      "fraction": 4.6667
+     },
+     "feature": {
+      "units": 13,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "0f2614d",
+     "3d5417a",
+     "44474dd",
+     "629246a"
+    ],
+    "target_tests_fixed": [
+     "testing.test_details::test_not_all_arguments_warning_points_at_the_caller",
+     "testing.test_pluginmanager::test_register_validation_failure_leaves_no_state[spec-is-class]",
+     "testing.test_pluginmanager::test_register_validation_failure_leaves_no_state[spec-is-instance]",
+     "testing.test_pluginmanager::test_subset_hook_caller_with_specname",
+     "testing.test_pluginmanager::test_unregister_falsy_plugin",
+     "testing.test_tracer::test_tracing_dict_result_is_not_read_as_arguments",
+     "testing.test_tracer::test_tracing_impostor_value_is_traced_as_itself[mock-spec-dict]"
+    ],
+    "target_tests": 65,
+    "verified_tests": [
+     "testing.test_helpers::test_varnames_partial",
+     "testing.test_multicall::test_wrapper_two_yields_still_tears_down_outer",
+     "testing.test_pluginmanager::test_add_hookcall_monitoring_undo_out_of_order",
+     "testing.test_pluginmanager::test_add_hookspecs_failure_does_not_leave_spec",
+     "testing.test_pluginmanager::test_distfacade_copy",
+     "testing.test_pluginmanager::test_equal_but_distinct_plugins",
+     "testing.test_pluginmanager::test_missing_hook_args_warning_points_at_caller",
+     "testing.test_pluginmanager::test_register_failure_leaves_no_partial_state",
+     "testing.test_pluginmanager::test_register_raising_attribute_leaves_no_partial_state",
+     "testing.test_pluginmanager::test_subset_hook_caller_specname",
+     "testing.test_pluginmanager::test_unregister_falsy_plugin",
+     "testing.test_tracer::test_tracing_dict_result"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/pluggy/_callers.py",
+     "src/pluggy/_hooks.py",
+     "src/pluggy/_manager.py",
+     "testing/test_helpers.py",
+     "testing/test_multicall.py",
+     "testing/test_pluginmanager.py",
+     "testing/test_tracer.py"
+    ],
+    "replay": {
+     "collisions": 10,
+     "upstream_commits": 65,
+     "collisions_in_package": 7
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "pluggy-r2": {
+  "total": 0.291071,
+  "terms": {
+   "bugs": 0.357143,
+   "tests": 0.1125,
+   "regressions": -0.0,
+   "collisions": -0.178571
+  },
+  "parts": {
+   "bugs_available": 14,
+   "bugs_fixed": 5.0,
+   "verified_tests": 9,
+   "regressions": 0,
+   "collisions": 6,
+   "changed_lines": 336,
+   "detail": {
+    "task": "pluggy",
+    "units": {
+     "bug": {
+      "units": 14,
+      "all": 5.0,
+      "any": 6.0,
+      "fraction": 5.6667
+     },
+     "feature": {
+      "units": 13,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "09676ee",
+     "0f2614d",
+     "3d5417a",
+     "44474dd",
+     "629246a"
+    ],
+    "target_tests_fixed": [
+     "testing.test_details::test_not_all_arguments_warning_points_at_the_caller",
+     "testing.test_pluginmanager::test_register_ignores_raising_descriptors[spec-is-class]",
+     "testing.test_pluginmanager::test_register_ignores_raising_descriptors[spec-is-instance]",
+     "testing.test_pluginmanager::test_register_slot_attribute_function_is_not_bound[spec-is-class]",
+     "testing.test_pluginmanager::test_register_slot_attribute_function_is_not_bound[spec-is-instance]",
+     "testing.test_pluginmanager::test_register_validation_failure_leaves_no_state[spec-is-class]",
+     "testing.test_pluginmanager::test_register_validation_failure_leaves_no_state[spec-is-instance]",
+     "testing.test_pluginmanager::test_subset_hook_caller_with_specname",
+     "testing.test_pluginmanager::test_unregister_falsy_plugin"
+    ],
+    "target_tests": 65,
+    "verified_tests": [
+     "testing.test_hookcaller::test_missing_args_warning_points_to_caller",
+     "testing.test_pluginmanager::test_add_hookspecs_failure_leaves_no_state",
+     "testing.test_pluginmanager::test_register_equal_but_distinct_plugins",
+     "testing.test_pluginmanager::test_register_failure_in_historic_replay",
+     "testing.test_pluginmanager::test_register_failure_leaves_no_state",
+     "testing.test_pluginmanager::test_register_plugin_with_raising_property",
+     "testing.test_pluginmanager::test_subset_hook_caller_specname",
+     "testing.test_pluginmanager::test_subset_hook_caller_unhashable_plugins",
+     "testing.test_pluginmanager::test_unregister_falsy_plugin"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/pluggy/_hooks.py",
+     "src/pluggy/_manager.py",
+     "testing/test_hookcaller.py",
+     "testing/test_pluginmanager.py"
+    ],
+    "replay": {
+     "collisions": 6,
+     "upstream_commits": 65,
+     "collisions_in_package": 5
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "pluggy-r3": {
+  "total": 0.199114,
+  "terms": {
+   "bugs": 0.214286,
+   "tests": 0.1375,
+   "regressions": -0.0,
+   "collisions": -0.152672
+  },
+  "parts": {
+   "bugs_available": 14,
+   "bugs_fixed": 3.0,
+   "verified_tests": 11,
+   "regressions": 0,
+   "collisions": 6,
+   "changed_lines": 393,
+   "detail": {
+    "task": "pluggy",
+    "units": {
+     "bug": {
+      "units": 14,
+      "all": 3.0,
+      "any": 4.0,
+      "fraction": 3.6667
+     },
+     "feature": {
+      "units": 13,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "09676ee",
+     "3d5417a",
+     "44474dd"
+    ],
+    "target_tests_fixed": [
+     "testing.test_pluginmanager::test_register_ignores_raising_descriptors[spec-is-class]",
+     "testing.test_pluginmanager::test_register_ignores_raising_descriptors[spec-is-instance]",
+     "testing.test_pluginmanager::test_register_slot_attribute_function_is_not_bound[spec-is-class]",
+     "testing.test_pluginmanager::test_register_slot_attribute_function_is_not_bound[spec-is-instance]",
+     "testing.test_pluginmanager::test_subset_hook_caller_with_specname",
+     "testing.test_pluginmanager::test_unregister_falsy_plugin"
+    ],
+    "target_tests": 65,
+    "verified_tests": [
+     "testing.test_hardening::test_add_hookspecs_validation_failure_does_not_leave_spec",
+     "testing.test_hardening::test_failed_historic_replay_is_rolled_back",
+     "testing.test_hardening::test_failed_register_is_rolled_back",
+     "testing.test_hardening::test_falsy_plugin_unregister",
+     "testing.test_hardening::test_hookcall_monitoring_undo_out_of_order",
+     "testing.test_hardening::test_register_plugin_with_raising_property",
+     "testing.test_hardening::test_second_yield_does_not_skip_outer_wrapper_teardown",
+     "testing.test_hardening::test_subset_hook_caller_specname",
+     "testing.test_hardening::test_subset_hook_caller_unhashable_plugin",
+     "testing.test_hardening::test_unregister_equal_but_distinct_plugin",
+     "testing.test_hardening::test_unregister_name_and_plugin_must_agree"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/pluggy/_callers.py",
+     "src/pluggy/_hooks.py",
+     "src/pluggy/_manager.py",
+     "testing/test_hardening.py"
+    ],
+    "replay": {
+     "collisions": 6,
+     "upstream_commits": 65,
+     "collisions_in_package": 6
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

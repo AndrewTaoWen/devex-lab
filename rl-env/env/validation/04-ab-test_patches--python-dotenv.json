@@ -1,0 +1,354 @@
+{
+ "python-dotenv-r1": {
+  "total": -0.006658,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.15,
+   "regressions": -0.0,
+   "collisions": -0.156658
+  },
+  "parts": {
+   "bugs_available": 7,
+   "bugs_fixed": 0.0,
+   "verified_tests": 12,
+   "regressions": 0,
+   "collisions": 6,
+   "changed_lines": 383,
+   "detail": {
+    "task": "python-dotenv",
+    "units": {
+     "bug": {
+      "units": 7,
+      "all": 0.0,
+      "any": 1.0,
+      "fraction": 0.8571
+     },
+     "feature": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [
+     "tests.test_main::test_set_key[-a-b\\\\'c-expected15-a='b\\\\\\\\\\\\'c'\\n]",
+     "tests.test_main::test_set_key[-a-b\\\\-expected14-a='b\\\\\\\\'\\n]",
+     "tests.test_main::test_set_key_round_trips[C:\\\\Users\\\\]",
+     "tests.test_main::test_set_key_round_trips[back\\\\]",
+     "tests.test_parser::test_parse_stream[a=\"b\\\\\\\\\"\\nc=\"d\"-expected36]",
+     "tests.test_parser::test_parse_stream[a='b\\\\\\\\'\\nc='d'-expected35]"
+    ],
+    "target_tests": 33,
+    "verified_tests": [
+     "tests.test_cli::test_default_file_follows_cwd_at_invocation",
+     "tests.test_cli::test_list_and_get_read_file_as_utf8",
+     "tests.test_cli::test_run_no_override_interpolates_with_environment",
+     "tests.test_main::test_dotenv_values_many_keys_is_not_quadratic",
+     "tests.test_main::test_find_dotenv_without_file_backed_caller_uses_cwd",
+     "tests.test_main::test_resolve_variables_key_without_value_does_not_hide_others",
+     "tests.test_main::test_resolve_variables_later_none_value_unsets_file_value",
+     "tests.test_main::test_rewrite_closes_source_when_temp_file_fails",
+     "tests.test_main::test_rewrite_removes_temp_file_when_closing_it_fails",
+     "tests.test_main::test_set_key_round_trips_backslashes",
+     "tests.test_parser::test_parse_stream_crlf_error_lines_keep_line_numbers",
+     "tests.test_parser::test_parse_stream_escaped_backslash_before_closing_quote"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/dotenv/cli.py",
+     "src/dotenv/main.py",
+     "src/dotenv/parser.py",
+     "tests/test_cli.py",
+     "tests/test_main.py",
+     "tests/test_parser.py"
+    ],
+    "replay": {
+     "collisions": 6,
+     "upstream_commits": 17,
+     "collisions_in_package": 5
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "python-dotenv-r2": {
+  "total": -0.087793,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.1,
+   "regressions": -0.0,
+   "collisions": -0.187793
+  },
+  "parts": {
+   "bugs_available": 7,
+   "bugs_fixed": 0.0,
+   "verified_tests": 8,
+   "regressions": 0,
+   "collisions": 4,
+   "changed_lines": 213,
+   "detail": {
+    "task": "python-dotenv",
+    "units": {
+     "bug": {
+      "units": 7,
+      "all": 0.0,
+      "any": 1.0,
+      "fraction": 0.4286
+     },
+     "feature": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [
+     "tests.test_main::test_set_key[-a-b\\\\'c-expected15-a='b\\\\\\\\\\\\'c'\\n]",
+     "tests.test_main::test_set_key[-a-b\\\\-expected14-a='b\\\\\\\\'\\n]",
+     "tests.test_main::test_set_key[-a-b\\\\c-expected13-a='b\\\\\\\\c'\\n]"
+    ],
+    "target_tests": 33,
+    "verified_tests": [
+     "tests.test_cli::test_default_file_follows_current_directory",
+     "tests.test_cli::test_get_reads_file_as_utf8",
+     "tests.test_main::test_find_dotenv_without_any_file_frame",
+     "tests.test_main::test_set_key_backslashes_round_trip",
+     "tests.test_main::test_set_key_crlf_file_without_trailing_newline",
+     "tests.test_main::test_set_key_preserves_crlf_line_endings",
+     "tests.test_main::test_unset_key_missing_key_leaves_file_untouched",
+     "tests.test_main::test_unset_key_preserves_crlf_line_endings"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/dotenv/cli.py",
+     "src/dotenv/main.py",
+     "tests/test_cli.py",
+     "tests/test_main.py"
+    ],
+    "replay": {
+     "collisions": 4,
+     "upstream_commits": 17,
+     "collisions_in_package": 2
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "python-dotenv-r3": {
+  "total": 0.297731,
+  "terms": {
+   "bugs": 0.428571,
+   "tests": 0.0875,
+   "regressions": -0.0,
+   "collisions": -0.218341
+  },
+  "parts": {
+   "bugs_available": 7,
+   "bugs_fixed": 3.0,
+   "verified_tests": 7,
+   "regressions": 0,
+   "collisions": 5,
+   "changed_lines": 229,
+   "detail": {
+    "task": "python-dotenv",
+    "units": {
+     "bug": {
+      "units": 7,
+      "all": 3.0,
+      "any": 3.0,
+      "fraction": 3.0
+     },
+     "feature": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "f215c02",
+     "f5485a6",
+     "f7b18d9"
+    ],
+    "target_tests_fixed": [
+     "tests.test_cli::test_get_empty_string_value",
+     "tests.test_main::test_dotenv_values_empty_value_with_inline_comment[KEY=  # comment-expected1]",
+     "tests.test_main::test_dotenv_values_empty_value_with_inline_comment[KEY= # comment-expected0]",
+     "tests.test_main::test_dotenv_values_empty_value_with_inline_comment[KEY= # comment\\nOTHER=val-expected7]",
+     "tests.test_main::test_dotenv_values_empty_value_with_inline_comment[KEY=\\t# comment-expected6]",
+     "tests.test_main::test_set_key[-a-b\\\\'c-expected15-a='b\\\\\\\\\\\\'c'\\n]",
+     "tests.test_main::test_set_key[-a-b\\\\-expected14-a='b\\\\\\\\'\\n]",
+     "tests.test_main::test_set_key[-a-b\\\\c-expected13-a='b\\\\\\\\c'\\n]",
+     "tests.test_main::test_set_key_round_trips[C:\\\\Users\\\\]",
+     "tests.test_main::test_set_key_round_trips[back\\\\]",
+     "tests.test_parser::test_parse_stream[a=  # b-expected12]",
+     "tests.test_parser::test_parse_stream[a= #b-expected11]",
+     "tests.test_parser::test_parse_stream[a= #c\\nd=e-expected16]",
+     "tests.test_parser::test_parse_stream[a=\"b\\\\\\\\\"\\nc=\"d\"-expected36]",
+     "tests.test_parser::test_parse_stream[a='b\\\\\\\\'\\nc='d'-expected35]",
+     "tests.test_parser::test_parse_stream[a=\\t#c-expected15]"
+    ],
+    "target_tests": 33,
+    "verified_tests": [
+     "tests.test_cli::test_get_empty_value",
+     "tests.test_cli::test_list_and_get_read_utf8",
+     "tests.test_main::test_find_dotenv_from_zipapp_falls_back_to_cwd",
+     "tests.test_main::test_rewrite_closes_source_when_tempfile_fails",
+     "tests.test_main::test_set_key_round_trips_backslashes_and_quotes",
+     "tests.test_parser::test_parse_stream_escaped_backslash_and_empty_comment",
+     "tests.test_utils::test_to_cli_string_empty_value"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/dotenv/__init__.py",
+     "src/dotenv/cli.py",
+     "src/dotenv/main.py",
+     "src/dotenv/parser.py",
+     "tests/test_cli.py",
+     "tests/test_main.py",
+     "tests/test_parser.py",
+     "tests/test_utils.py"
+    ],
+    "replay": {
+     "collisions": 5,
+     "upstream_commits": 17,
+     "collisions_in_package": 4
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "python-dotenv-r4": {
+  "total": 0.092756,
+  "terms": {
+   "bugs": 0.142857,
+   "tests": 0.1125,
+   "regressions": -0.0,
+   "collisions": -0.162602
+  },
+  "parts": {
+   "bugs_available": 7,
+   "bugs_fixed": 1.0,
+   "verified_tests": 9,
+   "regressions": 0,
+   "collisions": 4,
+   "changed_lines": 246,
+   "detail": {
+    "task": "python-dotenv",
+    "units": {
+     "bug": {
+      "units": 7,
+      "all": 1.0,
+      "any": 2.0,
+      "fraction": 1.8571
+     },
+     "feature": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "f215c02"
+    ],
+    "target_tests_fixed": [
+     "tests.test_cli::test_get_empty_string_value",
+     "tests.test_main::test_set_key[-a-b\\\\'c-expected15-a='b\\\\\\\\\\\\'c'\\n]",
+     "tests.test_main::test_set_key[-a-b\\\\-expected14-a='b\\\\\\\\'\\n]",
+     "tests.test_main::test_set_key_round_trips[C:\\\\Users\\\\]",
+     "tests.test_main::test_set_key_round_trips[back\\\\]",
+     "tests.test_parser::test_parse_stream[a=\"b\\\\\\\\\"\\nc=\"d\"-expected36]",
+     "tests.test_parser::test_parse_stream[a='b\\\\\\\\'\\nc='d'-expected35]"
+    ],
+    "target_tests": 33,
+    "verified_tests": [
+     "tests.test_cli::test_default_file_follows_current_directory",
+     "tests.test_cli::test_get_empty_value",
+     "tests.test_cli::test_get_reads_file_as_utf8",
+     "tests.test_main::test_dotenv_values_large_file_interpolation_is_linear",
+     "tests.test_main::test_find_dotenv_without_file_backed_frames",
+     "tests.test_main::test_set_key_backslash_round_trip",
+     "tests.test_parser::test_parse_stream_error_line_numbers_with_crlf",
+     "tests.test_parser::test_parse_stream_escaped_backslash_before_closing_quote",
+     "tests.test_utils::test_to_cli_string_empty_value"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/dotenv/__init__.py",
+     "src/dotenv/cli.py",
+     "src/dotenv/main.py",
+     "src/dotenv/parser.py",
+     "tests/test_cli.py",
+     "tests/test_main.py",
+     "tests/test_parser.py",
+     "tests/test_utils.py"
+    ],
+    "replay": {
+     "collisions": 4,
+     "upstream_commits": 17,
+     "collisions_in_package": 4
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}
