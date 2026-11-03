@@ -11,7 +11,7 @@ The two feed each other. The environment needs fast, precise "what does this cha
 
 - **Turning repomap into dev tools.** The CLI works (record, impact, refresh, serve with Map and Graph views). Next I'm wrapping it as an AI skill (draft in [`devtools/ai-skill/`](devtools/ai-skill/SKILL.md)) and an MCP server, then packaging it with `pip`.
 - **Turning the pilot into an RL environment.** The harness and five experiments are done. Next is a `reset` / `score` API with containerized episodes and the combined reward (future bug tests + verified regression tests − regressions − replay conflicts).
-- **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints.
+- **Connecting the two (done, negative).** A ceiling check found repomap's value gaps and never-run lines barely point at the real future bugs, so the hint A/B was stopped before any agent ran ([`06-gaps-ab`](rl-env/experiments/06-gaps-ab/README.md)).
 
 The full priority list is in [ROADMAP.md](ROADMAP.md).
 
