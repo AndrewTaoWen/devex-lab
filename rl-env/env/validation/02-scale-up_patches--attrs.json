@@ -1,0 +1,248 @@
+{
+ "attrs-r1": {
+  "total": 0.2,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.2,
+   "regressions": -0.0,
+   "collisions": -0.0
+  },
+  "parts": {
+   "bugs_available": 2,
+   "bugs_fixed": 0.0,
+   "verified_tests": 16,
+   "regressions": 0,
+   "collisions": 0,
+   "changed_lines": 565,
+   "detail": {
+    "task": "attrs",
+    "units": {
+     "bug": {
+      "units": 2,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [],
+    "target_tests": 10,
+    "verified_tests": [
+     "tests.test_hardening.TestConverterNonFunctions::test_callable_object",
+     "tests.test_hardening.TestConverterNonFunctions::test_partial",
+     "tests.test_hardening.TestDefineReuse::test_reused_decorator_with_frozen_base",
+     "tests.test_hardening.TestEmptyLists::test_empty_converter_list",
+     "tests.test_hardening.TestEmptyLists::test_empty_validator_list",
+     "tests.test_hardening.TestIsClassVar::test_field_with_classvar_prefixed_type",
+     "tests.test_hardening.TestIsClassVar::test_names_starting_with_classvar",
+     "tests.test_hardening.TestSlots::test_base_with_private_slots",
+     "tests.test_hardening.TestSlots::test_base_with_string_slots",
+     "tests.test_hardening.TestSlots::test_pickle_and_copy_unset_attribute",
+     "tests.test_hardening::test_asdict_nested_namedtuple_retain",
+     "tests.test_hardening::test_assoc_resets_cached_hash",
+     "tests.test_hardening::test_cmp_using_compared_with_other_types",
+     "tests.test_hardening::test_fields_dict_generic",
+     "tests.test_hardening::test_make_class_does_not_mutate_dict",
+     "tests.test_hardening::test_module_globals_dont_shadow_generated_names"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/attr/_cmp.py",
+     "src/attr/_funcs.py",
+     "src/attr/_make.py",
+     "src/attr/_next_gen.py",
+     "src/attr/validators.py",
+     "tests/test_hardening.py"
+    ],
+    "replay": {
+     "collisions": 0,
+     "upstream_commits": 64,
+     "collisions_in_package": 0
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "attrs-r2": {
+  "total": 0.0625,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.0625,
+   "regressions": -0.0,
+   "collisions": -0.0
+  },
+  "parts": {
+   "bugs_available": 2,
+   "bugs_fixed": 0.0,
+   "verified_tests": 5,
+   "regressions": 0,
+   "collisions": 0,
+   "changed_lines": 177,
+   "detail": {
+    "task": "attrs",
+    "units": {
+     "bug": {
+      "units": 2,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [],
+    "target_tests": 10,
+    "verified_tests": [
+     "tests.test_converters.TestConverterNonFunctionCallables::test_callable_instance_with_self_and_field",
+     "tests.test_converters.TestConverterNonFunctionCallables::test_partial_with_self_and_field",
+     "tests.test_funcs::test_asdict_namedtuple_in_list_retain_collection_types",
+     "tests.test_next_gen.TestDefineDecoratorReuse::test_reused_decorator_does_not_leak_on_setattr",
+     "tests.test_validators::test_optional_list_is_hashable"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/attr/_funcs.py",
+     "src/attr/_make.py",
+     "src/attr/_next_gen.py",
+     "tests/test_converters.py",
+     "tests/test_funcs.py",
+     "tests/test_next_gen.py",
+     "tests/test_validators.py"
+    ],
+    "replay": {
+     "collisions": 0,
+     "upstream_commits": 64,
+     "collisions_in_package": 0
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "attrs-r3": {
+  "total": 0.231752,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.018248
+  },
+  "parts": {
+   "bugs_available": 2,
+   "bugs_fixed": 0.0,
+   "verified_tests": 20,
+   "regressions": 0,
+   "collisions": 1,
+   "changed_lines": 548,
+   "detail": {
+    "task": "attrs",
+    "units": {
+     "bug": {
+      "units": 2,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [],
+    "target_tests": 10,
+    "verified_tests": [
+     "tests.test_regressions_hardening.TestDefineReuse::test_reused_decorator_keeps_validation",
+     "tests.test_regressions_hardening.TestDefineReuse::test_reused_decorator_on_frozen_subclass",
+     "tests.test_regressions_hardening.TestGlobalNameCollisions::test_converter_vs_field_named_converter_x",
+     "tests.test_regressions_hardening.TestGlobalNameCollisions::test_factory_vs_field_named_factory_x",
+     "tests.test_regressions_hardening.TestKwOnlyExceptions::test_pickle_and_copy",
+     "tests.test_regressions_hardening.TestKwOnlyExceptions::test_private_alias",
+     "tests.test_regressions_hardening.TestModuleGlobalsDontShadow::test_init_repr_hash",
+     "tests.test_regressions_hardening.TestNamedTuplesInAsdict::test_dict_keys_and_values",
+     "tests.test_regressions_hardening.TestNamedTuplesInAsdict::test_nested_in_list",
+     "tests.test_regressions_hardening.TestNamedTuplesInAsdict::test_single_field",
+     "tests.test_regressions_hardening.TestOddBaseSlots::test_mangled_slots",
+     "tests.test_regressions_hardening.TestOddBaseSlots::test_string_slots",
+     "tests.test_regressions_hardening::test_assoc_rejects_tuple_method_names",
+     "tests.test_regressions_hardening::test_astuple_retains_defaultdict",
+     "tests.test_regressions_hardening::test_cmp_using_against_other_types",
+     "tests.test_regressions_hardening::test_fields_dict_generic",
+     "tests.test_regressions_hardening::test_frozen_errors_pickle",
+     "tests.test_regressions_hardening::test_is_class_var_prefix_only",
+     "tests.test_regressions_hardening::test_make_class_doesnt_mutate_attrs_dict",
+     "tests.test_regressions_hardening::test_slotted_copy_with_unset_attribute"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/attr/_cmp.py",
+     "src/attr/_funcs.py",
+     "src/attr/_make.py",
+     "src/attr/_next_gen.py",
+     "src/attr/exceptions.py",
+     "tests/test_regressions_hardening.py"
+    ],
+    "replay": {
+     "collisions": 1,
+     "upstream_commits": 64,
+     "collisions_in_package": 1
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

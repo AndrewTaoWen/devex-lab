@@ -11,12 +11,13 @@ Two directions, one shared core. Items are in priority order within each horizon
 | RL env | Miss analysis and precision of agent fixes | [03-analysis](rl-env/experiments/03-analysis/README.md) |
 | RL env | Prompt A/B on 4 held-out repos | [04-ab-test](rl-env/experiments/04-ab-test/README.md) |
 | RL env | Replay of upstream history onto agent patches | [05-replay](rl-env/experiments/05-replay/README.md) |
+| RL env | futurebench: reset/score environment with Docker episodes, validated on 48 old patches | [env](rl-env/env/README.md) |
 | Dev tools | repomap CLI: record, impact, refresh, status, serve (map + graph view) | [cli](devtools/cli/README.md) |
 | Dev tools | Accuracy on werkzeug history (85/85) and 200 injected faults (171/171) | [cli](devtools/cli/README.md) |
 
 ## Next (weeks)
 
-1. **Reward-signal environment.** Package the harness as an environment with `reset(repo, snapshot)` → workspace, `score(workspace)` → reward. Reward = future bug tests fixed + verified snapshot-failing regression tests − regressions − conflicts with upstream replay. Run each episode in a container with the future data outside it, so isolation no longer rests on a transcript audit. This is the core claim of the project, and every piece already exists as a script. (`rl-env/env/`, planned)
+1. **Reward-signal environment.** Built as [futurebench](rl-env/env/README.md): `reset(task)` → sandboxed episode, `score(episode)` → reward and parts. Reward = future bug units fixed + verified snapshot-failing regression tests − regressions − upstream replay collisions. Docker per episode with no network, and future tests only in a separate score image. 12 tasks (8 train, 4 eval). Re-scoring all 48 old patches reproduces the old harness's results. Next: a reference agent loop, calibrating the collision weight, and more tasks once screen.py handles the setup failures.
 2. **repomap inside the hardening agent.** Give agents `query.py`'s value gaps ("this argument was never empty") and A/B them against the improved prompt on the held-out repos. It is the cheapest test of whether the two directions help each other, and the miss analysis says empty inputs and domain rules are exactly what agents skip.
 3. **AI skill and MCP server.** Wrap the CLI so Claude Code (and any MCP client) runs `impact` before editing and selected tests after. A few days of work, usable immediately, and it gives the RL env the same tool interface. ([ai-skill](devtools/ai-skill/README.md), [mcp-server](devtools/mcp-server/README.md))
 4. **Package the CLI.** `pip install repomap` with a pytest plugin entry point (`pytest --repomap`), a stable JSON schema for `.repomap/memory.json`, and versioned output. Every other dev tool depends on this.

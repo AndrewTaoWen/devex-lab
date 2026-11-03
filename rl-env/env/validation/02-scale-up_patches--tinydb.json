@@ -1,0 +1,310 @@
+{
+ "tinydb-r1": {
+  "total": 0.508721,
+  "terms": {
+   "bugs": 0.375,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.116279
+  },
+  "parts": {
+   "bugs_available": 8,
+   "bugs_fixed": 3.0,
+   "verified_tests": 27,
+   "regressions": 0,
+   "collisions": 6,
+   "changed_lines": 516,
+   "detail": {
+    "task": "tinydb",
+    "units": {
+     "bug": {
+      "units": 8,
+      "all": 3.0,
+      "any": 3.0,
+      "fraction": 3.0
+     },
+     "feature": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "717616b",
+     "bd034d0",
+     "e83efcd"
+    ],
+    "target_tests_fixed": [
+     "tests.test_queries::test_regex_flags_affect_hash_and_query_cache",
+     "tests.test_tables::test_persist_empty_does_not_wipe_existing_data",
+     "tests.test_tinydb::test_insert_multiple_mixed_document_and_dict[json]",
+     "tests.test_tinydb::test_insert_multiple_mixed_document_and_dict[memory]"
+    ],
+    "target_tests": 9,
+    "verified_tests": [
+     "tests.test_regressions::test_any_all_with_non_cacheable_subquery",
+     "tests.test_regressions::test_caching_middleware_closes_storage_if_flush_fails",
+     "tests.test_regressions::test_copy_tinydb_does_not_recurse",
+     "tests.test_regressions::test_create_dirs_without_directory",
+     "tests.test_regressions::test_default_query_cache_capacity_override",
+     "tests.test_regressions::test_drop_table_invalidates_held_table_cache",
+     "tests.test_regressions::test_drop_tables_invalidates_held_table_cache",
+     "tests.test_regressions::test_failed_update_is_atomic_in_memory",
+     "tests.test_regressions::test_fragment_hash_includes_path",
+     "tests.test_regressions::test_fragment_on_non_mapping_value",
+     "tests.test_regressions::test_freeze_mixed_key_types_hashable",
+     "tests.test_regressions::test_get_by_doc_id_uses_document_id_class",
+     "tests.test_regressions::test_insert_document_with_str_id_does_not_duplicate",
+     "tests.test_regressions::test_insert_multiple_explicit_id_not_overwritten",
+     "tests.test_regressions::test_insert_multiple_explicit_id_on_empty_table",
+     "tests.test_regressions::test_one_of_with_generator",
+     "tests.test_regressions::test_ordering_query_with_unhashable_rhs",
+     "tests.test_regressions::test_ordering_with_incomparable_values",
+     "tests.test_regressions::test_persist_empty_does_not_wipe_existing_table",
+     "tests.test_regressions::test_regex_flags_part_of_query_hash",
+     "tests.test_regressions::test_remove_duplicate_doc_ids",
+     "tests.test_regressions::test_search_cache_not_corrupted_by_mutating_results",
+     "tests.test_regressions::test_search_with_unhashable_query",
+     "tests.test_regressions::test_test_query_with_unhashable_args",
+     "tests.test_regressions::test_update_duplicate_doc_ids",
+     "tests.test_regressions::test_update_multiple_returns_unique_ids",
+     "tests.test_regressions::test_update_multiple_with_generator"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "tests/test_regressions.py",
+     "tinydb/database.py",
+     "tinydb/middlewares.py",
+     "tinydb/queries.py",
+     "tinydb/storages.py",
+     "tinydb/table.py",
+     "tinydb/utils.py"
+    ],
+    "replay": {
+     "collisions": 6,
+     "upstream_commits": 19,
+     "collisions_in_package": 6
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "tinydb-r2": {
+  "total": 0.372123,
+  "terms": {
+   "bugs": 0.25,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.127877
+  },
+  "parts": {
+   "bugs_available": 8,
+   "bugs_fixed": 2.0,
+   "verified_tests": 23,
+   "regressions": 0,
+   "collisions": 5,
+   "changed_lines": 391,
+   "detail": {
+    "task": "tinydb",
+    "units": {
+     "bug": {
+      "units": 8,
+      "all": 2.0,
+      "any": 2.0,
+      "fraction": 2.0
+     },
+     "feature": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "bd034d0",
+     "e83efcd"
+    ],
+    "target_tests_fixed": [
+     "tests.test_queries::test_regex_flags_affect_hash_and_query_cache",
+     "tests.test_tinydb::test_insert_multiple_mixed_document_and_dict[json]",
+     "tests.test_tinydb::test_insert_multiple_mixed_document_and_dict[memory]"
+    ],
+    "target_tests": 9,
+    "verified_tests": [
+     "tests.test_queries::test_any_all_with_non_cacheable_query",
+     "tests.test_queries::test_comparison_with_unhashable_rhs",
+     "tests.test_queries::test_fragment_non_mapping_value",
+     "tests.test_queries::test_fragment_path_is_part_of_hash",
+     "tests.test_queries::test_one_of_generator",
+     "tests.test_queries::test_query_copy_and_dunder_fields",
+     "tests.test_queries::test_regex_flags_are_part_of_hash",
+     "tests.test_queries::test_regex_flags_query_cache",
+     "tests.test_storages::test_binary_access_mode",
+     "tests.test_storages::test_create_dirs_without_directory_component",
+     "tests.test_tinydb::test_copy_database_does_not_recurse",
+     "tests.test_tinydb::test_copy_middleware_does_not_recurse",
+     "tests.test_tinydb::test_drop_table_resets_held_table_instance",
+     "tests.test_tinydb::test_failed_update_is_atomic",
+     "tests.test_tinydb::test_get_by_string_doc_id_returns_int_id",
+     "tests.test_tinydb::test_insert_multiple_explicit_id_not_overwritten",
+     "tests.test_tinydb::test_remove_duplicate_doc_ids",
+     "tests.test_tinydb::test_search_result_modification_does_not_affect_cache",
+     "tests.test_tinydb::test_search_unhashable_query",
+     "tests.test_tinydb::test_update_duplicate_doc_ids",
+     "tests.test_tinydb::test_update_multiple_with_generator",
+     "tests.test_utils::test_freeze_mixed_key_types_hashable",
+     "tests.test_utils::test_freeze_tuple_with_unhashable_elements"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "tests/test_queries.py",
+     "tests/test_storages.py",
+     "tests/test_tinydb.py",
+     "tests/test_utils.py",
+     "tinydb/database.py",
+     "tinydb/middlewares.py",
+     "tinydb/queries.py",
+     "tinydb/storages.py",
+     "tinydb/table.py",
+     "tinydb/utils.py"
+    ],
+    "replay": {
+     "collisions": 5,
+     "upstream_commits": 19,
+     "collisions_in_package": 5
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "tinydb-r3": {
+  "total": 0.47758,
+  "terms": {
+   "bugs": 0.375,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.14742
+  },
+  "parts": {
+   "bugs_available": 8,
+   "bugs_fixed": 3.0,
+   "verified_tests": 23,
+   "regressions": 0,
+   "collisions": 6,
+   "changed_lines": 407,
+   "detail": {
+    "task": "tinydb",
+    "units": {
+     "bug": {
+      "units": 8,
+      "all": 3.0,
+      "any": 3.0,
+      "fraction": 3.0
+     },
+     "feature": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "717616b",
+     "bd034d0",
+     "e83efcd"
+    ],
+    "target_tests_fixed": [
+     "tests.test_queries::test_regex_flags_affect_hash_and_query_cache",
+     "tests.test_tables::test_persist_empty_does_not_wipe_existing_data",
+     "tests.test_tinydb::test_insert_multiple_mixed_document_and_dict[json]",
+     "tests.test_tinydb::test_insert_multiple_mixed_document_and_dict[memory]"
+    ],
+    "target_tests": 9,
+    "verified_tests": [
+     "tests.test_regressions::test_binary_access_mode",
+     "tests.test_regressions::test_copy_tinydb_and_query",
+     "tests.test_regressions::test_create_dirs_without_directory",
+     "tests.test_regressions::test_default_query_cache_capacity_override",
+     "tests.test_regressions::test_dropped_table_instance_has_no_stale_cache",
+     "tests.test_regressions::test_failed_update_is_atomic",
+     "tests.test_regressions::test_fragment_on_non_mapping",
+     "tests.test_regressions::test_fragment_path_is_part_of_cache_key",
+     "tests.test_regressions::test_frozendict_hash_mixed_keys",
+     "tests.test_regressions::test_get_doc_id_uses_document_id_class",
+     "tests.test_regressions::test_insert_multiple_document_and_generated_id_dont_collide",
+     "tests.test_regressions::test_insert_multiple_document_then_insert",
+     "tests.test_regressions::test_insert_with_stale_id_counter",
+     "tests.test_regressions::test_matches_and_search_flags_are_part_of_cache_key",
+     "tests.test_regressions::test_middleware_missing_storage_raises_attribute_error",
+     "tests.test_regressions::test_one_of_generator",
+     "tests.test_regressions::test_path_index_out_of_range",
+     "tests.test_regressions::test_persist_empty_does_not_wipe_existing_table",
+     "tests.test_regressions::test_query_with_unhashable_rhs_is_cacheable",
+     "tests.test_regressions::test_remove_duplicate_doc_ids",
+     "tests.test_regressions::test_search_results_do_not_alias_query_cache",
+     "tests.test_regressions::test_update_duplicate_doc_ids",
+     "tests.test_regressions::test_update_multiple_with_generator"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "tests/test_regressions.py",
+     "tinydb/database.py",
+     "tinydb/middlewares.py",
+     "tinydb/queries.py",
+     "tinydb/storages.py",
+     "tinydb/table.py",
+     "tinydb/utils.py"
+    ],
+    "replay": {
+     "collisions": 6,
+     "upstream_commits": 19,
+     "collisions_in_package": 6
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}
