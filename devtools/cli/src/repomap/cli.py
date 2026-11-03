@@ -127,6 +127,23 @@ def package_files(m):
 
 # ---------- record ----------
 
+def guess_package():
+    cands = [p for p in Path("src").glob("*/__init__.py")] or [p for p in Path(".").glob("*/__init__.py")
+                                                             if p.parent.name not in ("tests", "docs")]
+    if len(cands) != 1:
+        sys.exit("Pass --package (e.g. src/mypkg).")
+    return str(cands[0].parent)
+
+
+def guess_python():
+    """The repo's own virtualenv if it has one (the tests need its packages), else this interpreter."""
+    for d in (".venv", "venv", ".env", "env"):
+        for exe in (Path(d) / "bin" / "python", Path(d) / "Scripts" / "python.exe"):
+            if exe.exists():
+                return str(exe.absolute())
+    return sys.executable
+
+
 def record(a):
     m = dict(package=a.package.rstrip("/"), tests=a.tests, python=a.python, commit=worktree_snapshot())
     t0 = time.time()
@@ -497,7 +514,7 @@ def main():
     r = sub.add_parser("record")
     r.add_argument("--package", default=None)
     r.add_argument("--tests", default="tests")
-    r.add_argument("--python", default=sys.executable)
+    r.add_argument("--python", default=None, help="interpreter with pytest (default: ./.venv if present, else this one)")
     r.add_argument("--json", action="store_true")
     i = sub.add_parser("impact")
     i.add_argument("targets", nargs="*")
@@ -520,12 +537,8 @@ def main():
     v.add_argument("--export", metavar="FILE", help="write a self-contained HTML file instead of serving")
     a = ap.parse_args()
     if a.cmd == "record":
-        if not a.package:
-            cands = [p for p in Path("src").glob("*/__init__.py")] or [p for p in Path(".").glob("*/__init__.py")
-                                                                     if p.parent.name not in ("tests", "docs")]
-            if len(cands) != 1:
-                sys.exit("Pass --package (e.g. src/mypkg).")
-            a.package = str(cands[0].parent)
+        a.package = a.package or guess_package()
+        a.python = a.python or guess_python()
         record(a)
     elif a.cmd == "impact":
         a.diff_given = a.diff is not False
