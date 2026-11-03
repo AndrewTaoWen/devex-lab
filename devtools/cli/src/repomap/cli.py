@@ -1,20 +1,19 @@
-#!/usr/bin/env python3
 """repomap: remember what the test suite runs, then ask what a change will touch without running anything.
 
-  repomap.py record   [--package src/pkg] [--tests tests] [--python PY]
+  repomap record   [--package src/pkg] [--tests tests] [--python PY]
         Trace the whole suite once and save the memory to .repomap/memory.json (lines per test,
         call graph, value summaries, and the commit + file hashes it was recorded at).
-  repomap.py impact   [TARGET ...] [--diff [REV]] [--json]
+  repomap impact   [TARGET ...] [--diff [REV]] [--json]
         TARGET is a function name (or part of one) or path.py:LINE. With --diff (or no target),
         uses your uncommitted changes against the recorded commit. Reads only the memory file.
         Prints the changed functions, their callers grouped by module, the tests that run them,
         a pytest command for those tests, and anything the memory can't vouch for.
-  repomap.py refresh  [--diff [REV]]
+  repomap refresh  [--diff [REV]]
         Re-trace only the tests that run code in the changed files (plus changed test files) and
         merge them into the memory, so the next lookup is current without a full re-record.
-  repomap.py status
+  repomap status
         What the memory covers and which package files have changed since it was recorded.
-  repomap.py serve    [--port 8765] [--open] [--export FILE.html]
+  repomap serve    [--port 8765] [--open] [--export FILE.html]
         Open the map in a browser at a localhost link: modules and functions coloured by how many tests
         run them, a function's callers, callees and recorded values, and the impact of your uncommitted
         changes or of any functions you pick. --export writes the same page as one self-contained file.
@@ -28,6 +27,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 HERE = Path(__file__).resolve().parent
+PLUGIN = HERE / "_plugin"  # only the pytest plugin goes on the traced interpreter's path
 MEM = Path(".repomap/memory.json")
 
 
@@ -76,7 +76,7 @@ def module(key):
 
 def load():
     if not MEM.exists():
-        sys.exit("No memory yet. Run: repomap.py record")
+        sys.exit("No memory yet. Run: repomap record")
     return json.loads(MEM.read_text())
 
 
@@ -86,7 +86,7 @@ def save(m):
 
 
 def trace(m, test_args, out):
-    env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(Path(m["package"]).parent), str(HERE),
+    env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(Path(m["package"]).parent), str(PLUGIN),
                                                         os.environ.get("PYTHONPATH", "")]),
            "REPOMAP_ROOT": m["package"], "REPOMAP_OUT": str(out), "REPOMAP_EDGES": "1"}
     cmd = [m["python"], "-m", "pytest", "-q", "-p", "no:cacheprovider", "-p", "no:randomly", "-o", "addopts=",
@@ -306,7 +306,7 @@ def impact(a):
         for k in unknown:
             print(f"  {k}")
     if stale:
-        print(f"\n{len(stale)} library files changed since recording; run `repomap.py refresh` to update.")
+        print(f"\n{len(stale)} library files changed since recording; run `repomap refresh` to update.")
     if tests:
         sel = sorted({t.split('[')[0] for t in tests}) if len(tests) < 40 else sorted(by_tf)
         print(f"\nRun them:\n  {m['python']} -m pytest -q " + " ".join(sel[:40]) + (" …" if len(sel) > 40 else ""))
@@ -393,7 +393,7 @@ def ui_data(m):
 
 
 def page_with(data, changes):
-    page = (HERE / "repomap_ui.html").read_text()
+    page = (HERE / "ui.html").read_text()
     blob = json.dumps({"data": data, "changes": changes}, separators=(",", ":")).replace("</", "<\\/")
     return page.replace('<script id="embedded" type="application/json"></script>',
                         f'<script id="embedded" type="application/json">{blob}</script>')
@@ -420,7 +420,7 @@ def serve(a):
             path = urlparse(self.path).path
             try:
                 if path == "/":
-                    body, kind = (HERE / "repomap_ui.html").read_bytes(), "text/html; charset=utf-8"
+                    body, kind = (HERE / "ui.html").read_bytes(), "text/html; charset=utf-8"
                 elif path == "/api/data":
                     body, kind = current()["data"], "application/json"
                 elif path == "/api/changes":

@@ -214,7 +214,7 @@ async function boot() {
   if (emb) { const e = JSON.parse(emb); D = e.data; changes = e.changes; live = false; }
   else {
     try { D = await (await fetch("/api/data")).json(); }
-    catch (e) { $("#stats").innerHTML = `<span class="err">Could not reach the repomap server. Start it with <code>repomap.py serve</code>.</span>`; return; }
+    catch (e) { $("#stats").innerHTML = `<span class="err">Could not reach the repomap server. Start it with <code>repomap serve</code>.</span>`; return; }
     if (D.error) { $("#stats").innerHTML = `<span class="err">${esc(D.error)}</span>`; return; }
   }
   F = D.fns.map(([k, s, e, t], i) => ({i, k, s, e, t, mod: k.endsWith(":<module level>"), v: D.vals[i]}));
@@ -337,7 +337,7 @@ function render() {
 
 function renderImpact(r, on) {
   const el = $("#impact");
-  const staleNote = S.stale.length ? `<p class="warn">${S.stale.length} library file${S.stale.length > 1 ? "s" : ""} changed since the memory was traced. Run <code>repomap.py refresh</code> after you're done to fold them in.</p>` : "";
+  const staleNote = S.stale.length ? `<p class="warn">${S.stale.length} library file${S.stale.length > 1 ? "s" : ""} changed since the memory was traced. Run <code>repomap refresh</code> after you're done to fold them in.</p>` : "";
   if (!on) {
     el.innerHTML = `<h2>Impact</h2><p class="note">${S.source === "mine" ? "No changes to library or test code since the memory was traced." : "Nothing picked yet."} Pick functions to see what depends on them and which tests run them: search above, shift-click cells, or ${live ? "press <b>My uncommitted changes</b>" : "load the changes saved with this page"}.</p>${staleNote}`;
     return;

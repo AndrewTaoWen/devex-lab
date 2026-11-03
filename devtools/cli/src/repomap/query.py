@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Ask a traced map what the test suite actually did, for an agent or a person.
 
 usage:
