@@ -1,0 +1,536 @@
+{
+ "werkzeug-r1": {
+  "total": 0.135203,
+  "terms": {
+   "bugs": 0.1,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.214797
+  },
+  "parts": {
+   "bugs_available": 10,
+   "bugs_fixed": 1.0,
+   "verified_tests": 46,
+   "regressions": 0,
+   "collisions": 18,
+   "changed_lines": 838,
+   "detail": {
+    "task": "werkzeug",
+    "units": {
+     "bug": {
+      "units": 10,
+      "all": 1.0,
+      "any": 3.0,
+      "fraction": 1.7727
+     },
+     "feature": {
+      "units": 24,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "884437ae"
+    ],
+    "target_tests_fixed": [
+     "tests.test_routing.TestNoDomainMatching::test_build_relative",
+     "tests.test_routing::test_converter[float negative zero]",
+     "tests.test_routing::test_converter[float no exp large]",
+     "tests.test_routing::test_converter[float range]",
+     "tests.test_urls::test_uri_empty_auth[http://:p@d.test]",
+     "tests.test_urls::test_uri_port_0"
+    ],
+    "target_tests": 54,
+    "verified_tests": [
+     "tests.middleware.test_proxy_fix::test_proxy_fix_ignores_quotes",
+     "tests.middleware.test_shared_data::test_package_loader_does_not_leak_files",
+     "tests.sansio.test_utils::test_host_is_trusted_case_insensitive",
+     "tests.sansio.test_utils::test_host_is_trusted_skips_invalid_entry",
+     "tests.test_datastructures::test_auth_copy_pickle",
+     "tests.test_datastructures::test_auth_internal_attributes_not_parameters",
+     "tests.test_datastructures::test_authorization_basic_type_case",
+     "tests.test_datastructures::test_combined_multidict_key_order",
+     "tests.test_datastructures::test_csp_property_delete",
+     "tests.test_datastructures::test_file_storage_copy",
+     "tests.test_datastructures::test_file_storage_int_name",
+     "tests.test_datastructures::test_header_set_init_deduplicates",
+     "tests.test_datastructures::test_header_set_remove_any_case",
+     "tests.test_datastructures::test_header_set_setitem_existing_value",
+     "tests.test_datastructures::test_headers_setlist_empty_iterator",
+     "tests.test_datastructures::test_language_accept_best_match_iterator",
+     "tests.test_datastructures::test_language_accept_fallback_exact_primary_tag",
+     "tests.test_datastructures::test_multidict_empty_setlist_iteration",
+     "tests.test_exceptions::test_retry_after_zero",
+     "tests.test_formparser::test_urlencoded_streaming_max_form_memory_size",
+     "tests.test_http::test_accept_empty_param_key",
+     "tests.test_http::test_cache_control_case_insensitive",
+     "tests.test_http::test_cache_control_empty_key",
+     "tests.test_http::test_deprecated_content_range_message",
+     "tests.test_http::test_if_range_quote_inside_etag",
+     "tests.test_http::test_parse_dict_header_empty_charset_key",
+     "tests.test_http::test_parse_options_header_empty_key",
+     "tests.test_http::test_range_suffix_longer_than_length",
+     "tests.test_routing::test_build_relative_without_domain_matching",
+     "tests.test_routing::test_float_build_round_trip",
+     "tests.test_routing::test_float_build_signed_round_trip",
+     "tests.test_routing::test_rule_factories_preserve_options",
+     "tests.test_routing::test_rule_template_preserves_options",
+     "tests.test_serving::test_dechunked_input_chunk_extension",
+     "tests.test_test::test_client_cookie_expires_in_past_deletes",
+     "tests.test_test::test_client_cookie_invalid_max_age",
+     "tests.test_test::test_client_cookie_leading_dot_domain",
+     "tests.test_test::test_environ_builder_instances_do_not_share_data",
+     "tests.test_test::test_environ_builder_multiple_cookie_headers",
+     "tests.test_test::test_stream_encode_multipart_plain_file",
+     "tests.test_urls::test_iri_to_uri_invalid_idna_host",
+     "tests.test_urls::test_odd_netloc_does_not_fail",
+     "tests.test_wrappers::test_access_route_ignores_quotes",
+     "tests.test_wrappers::test_request_url_port_out_of_range",
+     "tests.test_wrappers::test_retry_after_invalid_seconds",
+     "tests.test_wsgi::test_limited_stream_short_read_into_memoryview"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/werkzeug/datastructures/accept.py",
+     "src/werkzeug/datastructures/auth.py",
+     "src/werkzeug/datastructures/cache_control.py",
+     "src/werkzeug/datastructures/csp.py",
+     "src/werkzeug/datastructures/file_storage.py",
+     "src/werkzeug/datastructures/headers.py",
+     "src/werkzeug/datastructures/range.py",
+     "src/werkzeug/datastructures/structures.py",
+     "src/werkzeug/exceptions.py",
+     "src/werkzeug/formparser.py",
+     "src/werkzeug/http.py",
+     "src/werkzeug/middleware/proxy_fix.py",
+     "src/werkzeug/middleware/shared_data.py",
+     "src/werkzeug/routing/converters.py",
+     "src/werkzeug/routing/map.py",
+     "src/werkzeug/routing/rules.py",
+     "src/werkzeug/sansio/request.py",
+     "src/werkzeug/sansio/response.py",
+     "src/werkzeug/sansio/utils.py",
+     "src/werkzeug/serving.py",
+     "src/werkzeug/test.py",
+     "src/werkzeug/urls.py",
+     "src/werkzeug/wsgi.py",
+     "tests/middleware/test_proxy_fix.py",
+     "tests/middleware/test_shared_data.py",
+     "tests/sansio/test_utils.py",
+     "tests/test_datastructures.py",
+     "tests/test_exceptions.py",
+     "tests/test_formparser.py",
+     "tests/test_http.py",
+     "tests/test_routing.py",
+     "tests/test_serving.py",
+     "tests/test_test.py",
+     "tests/test_urls.py",
+     "tests/test_wrappers.py",
+     "tests/test_wsgi.py"
+    ],
+    "replay": {
+     "collisions": 18,
+     "upstream_commits": 59,
+     "collisions_in_package": 15
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "werkzeug-r2": {
+  "total": 0.168548,
+  "terms": {
+   "bugs": 0.1,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.181452
+  },
+  "parts": {
+   "bugs_available": 10,
+   "bugs_fixed": 1.0,
+   "verified_tests": 23,
+   "regressions": 0,
+   "collisions": 9,
+   "changed_lines": 496,
+   "detail": {
+    "task": "werkzeug",
+    "units": {
+     "bug": {
+      "units": 10,
+      "all": 1.0,
+      "any": 2.0,
+      "fraction": 1.2727
+     },
+     "feature": {
+      "units": 24,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "884437ae"
+    ],
+    "target_tests_fixed": [
+     "tests.test_routing.TestNoDomainMatching::test_build_relative",
+     "tests.test_routing::test_converter[float negative zero]",
+     "tests.test_routing::test_converter[float no exp large]",
+     "tests.test_routing::test_converter[float range]"
+    ],
+    "target_tests": 54,
+    "verified_tests": [
+     "tests.test_hardening::test_build_relative_without_domain_matching",
+     "tests.test_hardening::test_cache_control_case_insensitive",
+     "tests.test_hardening::test_client_cookie_expired_removed",
+     "tests.test_hardening::test_client_cookie_leading_dot_domain",
+     "tests.test_hardening::test_closing_iterator_calls_all_callbacks",
+     "tests.test_hardening::test_environ_headers_missing_is_bad_request",
+     "tests.test_hardening::test_float_converter_build_round_trips",
+     "tests.test_hardening::test_header_property_set_none_removes",
+     "tests.test_hardening::test_header_set_init_duplicates",
+     "tests.test_hardening::test_header_set_remove_case_insensitive",
+     "tests.test_hardening::test_headers_setlist_empty_iterator",
+     "tests.test_hardening::test_if_match_star_not_precondition_failed",
+     "tests.test_hardening::test_immutable_list_clear",
+     "tests.test_hardening::test_language_accept_generator_matches",
+     "tests.test_hardening::test_limited_stream_short_read",
+     "tests.test_hardening::test_range_suffix_longer_than_length",
+     "tests.test_hardening::test_range_wrapper_empty_chunks",
+     "tests.test_hardening::test_request_args_invalid_utf8",
+     "tests.test_hardening::test_retry_after_overflow",
+     "tests.test_hardening::test_rule_template_keeps_options",
+     "tests.test_hardening::test_submount_keeps_websocket_and_merge_slashes",
+     "tests.test_hardening::test_trusted_hosts_case_insensitive",
+     "tests.test_hardening::test_urlencoded_limit_unknown_length"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/werkzeug/datastructures/accept.py",
+     "src/werkzeug/datastructures/cache_control.py",
+     "src/werkzeug/datastructures/headers.py",
+     "src/werkzeug/datastructures/mixins.py",
+     "src/werkzeug/datastructures/range.py",
+     "src/werkzeug/datastructures/structures.py",
+     "src/werkzeug/formparser.py",
+     "src/werkzeug/routing/converters.py",
+     "src/werkzeug/routing/map.py",
+     "src/werkzeug/routing/rules.py",
+     "src/werkzeug/sansio/http.py",
+     "src/werkzeug/sansio/request.py",
+     "src/werkzeug/sansio/response.py",
+     "src/werkzeug/sansio/utils.py",
+     "src/werkzeug/test.py",
+     "src/werkzeug/utils.py",
+     "src/werkzeug/wsgi.py",
+     "tests/test_hardening.py"
+    ],
+    "replay": {
+     "collisions": 9,
+     "upstream_commits": 59,
+     "collisions_in_package": 9
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "werkzeug-r3": {
+  "total": 0.19127,
+  "terms": {
+   "bugs": 0.1,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.15873
+  },
+  "parts": {
+   "bugs_available": 10,
+   "bugs_fixed": 1.0,
+   "verified_tests": 33,
+   "regressions": 0,
+   "collisions": 12,
+   "changed_lines": 756,
+   "detail": {
+    "task": "werkzeug",
+    "units": {
+     "bug": {
+      "units": 10,
+      "all": 1.0,
+      "any": 2.0,
+      "fraction": 1.2727
+     },
+     "feature": {
+      "units": 24,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "4da3786f"
+    ],
+    "target_tests_fixed": [
+     "tests.test_routing::test_converter[float negative zero]",
+     "tests.test_routing::test_converter[float no exp large]",
+     "tests.test_routing::test_converter[float range]",
+     "tests.test_urls::test_uri_empty_auth[http://:@d.test]",
+     "tests.test_urls::test_uri_empty_auth[http://:p@d.test]",
+     "tests.test_urls::test_uri_empty_auth[http://u:@d.test]",
+     "tests.test_urls::test_uri_port_0"
+    ],
+    "target_tests": 54,
+    "verified_tests": [
+     "tests.test_hardening::test_authorization_copy_pickle",
+     "tests.test_hardening::test_cached_property_delete_uncached",
+     "tests.test_hardening::test_client_cookie_invalid_max_age",
+     "tests.test_hardening::test_client_cookie_leading_dot_domain",
+     "tests.test_hardening::test_client_cookie_past_expires_deletes",
+     "tests.test_hardening::test_content_range_stop_past_length",
+     "tests.test_hardening::test_environ_builder_independent_containers",
+     "tests.test_hardening::test_exception_iterables_reusable",
+     "tests.test_hardening::test_file_storage_copy_pickle",
+     "tests.test_hardening::test_file_storage_falsy_stream_kept",
+     "tests.test_hardening::test_file_storage_mimetype_follows_header",
+     "tests.test_hardening::test_float_converter_round_trip",
+     "tests.test_hardening::test_header_set_duplicates",
+     "tests.test_hardening::test_header_set_remove_case",
+     "tests.test_hardening::test_headers_setlist_empty_iterator",
+     "tests.test_hardening::test_host_is_trusted_case_insensitive",
+     "tests.test_hardening::test_host_is_trusted_invalid_entry",
+     "tests.test_hardening::test_int_converter_ascii_digits_and_huge",
+     "tests.test_hardening::test_iri_uri_netloc_round_trip",
+     "tests.test_hardening::test_language_accept_best_match_iterator",
+     "tests.test_hardening::test_language_accept_fallback_prefix",
+     "tests.test_hardening::test_limited_stream_readinto_short_read",
+     "tests.test_hardening::test_multidict_empty_list",
+     "tests.test_hardening::test_multipart_encoder_quotes_params",
+     "tests.test_hardening::test_parse_converter_args_positional_and_negative",
+     "tests.test_hardening::test_parse_cookie_invalid_utf8",
+     "tests.test_hardening::test_parse_options_header_linear",
+     "tests.test_hardening::test_range_suffix_longer_than_length",
+     "tests.test_hardening::test_range_suffix_response",
+     "tests.test_hardening::test_retry_after_zero",
+     "tests.test_hardening::test_shared_data_package_loader_not_left_open",
+     "tests.test_hardening::test_test_client_quotes_form_names",
+     "tests.test_hardening::test_www_authenticate_copy_pickle"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/werkzeug/datastructures/accept.py",
+     "src/werkzeug/datastructures/auth.py",
+     "src/werkzeug/datastructures/file_storage.py",
+     "src/werkzeug/datastructures/headers.py",
+     "src/werkzeug/datastructures/range.py",
+     "src/werkzeug/datastructures/structures.py",
+     "src/werkzeug/exceptions.py",
+     "src/werkzeug/http.py",
+     "src/werkzeug/middleware/shared_data.py",
+     "src/werkzeug/routing/converters.py",
+     "src/werkzeug/routing/rules.py",
+     "src/werkzeug/sansio/multipart.py",
+     "src/werkzeug/sansio/utils.py",
+     "src/werkzeug/test.py",
+     "src/werkzeug/urls.py",
+     "src/werkzeug/utils.py",
+     "src/werkzeug/wsgi.py",
+     "tests/test_hardening.py"
+    ],
+    "replay": {
+     "collisions": 12,
+     "upstream_commits": 59,
+     "collisions_in_package": 12
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "werkzeug-r4": {
+  "total": 0.513874,
+  "terms": {
+   "bugs": 0.4,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.136126
+  },
+  "parts": {
+   "bugs_available": 10,
+   "bugs_fixed": 4.0,
+   "verified_tests": 48,
+   "regressions": 0,
+   "collisions": 13,
+   "changed_lines": 955,
+   "detail": {
+    "task": "werkzeug",
+    "units": {
+     "bug": {
+      "units": 10,
+      "all": 4.0,
+      "any": 5.0,
+      "fraction": 4.2727
+     },
+     "feature": {
+      "units": 24,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "0c419f95",
+     "4da3786f",
+     "6d7c0b4e",
+     "884437ae"
+    ],
+    "target_tests_fixed": [
+     "tests.test_http.TestRange::test_range_parsing",
+     "tests.test_routing.TestNoDomainMatching::test_build_relative",
+     "tests.test_routing::test_converter[float negative zero]",
+     "tests.test_routing::test_converter[float no exp large]",
+     "tests.test_routing::test_converter[float range]",
+     "tests.test_routing::test_part_converter_order",
+     "tests.test_urls::test_uri_empty_auth[http://:@d.test]",
+     "tests.test_urls::test_uri_empty_auth[http://:p@d.test]",
+     "tests.test_urls::test_uri_empty_auth[http://u:@d.test]",
+     "tests.test_urls::test_uri_port_0"
+    ],
+    "target_tests": 54,
+    "verified_tests": [
+     "tests.test_regressions::test_append_slash_redirect_quotes",
+     "tests.test_regressions::test_authorization_copy_pickle",
+     "tests.test_regressions::test_build_relative_without_subdomain_matching",
+     "tests.test_regressions::test_cached_property_delete_uncached",
+     "tests.test_regressions::test_client_cookie_expired_deleted",
+     "tests.test_regressions::test_client_cookie_invalid_max_age",
+     "tests.test_regressions::test_client_cookie_leading_dot_domain",
+     "tests.test_regressions::test_combined_multidict_deepcopy",
+     "tests.test_regressions::test_converter_negative_arguments",
+     "tests.test_regressions::test_csp_delete_property",
+     "tests.test_regressions::test_csp_empty_value_to_header",
+     "tests.test_regressions::test_dump_header_empty_key",
+     "tests.test_regressions::test_environ_builder_multiple_cookie_headers",
+     "tests.test_regressions::test_file_storage_copy",
+     "tests.test_regressions::test_file_storage_fd_name",
+     "tests.test_regressions::test_file_storage_mimetype_after_header_change",
+     "tests.test_regressions::test_float_converter_round_trip",
+     "tests.test_regressions::test_header_property_none_removes_header",
+     "tests.test_regressions::test_headers_get_type_error",
+     "tests.test_regressions::test_headers_key_newline",
+     "tests.test_regressions::test_headers_setlist_empty_iterator",
+     "tests.test_regressions::test_headerset_no_duplicates",
+     "tests.test_regressions::test_headerset_remove_case_insensitive",
+     "tests.test_regressions::test_host_is_trusted_case_insensitive",
+     "tests.test_regressions::test_if_range_invalid_etag",
+     "tests.test_regressions::test_immutable_list_clear",
+     "tests.test_regressions::test_iri_to_uri_ascii_host_not_idna_validated",
+     "tests.test_regressions::test_iri_to_uri_mixed_host",
+     "tests.test_regressions::test_iri_uri_keep_userinfo_port",
+     "tests.test_regressions::test_language_accept_fallback_not_prefix",
+     "tests.test_regressions::test_language_accept_generator",
+     "tests.test_regressions::test_limited_stream_short_readinto_memoryview",
+     "tests.test_regressions::test_make_conditional_suffix_longer_than_content",
+     "tests.test_regressions::test_match_many_converters_in_part",
+     "tests.test_regressions::test_multidict_empty_list_values",
+     "tests.test_regressions::test_multipart_newline_in_name_does_not_inject_header",
+     "tests.test_regressions::test_multipart_special_names_round_trip",
+     "tests.test_regressions::test_parse_cookie_invalid_encoding",
+     "tests.test_regressions::test_range_suffix_longer_than_content",
+     "tests.test_regressions::test_range_suffix_zero",
+     "tests.test_regressions::test_request_args_invalid_utf8",
+     "tests.test_regressions::test_retry_after_zero",
+     "tests.test_regressions::test_rule_factories_keep_options",
+     "tests.test_regressions::test_rule_template_keeps_redirect_alias_host",
+     "tests.test_regressions::test_stream_encode_multipart_does_not_modify_headers",
+     "tests.test_regressions::test_stream_encode_multipart_plain_file",
+     "tests.test_regressions::test_www_authenticate_copy_pickle",
+     "tests.test_regressions::test_www_authenticate_property_setters"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/werkzeug/datastructures/accept.py",
+     "src/werkzeug/datastructures/auth.py",
+     "src/werkzeug/datastructures/csp.py",
+     "src/werkzeug/datastructures/file_storage.py",
+     "src/werkzeug/datastructures/headers.py",
+     "src/werkzeug/datastructures/mixins.py",
+     "src/werkzeug/datastructures/range.py",
+     "src/werkzeug/datastructures/structures.py",
+     "src/werkzeug/exceptions.py",
+     "src/werkzeug/http.py",
+     "src/werkzeug/routing/converters.py",
+     "src/werkzeug/routing/map.py",
+     "src/werkzeug/routing/matcher.py",
+     "src/werkzeug/routing/rules.py",
+     "src/werkzeug/sansio/multipart.py",
+     "src/werkzeug/sansio/request.py",
+     "src/werkzeug/sansio/utils.py",
+     "src/werkzeug/test.py",
+     "src/werkzeug/urls.py",
+     "src/werkzeug/utils.py",
+     "src/werkzeug/wsgi.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 13,
+     "upstream_commits": 59,
+     "collisions_in_package": 13
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

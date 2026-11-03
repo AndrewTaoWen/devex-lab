@@ -24,6 +24,11 @@ FOUND = {"python-dotenv": [("#", "f5485a6"), ("\\\\", "f7b18d9")],
                       ("test_csp_header", "63a800ca")]}
 
 
+# per-task pytest arguments. werkzeug: the dev-server tests start live servers; with watchdog installed
+# (its optional extra) the reloader test never returns inside the sandbox, and no target test needs them.
+PYTEST_ARGS = {"werkzeug": ["-m", "not dev_server"]}
+
+
 def final_label(overrides, row):
     """Same precedence as 04-ab-test/ab.py: hand overrides by test or commit prefix, then the auto label."""
     func = re.sub(r"\[.*", "", row["test"].split("::")[-1])
@@ -87,6 +92,8 @@ def build(exp: Path):
                 "tests": scr["tests"],
                 "units": out_units,
             }
+            if name in PYTEST_ARGS:
+                tasks[name]["pytest_args"] = PYTEST_ARGS[name]
     return tasks
 
 

@@ -15,6 +15,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import uuid
 from pathlib import Path
 
 # the full (not -slim) image, so agents get git; mirror.gcr.io because Docker Hub rate-limits anonymous pulls
@@ -120,9 +121,14 @@ def _user_args():
 def run_in(image: str, kind: str, tree: Path, cmd: list[str], timeout=2400, network="none"):
     """Run cmd in a throwaway container with `tree` mounted at the image's code path."""
     mount = MOUNTS[kind]
-    p = subprocess.run(["docker", "run", "--rm", "--network", network, *_user_args(),
-                        "-v", f"{tree}:{mount}", image, "sh", "-c", ENTRY, "entry", mount, *cmd],
-                       capture_output=True, text=True, timeout=timeout)
+    name = f"fb-run-{os.getpid()}-{uuid.uuid4().hex[:8]}"
+    try:
+        p = subprocess.run(["docker", "run", "--rm", "--name", name, "--network", network, *_user_args(),
+                            "-v", f"{tree}:{mount}", image, "sh", "-c", ENTRY, "entry", mount, *cmd],
+                           capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        docker("rm", "-f", name, check=False)  # killing the client leaves the container running
+        return 124, f"timed out after {timeout}s"
     return p.returncode, p.stdout + p.stderr
 
 

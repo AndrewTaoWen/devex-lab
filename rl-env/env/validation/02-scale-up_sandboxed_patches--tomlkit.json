@@ -1,0 +1,126 @@
+{
+ "tomlkit-r1": {
+  "total": 0.186541,
+  "terms": {
+   "bugs": 0.145455,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.208914
+  },
+  "parts": {
+   "bugs_available": 55,
+   "bugs_fixed": 8.0,
+   "verified_tests": 27,
+   "regressions": 0,
+   "collisions": 15,
+   "changed_lines": 718,
+   "detail": {
+    "task": "tomlkit",
+    "units": {
+     "bug": {
+      "units": 55,
+      "all": 8.0,
+      "any": 9.0,
+      "fraction": 8.75
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "4b38bec",
+     "61941de",
+     "67d3e86",
+     "8c30fc1",
+     "a076a6a",
+     "b1399c3",
+     "b48c094",
+     "f9b4b22"
+    ],
+    "target_tests_fixed": [
+     "tests.test_items::test_adding_to_dotted_key_inside_inline_table",
+     "tests.test_items::test_adding_to_nested_dotted_key_inside_inline_table",
+     "tests.test_items::test_array_slice_assignment_does_not_mutate[index0-replacement0]",
+     "tests.test_items::test_array_slice_assignment_does_not_mutate[index1-replacement1]",
+     "tests.test_items::test_array_slice_assignment_does_not_mutate[index2-replacement2]",
+     "tests.test_items::test_array_slice_assignment_does_not_mutate[index3-replacement3]",
+     "tests.test_items::test_array_slice_assignment_does_not_mutate[index4-replacement4]",
+     "tests.test_items::test_array_slice_assignment_does_not_mutate[index5-replacement5]",
+     "tests.test_items::test_array_slice_deletion_keeps_render_in_sync",
+     "tests.test_items::test_string_add_escapes_appended_content",
+     "tests.test_parser::test_parser_rejects_overlong_decimal_integer",
+     "tests.test_parser::test_parser_rejects_surrogate_unicode_escapes[a = \"\\\\U0000D800\"]",
+     "tests.test_parser::test_parser_rejects_surrogate_unicode_escapes[a = \"\\\\U0000DC00\"]",
+     "tests.test_parser::test_parser_rejects_surrogate_unicode_escapes[a = \"\\\\U0000DFFF\"]",
+     "tests.test_toml_document::test_replace_dotted_key_with_aot_keeps_following_sibling",
+     "tests.test_toml_document::test_replace_dotted_key_with_empty_table_keeps_following_sibling",
+     "tests.test_toml_document::test_replace_dotted_key_with_table_keeps_following_sibling",
+     "tests.test_toml_document::test_replace_middle_table_with_value",
+     "tests.test_toml_document::test_replace_value_with_table_keeps_following_dotted_sibling"
+    ],
+    "target_tests": 161,
+    "verified_tests": [
+     "tests.test_regressions::test_add_super_table_to_dotted_key_table",
+     "tests.test_regressions::test_add_table_to_dotted_key_table",
+     "tests.test_regressions::test_aot_setitem_keeps_list_in_sync",
+     "tests.test_regressions::test_appending_many_values_is_not_quadratic",
+     "tests.test_regressions::test_array_append_is_not_quadratic",
+     "tests.test_regressions::test_array_delete_slice",
+     "tests.test_regressions::test_array_slice_assignment_does_not_corrupt_array",
+     "tests.test_regressions::test_array_sort_keeps_rendering_in_sync",
+     "tests.test_regressions::test_copy_of_document_keeps_table_keys",
+     "tests.test_regressions::test_date_and_time_built_directly_render",
+     "tests.test_regressions::test_dumps_sort_keys_on_tables_and_nested_tables",
+     "tests.test_regressions::test_escape_string_is_not_quadratic",
+     "tests.test_regressions::test_huge_integer_is_not_parsed_as_infinite_float",
+     "tests.test_regressions::test_inline_table_copy_and_pickle_keep_formatting",
+     "tests.test_regressions::test_inline_table_dotted_key_subtable_mutation",
+     "tests.test_regressions::test_inline_table_rendering_is_not_quadratic",
+     "tests.test_regressions::test_inline_table_with_dotted_key_appended",
+     "tests.test_regressions::test_integer_negative_power_returns_float",
+     "tests.test_regressions::test_out_of_order_table_proxy_copy_and_pickle",
+     "tests.test_regressions::test_replace_dotted_table",
+     "tests.test_regressions::test_replace_table_with_value_does_not_move_it_into_other_table",
+     "tests.test_regressions::test_replace_value_with_table_after_dotted_keys",
+     "tests.test_regressions::test_round_float_without_ndigits_returns_int",
+     "tests.test_regressions::test_string_concatenation_is_escaped",
+     "tests.test_regressions::test_string_concatenation_keeps_type_when_possible",
+     "tests.test_regressions::test_surrogate_unicode_escape_is_rejected",
+     "tests.test_regressions::test_utc_datetime_offset_with_seconds_is_not_garbled"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "tests/test_regressions.py",
+     "tomlkit/_utils.py",
+     "tomlkit/api.py",
+     "tomlkit/container.py",
+     "tomlkit/items.py",
+     "tomlkit/parser.py"
+    ],
+    "replay": {
+     "collisions": 15,
+     "upstream_commits": 96,
+     "collisions_in_package": 15
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

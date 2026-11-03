@@ -1,16 +1,16 @@
 {
  "cattrs-r1": {
-  "total": 0.469243,
+  "total": 0.506743,
   "terms": {
    "bugs": 0.428571,
-   "tests": 0.175,
+   "tests": 0.2125,
    "regressions": -0.0,
    "collisions": -0.134328
   },
   "parts": {
    "bugs_available": 7,
    "bugs_fixed": 3.0,
-   "verified_tests": 14,
+   "verified_tests": 17,
    "regressions": 0,
    "collisions": 9,
    "changed_lines": 670,
@@ -58,7 +58,10 @@
      "tests.test_hardening::test_error_formatting_robustness",
      "tests.test_hardening::test_hetero_tuple_too_many_message",
      "tests.test_hardening::test_hook_factory_decorators_return_factory",
+     "tests.test_hardening::test_msgspec_counter_unstructures_keys",
+     "tests.test_hardening::test_msgspec_respects_customizations",
      "tests.test_hardening::test_namedtuple_stringified_annotations",
+     "tests.test_hardening::test_orjson_bare_enum_keys_roundtrip",
      "tests.test_hardening::test_rename_special_characters",
      "tests.test_hardening::test_subclasses_filtering",
      "tests.test_hardening::test_tagged_union_default_does_not_grow",
@@ -103,17 +106,17 @@
   }
  },
  "cattrs-r2": {
-  "total": 0.556981,
+  "total": 0.569481,
   "terms": {
    "bugs": 0.428571,
-   "tests": 0.2375,
+   "tests": 0.25,
    "regressions": -0.0,
    "collisions": -0.109091
   },
   "parts": {
    "bugs_available": 7,
    "bugs_fixed": 3.0,
-   "verified_tests": 19,
+   "verified_tests": 21,
    "regressions": 0,
    "collisions": 9,
    "changed_lines": 825,
@@ -186,7 +189,9 @@
      "tests.test_regressions_hardening::test_literal_bool_int_distinct",
      "tests.test_regressions_hardening::test_literal_disambiguation_stringified_dataclasses",
      "tests.test_regressions_hardening::test_literal_disambiguation_with_aliases",
+     "tests.test_regressions_hardening::test_msgspec_dataclass_respects_field_hooks",
      "tests.test_regressions_hardening::test_namedtuple_stringified_and_subclass",
+     "tests.test_regressions_hardening::test_pyyaml_str_subclass",
      "tests.test_regressions_hardening::test_rename_with_special_chars",
      "tests.test_regressions_hardening::test_subclasses_of_attrs_slotted_deduplicated",
      "tests.test_regressions_hardening::test_subclasses_of_slotted_dataclass",

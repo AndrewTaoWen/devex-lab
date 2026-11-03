@@ -27,12 +27,14 @@ Run in this order, each building on the last:
 
 [`research/repo-evolution-training-data.md`](research/repo-evolution-training-data.md) surveys related benchmarks (SWE-CI, SWE-Milestone, SWE-Chain, SWE-EVO) and training data as of October 2026.
 
-## What turns this into an environment
+## The environment: futurebench
 
-Planned as `rl-env/env/` (see [ROADMAP.md](../ROADMAP.md), item 1):
+[`env/`](env/README.md) packages the steps above as a pip-installable environment:
 
-- **API.** `reset(repo, snapshot)` returns a workspace; `score(workspace)` returns the reward and its parts.
-- **Reward.** Future bug tests fixed + verified regression tests that fail on the snapshot − regressions − upstream replay conflicts. The future-test part is a floor, since most real fixes are bugs upstream hasn't reported yet.
-- **Isolation.** One container per episode with future data outside it, replacing "move the data away and audit the transcript".
-- **Data.** The 12 repos run so far, then the rest of the screened repos, larger repos with feature tests filtered to snapshot APIs, then other languages.
-- **Change impact.** [repomap](../devtools/cli/README.md) can pick the tests to run per episode (cheaper scoring) and hand the agent value gaps as hints.
+- **API.** `futurebench.reset(task)` lays out the snapshot and starts a Docker sandbox with no network. `Episode.exec(cmd)` runs the agent's commands in it. `futurebench.score(episode)` returns the reward and its parts.
+- **Reward.** Future bug units fixed + capped verified regression tests − regressions − upstream replay collisions. The weights are flags, and every part is stored so episodes can be re-weighed later without rerunning tests.
+- **Isolation.** The episode container only ever holds the snapshot. Future tests run in a separate score image, on a copy of the workspace, outside the episode.
+- **Tasks.** The 12 repos above: 8 train (116 bug units) and 4 eval (30 bug units, from the 04 held-out set).
+- **Validation.** Re-scoring the 48 patches from 02 and 04 reproduces the old harness's fixed tests and regressions ([`env/validation/`](env/validation/README.md)).
+
+Still open: more repos (the screened-but-unrun ones mostly failed setup, so screen.py needs fixes first), repomap test selection to make scoring cheaper, and a reference agent loop on top of `Episode.exec`.

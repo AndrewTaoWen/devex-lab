@@ -311,5 +311,9 @@
     "tests.middleware.test_proxy_fix::test_proxy_fix[proto]"
    ]
   }
+ ],
+ "pytest_args": [
+  "-m",
+  "not dev_server"
  ]
 }
