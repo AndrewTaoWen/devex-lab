@@ -11,7 +11,7 @@ The two feed each other. The environment needs fast, precise "what does this cha
 
 - **Turning repomap into dev tools.** The CLI works (record, impact, refresh, serve with Map and Graph views). Next I'm wrapping it as an AI skill (draft in [`devtools/ai-skill/`](devtools/ai-skill/SKILL.md)) and an MCP server, then packaging it with `pip`.
 - **Turning the pilot into an RL environment.** The harness and five experiments are done. Next is a `reset` / `score` API with containerized episodes and the combined reward (future bug tests + verified regression tests − regressions − replay conflicts).
-- **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints ([`06-gaps-ab`](rl-env/experiments/06-gaps-ab/README.md)). A first check found the empty/zero/negative gaps point at almost none of werkzeug's real future bugs, so the tracer now also records string character classes (non-ASCII, signs, quotes, empty fields). Next: re-trace werkzeug and pydantic-settings, then 3 runs per arm.
+- **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints ([`06-gaps-ab`](rl-env/experiments/06-gaps-ab/README.md)). A first check found the empty/zero/negative gaps point at almost none of werkzeug's real future bugs, The tracer now also records string character classes. Neither those nor never-run lines point at the bugs much better than chance, so the agent runs are paused while I decide whether to run them anyway.
 
 The full priority list is in [ROADMAP.md](ROADMAP.md).
 

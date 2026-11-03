@@ -2,9 +2,10 @@
 import ast,json,re,subprocess,sys,os
 repo,clone,pkgprefix=sys.argv[1],sys.argv[2],sys.argv[3]  # pkgprefix e.g. src/
 mapf=sys.argv[4] if len(sys.argv)>4 else None
-sys.path.insert(0,'devtools/cli'); from query import gaps_of
+sys.path.insert(0,'devtools/cli'); from query import gaps_of, rich_probes, BASIC
 bugs=json.load(open(os.environ['S']+'/bugs.json'))[repo]
-F=json.load(open(mapf))['functions'] if mapf else {}
+F=json.load(open(mapf))["functions"] if mapf else {}
+PR=BASIC if os.environ.get("BASIC") else rich_probes(F)
 def g(*a): return subprocess.run(['git','-C',clone,*a],capture_output=True,text=True).stdout
 def funcs(text):
     out=[]
@@ -33,6 +34,6 @@ for c in bugs:
     print(f'\n{c} {subj}  [{len(bugs[c])} tests]')
     for k in sorted(changed):
         if k in F:
-            gp=[f"{a} never {'/'.join(x)}" for a,s in F[k]['args'].items() if (x:=gaps_of(s))]
+            gp=[f"{a} never {'/'.join(x)}" for a,s in F[k]['args'].items() if a not in ("self","cls") and (x:=gaps_of(s,PR))]
             print(f'  {k}: '+('; '.join(gp) if gp else 'no gaps'))
         else: print(f'  {k}'+('  (not in map)' if F else ''))

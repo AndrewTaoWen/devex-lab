@@ -1,6 +1,16 @@
 # Gaps A/B: do repomap's untested-value gaps help hardening agents catch future bugs?
 
-Status (2026-11-02): planning. Agents not run yet.
+Status (2026-11-03): ceiling checks done, agents not run. Neither repomap signal points at the real future bugs much better than chance, so the A/B is paused for a decision.
+
+## Short answer so far
+
+Before spending agents, we checked whether repomap's signals even point at the 16 real future bugs on werkzeug and pydantic-settings:
+
+- **Value gaps, basic probes** (never empty / zero / negative): 0 clear hits on werkzeug's 10 bugs, 1 partial, 1 near miss.
+- **Value gaps, richer string probes:** they flag 75 to 98% of all public string arguments, so a hit means little. Two werkzeug bugs gain a fitting flag (`NumberConverter.to_python: value never non_ascii_digit`, `_plain_int: value never control_char`).
+- **Never-run lines:** on werkzeug, 4 of 10 bug fixes touch a statement no snapshot test runs, against a base rate of 26% of statements. On pydantic-settings, 0 of 6, against a base rate of 6%. Every pydantic-settings bug sits in code the tests already run.
+
+The bugs mostly live in code the tests do run, with inputs nobody thought to try that are specific to the domain (a port in a host, `-0` in a range, a UTF-8 file read with the locale encoding). repomap records what tests did, not what they should have done, so it can't name those inputs.
 
 ## Plan (agreed so far)
 
@@ -15,7 +25,7 @@ The first gaps view only asked whether a whole argument was ever empty, zero or 
 
 On werkzeug's snapshot map: 375 flagged functions with the basic view, 260 with `--public`.
 
-## Step 0: ceiling check on werkzeug (before any agents)
+## Step 0a: value gaps on werkzeug (old map, basic probes)
 
 Snapshot map: `../../../devtools/cli/werkzeug/snapshot-map.json.gz` (query.py gaps: 375 flagged functions).
 Bugs: the 10 distinct future bug commits from rl-env/experiments/04-ab-test (labels + overrides, ab.py logic).
@@ -46,7 +56,48 @@ snapshots was blocked by the session's permission check.
 
 With the probes already in the old map (non-ASCII, surrounding whitespace), `NumberConverter.to_python: value never non_ascii` turns c678a231 into a hit, so 1 hit, 1 partial and 1 near miss. The rest of the new probes need a fresh trace of the snapshot.
 
+## Step 0b: richer probes and never-run lines (fresh snapshot traces)
+
+Both snapshots were re-traced with the new probes (werkzeug: 988 tests, watchdog reloader tests skipped because they hang in this container; pydantic-settings: 549 tests, `test_docs.py` skipped, the same 7 CLI failures as in 04 from the newer pydantic).
+
+Share of public string arguments the tests never fed each kind of value:
+
+| Probe | werkzeug (276 args) | pydantic-settings (51 args) |
+|---|---|---|
+| sign prefix | 97% | 92% |
+| non-ASCII digit | 97% | n/a (never seen anywhere) |
+| control character | 96% | n/a |
+| surrounding whitespace | 94% | n/a |
+| quote | 88% | 94% |
+| non-ASCII | 87% | 98% |
+| empty | 80% | 76% |
+| empty field | 75% | 80% |
+
+Statements each bug fix edits, mapped back to the snapshot (`coverage_check.py`):
+
+| Repo | Commit | Bug | Run by tests | Never run | Added after snapshot |
+|---|---|---|---|---|---|
+| werkzeug | 658bf5ed | validate host port | 0 | 0 | 2 |
+| werkzeug | 1b8bc581 | validate base64 | 1 | 0 | 0 |
+| werkzeug | 5b0dc6d6 | invalid etags | 4 | 0 | 6 |
+| werkzeug | 0c419f95 | `bytes=-0` | 0 | 0 | 1 |
+| werkzeug | b9761b5b | stricter `_plain_int` | 2 | **2** | 0 |
+| werkzeug | 884437ae | external-URL logic | 0 | **1** | 0 |
+| werkzeug | c678a231 | stricter converters | 11 | **7** | 1 |
+| werkzeug | 6d7c0b4e | numeric converter sort | 1 | 0 | 0 |
+| werkzeug | 0e170182 | etag comparison | 3 | 0 | 3 |
+| werkzeug | 4da3786f | empty username, port 0 | 5 | **1** | 0 |
+| pydantic-settings | 0e8d7d4 | empty JSON config file | 1 | 0 | 0 |
+| pydantic-settings | 12cdb0a | JSON/YAML read as UTF-8 | 3 | 0 | 0 |
+| pydantic-settings | 081d39f | config/CLI values ignored | 12 | 0 | 1 |
+| pydantic-settings | d2fdeda | secret files read as UTF-8 | 1 | 0 | 1 |
+| pydantic-settings | e1e0ece | nested secrets follow symlinks | 2 | 0 | 0 |
+| pydantic-settings | bf443bd | empty yaml_config_section | 1 | 0 | 0 |
+
+Base rate of never-run statements inside package functions: werkzeug 26%, pydantic-settings 6%.
+
 ## Files
 
 - `bugs.py`: writes `$S/bugs.json`, the distinct future bug commits per repo (same labelling as `../04-ab-test/ab.py`). Run from the repo root with `S=<dir>`.
+- `coverage_check.py REPO CLONE PKG_PREFIX MAP SNAPSHOT`: step 0b, bug-fix statements run or never run at the snapshot, plus the base rate.
 - `touch.py REPO CLONE PKG_PREFIX [MAP]`: for each bug commit, the functions it changed and their gaps in the map.
