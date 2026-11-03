@@ -1,6 +1,6 @@
 # Gaps A/B: do repomap's untested-value gaps help hardening agents catch future bugs?
 
-Status (2026-11-03): ceiling checks done, agents not run. Neither repomap signal points at the real future bugs much better than chance, so the A/B is paused for a decision.
+Status (2026-11-03): stopped before any agent ran. Neither repomap signal points at the real future bugs much better than chance, so Andrew decided not to spend the 12 agents and to record this as a negative result.
 
 ## Short answer so far
 
@@ -12,7 +12,14 @@ Before spending agents, we checked whether repomap's signals even point at the 1
 
 The bugs mostly live in code the tests do run, with inputs nobody thought to try that are specific to the domain (a port in a host, `-0` in a range, a UTF-8 file read with the locale encoding). repomap records what tests did, not what they should have done, so it can't name those inputs.
 
-## Plan (agreed so far)
+## What this says
+
+- **repomap as built can't tell a hardening agent where the future bugs are.** Its gaps are close to universal once the probes are rich enough to matter, and its never-run lines miss most bugs, all of them on pydantic-settings.
+- **This doesn't rule repomap out as an agent tool.** It still tells an agent what a change touches and which tests to run (`../../../devtools/cli/README.md`). It just isn't a bug finder.
+- **Where the signal would have to come from:** inputs specific to the domain and the spec (header grammar, URL parts, file encodings). That is the "domain rules" kind that `../03-analysis/` found agents weakest on. A spec-driven probe list, or the improved prompt's spec-conformance step, fits this better than tracing.
+- **If someone revisits this,** the cheapest next test is the third option we didn't take: give arm B the inputs the tests actually used per function (`query.py fn`), so the agent sees what was tried rather than a list of what wasn't.
+
+## Plan (as agreed before stopping)
 
 - **Arms.** A = `../04-ab-test/prompt-improved.txt` unchanged. B = the same prompt, plus a `GAPS.txt` file in the workspace from `query.py gaps --public` on a map traced from the snapshot's own tests, and access to `query.py fn/callers`.
 - **Repos.** werkzeug and pydantic-settings, the two repos the improved prompt is blind to. 3 runs per arm, 12 agents (Andrew picked the lean option).

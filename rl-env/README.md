@@ -24,7 +24,7 @@ Run in this order, each building on the last:
 | [03-analysis](experiments/03-analysis/README.md) | Which bugs are missed, and how many fixes are real? | Misses are whole kinds of bug; 84% of fixes real, 56% still unfixed upstream |
 | [04-ab-test](experiments/04-ab-test/README.md) | Does a prompt built from the misses catch more on held-out repos? | Distinct future bugs 15 → 21 of 60, 0 regressions |
 | [05-replay](experiments/05-replay/README.md) | Do agent patches get in the way of real later commits? | 15% of run-commit pairs collide, similar for both prompts |
-| [06-gaps-ab](experiments/06-gaps-ab/README.md) | Do repomap's untested-value gaps help hardening agents? | Paused: repomap gaps and never-run lines barely point at the 16 real future bugs (ceiling check, no agents run) |
+| [06-gaps-ab](experiments/06-gaps-ab/README.md) | Do repomap's untested-value gaps help hardening agents? | Stopped: gaps and never-run lines barely point at the 16 real future bugs, so no agents were run |
 
 [`research/repo-evolution-training-data.md`](research/repo-evolution-training-data.md) surveys related benchmarks (SWE-CI, SWE-Milestone, SWE-Chain, SWE-EVO) and training data as of October 2026.
 
