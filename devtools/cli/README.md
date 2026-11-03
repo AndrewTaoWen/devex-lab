@@ -13,20 +13,30 @@ From that map it answers two questions:
 
 The viewer is [Werkzeug Change Impact](https://claude.ai/artifact/9AEvdA1qQ2EcVkbdqfVmjq), a private artifact: pick a commit to see the changed functions, their callers grouped by module, and the predicted tests next to the ones actually affected.
 
-## Everyday use: `repomap.py`
+## Install
+
+```
+pip install "./devtools/cli[mcp]"     # `repomap` and `repomap-mcp` commands; drop [mcp] for the CLI only
+python devtools/cli/repomap.py ...    # or run it from the checkout without installing
+```
+
+The package is pure Python with no dependencies besides the optional MCP SDK. The tests you trace run in the repo's own interpreter (its `.venv` if it has one, or `--python`), which needs pytest and Python 3.12+. Every command takes `--json`. See [`../mcp-server/`](../mcp-server/README.md) for the MCP tools and [`../ai-skill/`](../ai-skill/README.md) for the Claude Code plugin.
+
+## Everyday use: `repomap`
 
 Record once, then look up a change before (or after) you make it, without running the tests:
 
 ```
-repomap.py record --package src/werkzeug          # traces the suite once; werkzeug: 33 s, memory in .repomap/
-repomap.py impact Range.range_for_length          # or path.py:LINE, or no argument for your uncommitted diff
-repomap.py refresh                                # after a change: re-trace only tests that run the changed files
-repomap.py status
-repomap.py serve                                  # the map in your browser at http://localhost:8765
+repomap record --package src/werkzeug          # traces the suite once; werkzeug: 33 s, memory in .repomap/
+repomap impact Range.range_for_length          # or path.py:LINE, or no argument for your uncommitted diff
+repomap refresh                                # after a change: re-trace only tests that run the changed files
+repomap status
+repomap query gaps routing                     # also: query fn NAME, query callers NAME, query tests FILE:LINE
+repomap serve                                  # the map in your browser at http://localhost:8765
 ```
 
 ```
-$ repomap.py impact src/werkzeug/datastructures/range.py:110
+$ repomap impact src/werkzeug/datastructures/range.py:110
 Impact of named targets  (992 tests in memory, looked up in 0.12s)
 
 Changed:
@@ -56,9 +66,9 @@ The memory remembers the exact tree it traced (as a git commit under `refs/repom
 
   The other 14 differ only in setup work that runs once per process (a shared routing map built by whichever test needs it first, file objects closed when garbage is collected). Which test gets credited for that depends on test order. A full re-record now and then resets it.
 
-## The map in a browser: `repomap.py serve`
+## The map in a browser: `repomap serve`
 
-`repomap.py serve` prints a localhost link (port 8765, or the next free one; `--open` opens it). The page reads only the memory and git, so it starts instantly and runs nothing:
+`repomap serve` prints a localhost link (port 8765, or the next free one; `--open` opens it). The page reads only the memory and git, so it starts instantly and runs nothing:
 
 - **Map.** Every module is a box and every function a cell, shaded by how many tests run it. Hollow cells are functions no test runs.
 - **Impact.** The page opens on your uncommitted changes (the same diff `impact` uses). Changed functions turn orange, direct callers amber and callers of callers a lighter amber. The panel lists the callers by module, the tests that run the change, and a copyable pytest command. Shift-click any cell, or search for a function or `path.py:LINE`, to add it to the change and see what it would reach. A 1 to 4 control sets how far up the callers go.
@@ -140,10 +150,16 @@ Both are places where werkzeug later fixed real bugs: float URLs for whole numbe
 
 ## Files
 
-- `repomap_trace.py`: the pytest plugin (`-p repomap_trace`, with `REPOMAP_ROOT`, `REPOMAP_OUT` and optional `REPOMAP_EDGES=1`).
-- `repomap.py`: the everyday command (`record`, `impact`, `refresh`, `status`, `serve`); `repomap_ui.html`: the page `serve` shows.
+- `pyproject.toml` and `src/repomap/`: the package.
+  - `cli.py`: the everyday command (`record`, `impact`, `refresh`, `status`, `serve`, `query`).
+  - `query.py`: value summaries, callers, tests for a line, and gaps.
+  - `mcp_server.py`: `repomap-mcp`.
+  - `ui.html`: the page `serve` shows.
+  - `_plugin/repomap_trace.py`: the pytest plugin (`-p repomap_trace`, with `REPOMAP_ROOT`, `REPOMAP_OUT` and optional `REPOMAP_EDGES=1`). Only this directory goes on the traced interpreter's path.
+- `repomap.py`, `query.py`: run the package from the checkout without installing it.
+- `tests/`: CLI `--json` and MCP server tests on the shopkit example (`python -m pytest devtools/cli/tests`).
 - `mutbench.py`: the mutation benchmark; `werkzeug/mutbench.json` and `werkzeug/mutbench-score.txt`: its faults, broken tests and scores.
-- `impact.py`: replays a repo's history and scores the predictors; `build_ui.py`: bundles results for the viewer; `query.py`: the agent-facing query tool.
+- `impact.py`: replays a repo's history and scores the predictors; `build_ui.py`: bundles results for the viewer.
 - `werkzeug/`:
   - `impact.json`: per-commit truth and predictions;
   - `snapshot-map.json.gz`: the traced map with values and call graph;
