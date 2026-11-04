@@ -1,0 +1,319 @@
+{
+ "id": "werkzeug",
+ "repo": "pallets/werkzeug",
+ "split": "eval",
+ "snapshot": "1b00618e787f40dfb21eba29caf8f8be7c8e1d93",
+ "snapshot_date": "2026-05-05",
+ "cutoff": "2026-06-01",
+ "head": "665e760ca6325a348ce03e5cf780b17e4be01848",
+ "head_date": "2026-10-16",
+ "packages": [
+  "src"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "0c419f95",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_http.TestRange::test_range_parsing"
+   ]
+  },
+  {
+   "id": "0e170182",
+   "label": "bug",
+   "subject": "update etag comparison functions",
+   "tests": [
+    "tests.test_send_file::test_etag"
+   ]
+  },
+  {
+   "id": "1b8bc581",
+   "label": "bug",
+   "subject": "validate base64",
+   "tests": [
+    "tests.test_http.TestHTTPUtility::test_authorization_basic_validate"
+   ]
+  },
+  {
+   "id": "4da3786f",
+   "label": "bug",
+   "subject": "preserve empty username, password, port 0",
+   "tests": [
+    "tests.test_urls::test_uri_empty_auth[http://:@d.test]",
+    "tests.test_urls::test_uri_empty_auth[http://:p@d.test]",
+    "tests.test_urls::test_uri_empty_auth[http://u:@d.test]",
+    "tests.test_urls::test_uri_port_0"
+   ]
+  },
+  {
+   "id": "5b0dc6d6",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_http.TestRange::test_if_range_parsing"
+   ]
+  },
+  {
+   "id": "5b0e3209",
+   "label": "feature",
+   "subject": "deprecate `remove_hop_by_hop_headers`",
+   "tests": [
+    "tests.test_http.TestHTTPUtility::test_is_hop_by_hop_header[Keep-Alive]",
+    "tests.test_http.TestHTTPUtility::test_is_hop_by_hop_header[connection]",
+    "tests.test_http.TestHTTPUtility::test_is_hop_by_hop_header[test-Header]"
+   ]
+  },
+  {
+   "id": "63a800ca",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.test_http.TestHTTPUtility::test_csp_header"
+   ]
+  },
+  {
+   "id": "658bf5ed",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.sansio.test_utils::test_get_host_invalid[a.test:0443]",
+    "tests.sansio.test_utils::test_get_host_invalid[a.test:0]",
+    "tests.sansio.test_utils::test_get_host_invalid[a.test:65536]"
+   ]
+  },
+  {
+   "id": "6d7c0b4e",
+   "label": "bug",
+   "subject": "sort converter matches numerically",
+   "tests": [
+    "tests.test_routing::test_part_converter_order"
+   ]
+  },
+  {
+   "id": "884437ae",
+   "label": "bug",
+   "subject": "fix boolean logic for external url",
+   "tests": [
+    "tests.test_routing.TestNoDomainMatching::test_build_relative"
+   ]
+  },
+  {
+   "id": "b9761b5b",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_internal::test_plain_int[0x7B-16-None]",
+    "tests.test_internal::test_plain_int[\\u2029123-10-None]"
+   ]
+  },
+  {
+   "id": "c678a231",
+   "label": "bug",
+   "subject": "stricter int and float converters",
+   "tests": [
+    "tests.test_routing::test_converter[float build inf]",
+    "tests.test_routing::test_converter[float build nan]",
+    "tests.test_routing::test_converter[float build range]",
+    "tests.test_routing::test_converter[float build unsigned negative]",
+    "tests.test_routing::test_converter[float negative zero]",
+    "tests.test_routing::test_converter[float no exp large]",
+    "tests.test_routing::test_converter[float range]",
+    "tests.test_routing::test_converter[int build fixed too large]",
+    "tests.test_routing::test_converter[int build range]",
+    "tests.test_routing::test_converter[int build unsigned negative]",
+    "tests.test_routing::test_converter[int fixed negative]"
+   ]
+  },
+  {
+   "id": "d441b0c7",
+   "label": "feature",
+   "subject": "improve `send_file`",
+   "tests": [
+    "tests.test_send_file::test_file",
+    "tests.test_send_file::test_object"
+   ]
+  },
+  {
+   "id": "test:test_limited_stream",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.test_wsgi::test_limited_stream"
+   ]
+  },
+  {
+   "id": "test:test_limited_stream_disconnection",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.test_wsgi::test_limited_stream_disconnection"
+   ]
+  },
+  {
+   "id": "test:test_limited_stream_json_load",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.test_wsgi::test_limited_stream_json_load"
+   ]
+  },
+  {
+   "id": "test:test_limited_stream_read_with_raw_io",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.test_wsgi::test_limited_stream_read_with_raw_io"
+   ]
+  },
+  {
+   "id": "test:test_parse_cookie",
+   "label": "unclear",
+   "subject": "",
+   "tests": [
+    "tests.test_http.TestHTTPUtility::test_parse_cookie"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[all]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[all]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[for]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[for]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[host]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[host]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[ignore 0]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[ignore 0]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[ignore empty]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[ignore empty]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[ignore len < trusted]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[ignore len < trusted]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[ignore untrusted]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[ignore untrusted]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[ipv6 - port, host with port]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[ipv6 - port, host with port]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[ipv6 host]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[ipv6 host]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[ipv6 port, host without port]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[ipv6 port, host without port]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[multiple for]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[multiple for]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[port, host with port]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[port, host with port]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[port, host without port]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[port, host without port]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[port, no host]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[port, no host]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[prefix < for]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[prefix < for]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[prefix]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[prefix]"
+   ]
+  },
+  {
+   "id": "test:test_proxy_fix[proto]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "tests.middleware.test_proxy_fix::test_proxy_fix[proto]"
+   ]
+  }
+ ],
+ "pytest_args": [
+  "-m",
+  "not dev_server"
+ ]
+}
