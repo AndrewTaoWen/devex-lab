@@ -2,15 +2,15 @@
 
 This project asks one question from two sides: **what happens to code after it is written?**
 
-1. **[RL environment](rl-env/README.md)** (`rl-env/`). Train and score models on whether their code survives a repository's real future. Each repo is frozen at the model's knowledge cutoff (2026-06-01), an agent hardens the snapshot blind, and the repo's own later tests become an automatic reward.
+1. **[Reward benchmark](rl-env/README.md)** (`rl-env/`). Score models on whether their code survives a repository's real future. Each repo is frozen at the model's knowledge cutoff (2026-06-01), an agent hardens the snapshot blind, and the repo's own later tests become an automatic reward.
 2. **[Dev tools](devtools/README.md)** (`devtools/`). Tools that tell a developer (or an agent) what a change will affect before anything runs. They are built on **repomap**, which traces a test suite once and remembers which lines each test runs, who calls whom, and what values every function saw.
 
-The two feed each other. The environment needs fast, precise "what does this change touch" answers to score and to guide agents, and the dev tools get a benchmark built from real repo history.
+The two feed each other. The benchmark needs fast, precise "what does this change touch" answers to score and to guide agents, and the dev tools get a benchmark built from real repo history.
 
 ## What I'm working on now
 
 - **Turning repomap into dev tools.** The CLI is now an installable package (`repomap` and `repomap-mcp` commands), with an MCP server and a Claude Code plugin that bundles the skill ([`devtools/ai-skill/`](devtools/ai-skill/README.md)). Next: publish to PyPI, then the GitHub Action.
-- **Turning the pilot into an RL environment.** The harness and five experiments are done. Next is a `reset` / `score` API with containerized episodes and the combined reward (future bug tests + verified regression tests − regressions − replay conflicts).
+- **Turning the pilot into a reward benchmark.** The harness and five experiments are done. Next is a `reset` / `score` API with containerized episodes and the combined reward (future bug tests + verified regression tests − regressions − replay conflicts).
 - **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints.
 
 The full priority list is in [ROADMAP.md](ROADMAP.md).
@@ -52,7 +52,7 @@ repomap serve                       # map and graph at http://localhost:8765
 /plugin marketplace add AndrewTaoWen/devex-lab
 /plugin install repomap@devex-lab
 
-# RL environment: find a repo's failing future tests, then run and score blind agents
+# reward benchmark: find a repo's failing future tests, then run and score blind agents
 python rl-env/harness/screen.py --help
 python rl-env/harness/blind.py --help
 ```
