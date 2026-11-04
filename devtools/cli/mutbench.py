@@ -18,8 +18,8 @@ against the same faults without re-running the suite.
 import argparse, ast, json, random, signal, statistics, subprocess, sys, tempfile, time, xml.etree.ElementTree as ET
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import repomap as rm  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+from repomap import cli as rm  # noqa: E402
 
 FLIP = {ast.Eq: ast.NotEq, ast.NotEq: ast.Eq, ast.Lt: ast.GtE, ast.GtE: ast.Lt, ast.Gt: ast.LtE, ast.LtE: ast.Gt,
         ast.Is: ast.IsNot, ast.IsNot: ast.Is, ast.In: ast.NotIn, ast.NotIn: ast.In}

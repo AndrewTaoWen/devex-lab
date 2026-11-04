@@ -14,8 +14,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPOMAP = HERE.parent / "repomap.py"
-sys.path.insert(0, str(HERE.parent))
-import repomap as rm  # noqa: E402
+sys.path.insert(0, str(HERE.parent / "src"))
+from repomap import cli as rm  # noqa: E402
 
 EXAMPLES = [
     dict(slug="format", title="Print prices differently",
