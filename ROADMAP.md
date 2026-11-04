@@ -18,7 +18,7 @@ Two directions, one shared core. Items are in priority order within each horizon
 
 1. **Reward-signal environment.** Package the harness as an environment with `reset(repo, snapshot)` → workspace, `score(workspace)` → reward. Reward = future bug tests fixed + verified snapshot-failing regression tests − regressions − conflicts with upstream replay. Run each episode in a container with the future data outside it, so isolation no longer rests on a transcript audit. This is the core claim of the project, and every piece already exists as a script. (`rl-env/env/`, planned)
 2. ~~**repomap inside the hardening agent.**~~ Done as a ceiling check, stopped before agents ran: repomap's value gaps and never-run lines barely point at the real future bugs ([06-gaps-ab](rl-env/experiments/06-gaps-ab/README.md)). repomap stays a change-impact tool, not a bug finder.
-3. **AI skill and MCP server.** Wrap the CLI so Claude Code (and any MCP client) runs `impact` before editing and selected tests after. A few days of work, usable immediately, and it gives the RL env the same tool interface. ([ai-skill](devtools/ai-skill/README.md), [mcp-server](devtools/mcp-server/README.md))
+3. **AI skill and MCP server.** Wrap the CLI so Claude Code (and any MCP client) runs `impact` before editing and selected tests after. A few days of work, usable immediately, and it gives the reward benchmark the same tool interface. ([ai-skill](devtools/ai-skill/README.md), [mcp-server](devtools/mcp-server/README.md))
 4. **Package the CLI.** `pip install repomap` with a pytest plugin entry point (`pytest --repomap`), a stable JSON schema for `.repomap/memory.json`, and versioned output. Every other dev tool depends on this.
 
 ## Then (1 to 2 months)
