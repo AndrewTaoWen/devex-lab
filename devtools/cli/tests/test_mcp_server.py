@@ -60,14 +60,16 @@ def test_lookups(recorded):
     async def flow(s):
         return (await call(s, "impact", targets=["receipt"]), await call(s, "callers", function="round_cents"),
                 await call(s, "tests_for", location="src/shopkit/money.py:6"), await call(s, "values", function="round_cents"),
-                await call(s, "gaps", module="cart"), await call(s, "status"))
-    imp, cal, tf, val, gaps, st = session(recorded, flow)
+                await call(s, "gaps", module="cart"), await call(s, "status"),
+                await call(s, "gaps", public=True, limit=1))
+    imp, cal, tf, val, gaps, st, top = session(recorded, flow)
     assert imp["changed"] == ["shopkit/checkout.py:receipt"] and imp["unmatched"] == []
     assert cal["callers"][0] == ["shopkit/checkout.py:total", "shopkit/tax.py:tax_for"]
     assert "tests/test_money.py::test_round_half_up" in tf["tests"]
     assert val[0]["args"]["amount"]["never"] == ["negative"]
     assert gaps[0]["function"] == "shopkit/cart.py:Cart.add"
     assert st["tests"] == 18
+    assert len(top) == 1 and top[0]["calls"] == max(g["calls"] for g in gaps + top)
 
 
 def test_no_memory_is_a_readable_error(tmp_path):

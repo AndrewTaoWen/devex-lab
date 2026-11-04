@@ -112,10 +112,15 @@ def values(function: str) -> list[dict]:
 
 @server.tool(annotations=READ)
 @friendly
-def gaps(module: str = "") -> list[dict]:
-    """Arguments the suite never exercised with an empty, zero or negative value, for every function whose key
-    contains `module` (empty = whole package). These are the inputs most worth a new test when hardening."""
-    return query.run(memory(), "gaps", module)
+def gaps(module: str = "", public: bool = False, limit: int | None = None, basic: bool = False) -> list[dict]:
+    """Arguments the suite never fed an edge value, for every function whose key contains `module` (empty = whole
+    package): empty, zero, negative, False, and for strings non-ASCII text, a sign or 0x prefix, quotes, control
+    characters, surrounding whitespace or an empty field between separators (string probes are used only if the
+    memory recorded them somewhere). These are the inputs most worth a new test when hardening.
+
+    public: drop private and nested functions. limit: keep the N most-called functions. basic: only the
+    empty / zero / negative probes."""
+    return query.run(memory(), "gaps", module, public=public, limit=limit, basic=basic)
 
 
 @server.tool(annotations=READ)
