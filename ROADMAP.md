@@ -6,20 +6,20 @@ Two directions, one shared core. Items are in priority order within each horizon
 
 | Direction | What | Where |
 |---|---|---|
-| Reward bench | Pilot on tinydb and click: future tests work as a reward | [01-pilot](rl-env/experiments/01-pilot/README.md) |
-| Reward bench | 8 repos x 3 blind runs, bug vs feature labels, sandboxed reruns | [02-scale-up](rl-env/experiments/02-scale-up/README.md) |
-| Reward bench | Miss analysis and precision of agent fixes | [03-analysis](rl-env/experiments/03-analysis/README.md) |
-| Reward bench | Prompt A/B on 4 held-out repos | [04-ab-test](rl-env/experiments/04-ab-test/README.md) |
-| Reward bench | Replay of upstream history onto agent patches | [05-replay](rl-env/experiments/05-replay/README.md) |
-| Reward bench | futurebench: prepare/score benchmark with Docker sandboxes, validated on 48 old patches | [env](rl-env/env/README.md) |
+| Reward bench | Pilot on tinydb and click: future tests work as a reward | [01-pilot](reward-bench/experiments/01-pilot/README.md) |
+| Reward bench | 8 repos x 3 blind runs, bug vs feature labels, sandboxed reruns | [02-scale-up](reward-bench/experiments/02-scale-up/README.md) |
+| Reward bench | Miss analysis and precision of agent fixes | [03-analysis](reward-bench/experiments/03-analysis/README.md) |
+| Reward bench | Prompt A/B on 4 held-out repos | [04-ab-test](reward-bench/experiments/04-ab-test/README.md) |
+| Reward bench | Replay of upstream history onto agent patches | [05-replay](reward-bench/experiments/05-replay/README.md) |
+| Reward bench | futurebench: prepare/score benchmark with Docker sandboxes, validated on 48 old patches | [futurebench](reward-bench/futurebench/README.md) |
 | Dev tools | repomap CLI: record, impact, refresh, status, serve (map + graph view) | [cli](devtools/cli/README.md) |
 | Dev tools | Accuracy on werkzeug history (85/85) and 200 injected faults (171/171) | [cli](devtools/cli/README.md) |
 | Dev tools | v0.1 package (`repomap`, `repomap-mcp`), `--json` everywhere, MCP server, Claude Code plugin with the skill | [ai-skill](devtools/ai-skill/README.md), [mcp-server](devtools/mcp-server/README.md) |
 
 ## Next (weeks)
 
-1. **Reward benchmark.** Built as [futurebench](rl-env/env/README.md): `prepare(task)` → sandboxed run, `score(attempt)` → reward and parts. Reward = future bug units fixed + verified snapshot-failing regression tests − regressions − upstream replay collisions. Docker per run with no network, and future tests only in a separate score image. 12 tasks (8 train, 4 eval). Re-scoring all 48 old patches reproduces the old harness's results. Next: a reference agent loop, calibrating the collision weight, and more tasks once screen.py handles the setup failures.
-2. ~~**repomap inside the hardening agent.**~~ Done as a ceiling check, stopped before agents ran: repomap's value gaps and never-run lines barely point at the real future bugs ([06-gaps-ab](rl-env/experiments/06-gaps-ab/README.md)). repomap stays a change-impact tool, not a bug finder.
+1. **Reward benchmark.** Built as [futurebench](reward-bench/futurebench/README.md): `prepare(task)` → sandboxed run, `score(attempt)` → reward and parts. Reward = future bug units fixed + verified snapshot-failing regression tests − regressions − upstream replay collisions. Docker per run with no network, and future tests only in a separate score image. 12 tasks (8 train, 4 eval). Re-scoring all 48 old patches reproduces the old harness's results. Next: a reference agent loop, calibrating the collision weight, and more tasks once screen.py handles the setup failures.
+2. ~~**repomap inside the hardening agent.**~~ Done as a ceiling check, stopped before agents ran: repomap's value gaps and never-run lines barely point at the real future bugs ([06-gaps-ab](reward-bench/experiments/06-gaps-ab/README.md)). repomap stays a change-impact tool, not a bug finder.
 3. **Publish the package.** v0.1 of the AI skill, MCP server and package is built (see Done). Left: publish `repomap` to PyPI, add a `pytest --repomap` entry point, a versioned JSON schema for `.repomap/memory.json` and the `--json` output, and use the MCP server as the reward benchmark's tool interface. ([cli](devtools/cli/README.md), [mcp-server](devtools/mcp-server/README.md))
 
 ## Then (1 to 2 months)

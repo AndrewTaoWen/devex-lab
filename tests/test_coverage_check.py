@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("coverage_check", ROOT / "rl-env/experiments/06-gaps-ab/coverage_check.py")
+spec = importlib.util.spec_from_file_location("coverage_check", ROOT / "reward-bench/experiments/06-gaps-ab/coverage_check.py")
 cc = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cc)
 

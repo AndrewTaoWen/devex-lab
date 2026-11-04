@@ -27,7 +27,7 @@ The first time in a repo, the agent calls `record` (one traced run of the suite)
 
 ## Why
 
-Agents edit code without knowing who depends on it, then either run the whole suite (slow) or nothing (risky). repomap answers both questions in under a second: what a change reaches, and which tests to run. Its value summaries also tell an agent what inputs a function has actually seen, which the miss analysis in [`rl-env/experiments/03-analysis/`](../../rl-env/experiments/03-analysis/README.md) says is where agents miss bugs (empty inputs, domain rules).
+Agents edit code without knowing who depends on it, then either run the whole suite (slow) or nothing (risky). repomap answers both questions in under a second: what a change reaches, and which tests to run. Its value summaries also tell an agent what inputs a function has actually seen, which the miss analysis in [`reward-bench/experiments/03-analysis/`](../../reward-bench/experiments/03-analysis/README.md) says is where agents miss bugs (empty inputs, domain rules).
 
 ## Checked so far
 

@@ -35,7 +35,7 @@ On werkzeug's snapshot map: 375 flagged functions with the basic view, 260 with 
 ## Step 0a: value gaps on werkzeug (old map, basic probes)
 
 Snapshot map: `../../../devtools/cli/werkzeug/snapshot-map.json.gz` (query.py gaps: 375 flagged functions).
-Bugs: the 10 distinct future bug commits from rl-env/experiments/04-ab-test (labels + overrides, ab.py logic).
+Bugs: the 10 distinct future bug commits from reward-bench/experiments/04-ab-test (labels + overrides, ab.py logic).
 For each commit: functions it changed (git diff at parent, AST), and the gaps the snapshot map reports for them.
 
 | Commit | Bug | Gaps on changed functions | Points at the bug? |
