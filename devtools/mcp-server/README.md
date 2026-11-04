@@ -17,7 +17,7 @@ To add it to Claude Code without the plugin: `claude mcp add repomap -- repomap-
 | `tests_for(location)` | yes | tests that run `file.py:LINE`, or each function matching a name |
 | `callers(function, depth=2)` | yes | callers by level, and what the function calls |
 | `values(function)` | yes | argument and return value summaries, with the probes each argument `never` saw |
-| `gaps(module?)` | yes | arguments never seen empty / zero / negative |
+| `gaps(module?, public?, limit?, basic?)` | yes | arguments never fed an edge value (empty / zero / negative, and string probes such as non-ASCII, quotes or an empty field), optionally only public functions or the N most called |
 | `status()` | yes | memory size, snapshot commit, library files changed since |
 | `refresh(diff_rev?)` | no | re-traces only tests touching changed files; seconds |
 | `record(package?, tests="tests", python?)` | no | traces the whole suite once; slow, and says so in its description |

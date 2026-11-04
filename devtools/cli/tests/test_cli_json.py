@@ -24,9 +24,18 @@ def test_impact_reports_unmatched_names(shop):
 
 def test_query_gaps_and_tests(shop):
     gaps = json.loads(repomap(shop, "query", "gaps", "money", "--json"))
-    assert {"function": "shopkit/money.py:round_cents", "never": {"amount": ["negative"]}} in gaps
+    assert {"function": "shopkit/money.py:round_cents", "calls": 10, "never": {"amount": ["negative"]}} in gaps
     tests = json.loads(repomap(shop, "query", "tests", "src/shopkit/money.py:6", "--json"))
     assert "tests/test_money.py::test_round_half_up" in tests
+
+
+def test_query_gaps_filters(shop):
+    public = json.loads(repomap(shop, "query", "gaps", "--public", "--json"))
+    top = json.loads(repomap(shop, "query", "gaps", "--public", "--limit", "2", "--json"))
+    assert len(top) == 2 and all(":_" not in g["function"] for g in public)
+    assert [g["calls"] for g in top] == sorted((g["calls"] for g in public), reverse=True)[:2]
+    basic = json.loads(repomap(shop, "query", "gaps", "--basic", "--json"))
+    assert {p for g in basic for probes in g["never"].values() for p in probes} <= {"empty", "zero", "negative"}
 
 
 def test_refresh_json(shop):

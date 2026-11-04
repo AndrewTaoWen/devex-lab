@@ -1,0 +1,163 @@
+{
+ "id": "cachetools",
+ "repo": "tkem/cachetools",
+ "split": "train",
+ "snapshot": "48284d73d0a8834c9c50f8d41bb99e6f93b2dfed",
+ "snapshot_date": "2026-05-22",
+ "cutoff": "2026-06-01",
+ "head": "6f23e2a7b75a42d30cb9d890ab3ca4059ee01bfd",
+ "head_date": "2026-10-19",
+ "packages": [
+  "src"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "39b31bc",
+   "label": "bug",
+   "subject": "Fix #405: Fix Cache.__setitem__ over-evicting when growing an existing key",
+   "tests": [
+    "tests.test_cache.CacheTest::test_getsizeof_replace_grow",
+    "tests.test_fifo.FIFOCacheTest::test_getsizeof_replace_grow",
+    "tests.test_lfu.LFUCacheTest::test_getsizeof_replace_grow",
+    "tests.test_lru.LRUCacheTest::test_getsizeof_replace_grow",
+    "tests.test_tlru.TLRUCacheTest::test_getsizeof_replace_grow",
+    "tests.test_ttl.TTLCacheTest::test_getsizeof_replace_grow"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "41e4b16",
+   "label": "bug",
+   "subject": "Fix @cached stacking behavior.",
+   "tests": [
+    "tests.test_cached.CacheWrapperTest::test_stacked_decorators",
+    "tests.test_func.FIFODecoratorTest::test_stacked_decorators",
+    "tests.test_func.LFUDecoratorTest::test_stacked_decorators",
+    "tests.test_func.LRUDecoratorTest::test_stacked_decorators",
+    "tests.test_func.RRDecoratorTest::test_stacked_decorators",
+    "tests.test_func.TTLDecoratorTest::test_stacked_decorators"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "72adda6",
+   "label": "unclear",
+   "subject": "Minor test improvements.",
+   "tests": [
+    "tests.test_cached.NoneWrapperTest::test_decorator"
+   ]
+  },
+  {
+   "id": "7388397",
+   "label": "unclear",
+   "subject": "Refactor method descriptor.",
+   "tests": [
+    "tests.test_cachedmethod.UnboundMethodTest::test_class_access_identity"
+   ]
+  },
+  {
+   "id": "95e6add",
+   "label": "bug",
+   "subject": "Fix #443: Restore autospec calls to @cachedmethod decorated methods",
+   "tests": [
+    "tests.test_cachedmethod.UnboundMethodTest::test_class_call_without_instance"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "aa73a19",
+   "label": "bug",
+   "subject": "Fix #435: Restore class access to cached instance methods (#436)",
+   "tests": [
+    "tests.test_cachedmethod.UnboundMethodTest::test_base_class_call",
+    "tests.test_cachedmethod.UnboundMethodTest::test_class_call"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "bcf9e81",
+   "label": "bug",
+   "subject": "Fix #423: Detect an empty RRCache before calling choice.",
+   "tests": [
+    "tests.test_rr.RRCacheTest::test_rr_popitem_empty_custom_choice"
+   ],
+   "kind": "degenerate-input"
+  },
+  {
+   "id": "c0fdf6a",
+   "label": "bug",
+   "subject": "Fix TLRUCache silently keeping stale value on expired overwrite",
+   "tests": [
+    "tests.test_tlru.TLRUCacheTest::test_overwrite_existing_with_expired"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "c624c83",
+   "label": "unclear",
+   "subject": "Refactor unit tests.",
+   "tests": [
+    "tests.test_cachedmethod.CacheMethodTest::test_decorated_override",
+    "tests.test_cachedmethod.CacheMethodTest::test_multilevel_override",
+    "tests.test_cachedmethod.CacheMethodTest::test_undecorated_override",
+    "tests.test_cachedmethod.UnboundMethodTest::test_class_call_info",
+    "tests.test_ttl.TTLCacheTest::test_ttl_datetime_overflow"
+   ]
+  },
+  {
+   "id": "d5c7eea",
+   "label": "bug",
+   "subject": "Reject negative cache item sizes",
+   "tests": [
+    "tests.test_cache.CacheTest::test_getsizeof_negative",
+    "tests.test_fifo.FIFOCacheTest::test_getsizeof_negative",
+    "tests.test_lfu.LFUCacheTest::test_getsizeof_negative",
+    "tests.test_lru.LRUCacheTest::test_getsizeof_negative",
+    "tests.test_rr.RRCacheTest::test_getsizeof_negative",
+    "tests.test_tlru.TLRUCacheTest::test_getsizeof_negative",
+    "tests.test_ttl.TTLCacheTest::test_getsizeof_negative"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "dd181c5",
+   "label": "bug",
+   "subject": "Reject negative maxsize in Cache.__init__",
+   "tests": [
+    "tests.test_cache.CacheTest::test_maxsize_negative",
+    "tests.test_fifo.FIFOCacheTest::test_maxsize_negative",
+    "tests.test_lfu.LFUCacheTest::test_maxsize_negative",
+    "tests.test_lru.LRUCacheTest::test_maxsize_negative",
+    "tests.test_rr.RRCacheTest::test_maxsize_negative",
+    "tests.test_tlru.TLRUCacheTest::test_maxsize_negative",
+    "tests.test_ttl.TTLCacheTest::test_maxsize_negative"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "test:test_decorator_attributes",
+   "label": "unclear",
+   "subject": "",
+   "tests": [
+    "tests.test_cached.NoneWrapperTest::test_decorator_attributes"
+   ]
+  },
+  {
+   "id": "test:test_decorator_clear",
+   "label": "unclear",
+   "subject": "",
+   "tests": [
+    "tests.test_cached.NoneWrapperTest::test_decorator_clear"
+   ]
+  },
+  {
+   "id": "test:test_decorator_info",
+   "label": "unclear",
+   "subject": "",
+   "tests": [
+    "tests.test_cached.NoneWrapperTest::test_decorator_info"
+   ]
+  }
+ ]
+}

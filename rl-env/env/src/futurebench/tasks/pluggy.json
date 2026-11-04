@@ -1,0 +1,284 @@
+{
+ "id": "pluggy",
+ "repo": "pytest-dev/pluggy",
+ "split": "train",
+ "snapshot": "dedb8927cca331b4ff6ec5ded2f34c4d7cbfe609",
+ "snapshot_date": "2026-05-27",
+ "cutoff": "2026-06-01",
+ "head": "20950ae1a494ce2f0bfce5d821e10a0b1cc2b82b",
+ "head_date": "2026-10-18",
+ "packages": [
+  "src"
+ ],
+ "tests": "testing",
+ "units": [
+  {
+   "id": "0022c46",
+   "label": "bug",
+   "subject": "Cover the unpresentable object paths in tracing",
+   "tests": [
+    "testing.test_tracer::test_broken_exception_repr_falls_back_to_type_name",
+    "testing.test_tracer::test_error_from_exception_repr_is_not_rendered",
+    "testing.test_tracer::test_keyboard_interrupt_from_exception_repr_propagates"
+   ],
+   "kind": "repr-robustness"
+  },
+  {
+   "id": "00ae36a",
+   "label": "feature",
+   "subject": "Show the member name of a traced StrEnum",
+   "tests": [
+    "testing.test_tracer::test_str_enum_shows_member_name"
+   ]
+  },
+  {
+   "id": "09676ee",
+   "label": "bug",
+   "subject": "Address review: soften AttributeError comments and add descriptor test",
+   "tests": [
+    "testing.test_pluginmanager::test_register_ignores_raising_descriptors[spec-is-class]",
+    "testing.test_pluginmanager::test_register_ignores_raising_descriptors[spec-is-instance]"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "0f2614d",
+   "label": "bug",
+   "subject": "Point the missing-argument warning at the code making the hook call",
+   "tests": [
+    "testing.test_details::test_not_all_arguments_warning_points_at_the_caller"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "1b23f2e",
+   "label": "bug",
+   "subject": "Make hook tracing defensive about repr and surrogates",
+   "tests": [
+    "testing.test_pluginmanager::test_hook_tracing_escapes_surrogate_values",
+    "testing.test_pluginmanager::test_hook_tracing_with_broken_repr[spec-is-class]",
+    "testing.test_pluginmanager::test_hook_tracing_with_broken_repr[spec-is-instance]",
+    "testing.test_tracer::test_broken_repr_value_does_not_raise",
+    "testing.test_tracer::test_broken_str_label_does_not_raise",
+    "testing.test_tracer::test_dictargs_escape_surrogate_values",
+    "testing.test_tracer::test_escape_surrogates_from_repr",
+    "testing.test_tracer::test_escape_surrogates_in_labels"
+   ],
+   "kind": "repr-robustness"
+  },
+  {
+   "id": "2143bb6",
+   "label": "bug",
+   "subject": "Cover the repr guards added for traced values",
+   "tests": [
+    "testing.test_tracer::test_broken_repr_on_pathlike_does_not_raise"
+   ],
+   "kind": "repr-robustness"
+  },
+  {
+   "id": "2e37743",
+   "label": "feature",
+   "subject": "manager: ignore `register(None)` instead of raising `TypeError`",
+   "tests": [
+    "testing.test_pluginmanager::test_register_ignores_none"
+   ]
+  },
+  {
+   "id": "3d5417a",
+   "label": "bug",
+   "subject": "Fix `subset_hook_caller` getting confused by `specname`",
+   "tests": [
+    "testing.test_pluginmanager::test_subset_hook_caller_with_specname"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "44474dd",
+   "label": "bug",
+   "subject": "Fully unregister falsy plugin objects",
+   "tests": [
+    "testing.test_pluginmanager::test_unregister_falsy_plugin"
+   ],
+   "kind": "falsy-sentinel"
+  },
+  {
+   "id": "50585e0",
+   "label": "feature",
+   "subject": "Drop entry-point distribution info when unregistering a plugin",
+   "tests": [
+    "testing.test_pluginmanager::test_unregister_drops_plugin_distribution"
+   ]
+  },
+  {
+   "id": "51ec448",
+   "label": "feature",
+   "subject": "Change precedence of hook call value, hookspec default, hookimpl default",
+   "tests": [
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_call_value_overrides_hookimpl_default",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_call_value_overrides_hookimpl_default_in_wrappers",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_hookspec_default_and_call_override_hookimpl_default"
+   ]
+  },
+  {
+   "id": "53eeddf",
+   "label": "feature",
+   "subject": "Add list_plugin_distributions() for direct importlib.metadata access",
+   "tests": [
+    "testing.test_details::test_dist_facade_identity_equality_and_hash",
+    "testing.test_details::test_dist_facade_project_name_and_delegation"
+   ]
+  },
+  {
+   "id": "629246a",
+   "label": "bug",
+   "subject": "Validate all hookimpls before registering a plugin",
+   "tests": [
+    "testing.test_pluginmanager::test_register_validation_failure_leaves_no_state[spec-is-class]",
+    "testing.test_pluginmanager::test_register_validation_failure_leaves_no_state[spec-is-instance]"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "6a05326",
+   "label": "feature",
+   "subject": "Address review: indent blocks, trim changelog and docs",
+   "tests": [
+    "testing.test_tracer::test_multiline_value_is_indented_under_its_key"
+   ]
+  },
+  {
+   "id": "6abdcf6",
+   "label": "bug",
+   "subject": "Merge pull request #743 from feiiiiii5/fix-warn-defaulted-args",
+   "tests": [
+    "testing.test_details::test_warn_when_deprecated_args_with_defaults_specified"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "742393e",
+   "label": "bug",
+   "subject": "Treat every line break in a traced value as one",
+   "tests": [
+    "testing.test_tracer::test_carriage_return_breaks_the_block[first\\r\\nsecond]",
+    "testing.test_tracer::test_carriage_return_breaks_the_block[first\\rsecond]",
+    "testing.test_tracer::test_non_str_with_line_breaks_is_indented",
+    "testing.test_tracer::test_trailing_newline_string_is_quoted"
+   ],
+   "kind": "repr-robustness"
+  },
+  {
+   "id": "a031c1c",
+   "label": "feature",
+   "subject": "Allow hookspecs to declare default values for arguments",
+   "tests": [
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_added_after_registration",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_basic",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_call_extra",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_falsy_values_allowed_as_default[0]",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_falsy_values_allowed_as_default[False]",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_falsy_values_allowed_as_default[None]",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_falsy_values_allowed_as_default[]",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_historic_replay",
+    "testing.test_invocations.TestHookspecDefaultArgumentValue::test_old_spec_new_impl"
+   ]
+  },
+  {
+   "id": "aa6e1f4",
+   "label": "bug",
+   "subject": "Do not bind callables stored on the plugin instance",
+   "tests": [
+    "testing.test_pluginmanager::test_hookspec_lookup_ignores_properties",
+    "testing.test_pluginmanager::test_register_slot_attribute_function_is_not_bound[spec-is-class]",
+    "testing.test_pluginmanager::test_register_slot_attribute_function_is_not_bound[spec-is-instance]"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "b2d1c4c",
+   "label": "feature",
+   "subject": "remove pydantic-specific logic and support hookspecs too",
+   "tests": [
+    "testing.test_pluginmanager::test_register_ignores_properties[spec-is-class]",
+    "testing.test_pluginmanager::test_register_ignores_properties[spec-is-instance]"
+   ]
+  },
+  {
+   "id": "c1c39fe",
+   "label": "bug",
+   "subject": "Discover hooks via inspect.getattr_static instead of getattr",
+   "tests": [
+    "testing.test_pluginmanager::test_register_hookimpl_above_classmethod[spec-is-class]",
+    "testing.test_pluginmanager::test_register_hookimpl_above_classmethod[spec-is-instance]",
+    "testing.test_pluginmanager::test_register_hookimpl_above_staticmethod[spec-is-class]",
+    "testing.test_pluginmanager::test_register_hookimpl_above_staticmethod[spec-is-instance]",
+    "testing.test_pluginmanager::test_register_ignores_cached_property[spec-is-class]",
+    "testing.test_pluginmanager::test_register_ignores_cached_property[spec-is-instance]"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "ccae6b9",
+   "label": "bug",
+   "subject": "Raise ValueError when unregister's plugin and name disagree",
+   "tests": [
+    "testing.test_pluginmanager::test_unregister_plugin_and_name_must_agree"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "d5220f7",
+   "label": "feature",
+   "subject": "Add detail to traced values where str() is ambiguous",
+   "tests": [
+    "testing.test_tracer::test_empty_string_is_visible",
+    "testing.test_tracer::test_enum_shows_member_name",
+    "testing.test_tracer::test_pathlike_shows_its_type",
+    "testing.test_tracer::test_whitespace_strings_are_quoted"
+   ]
+  },
+  {
+   "id": "d57da14",
+   "label": "bug",
+   "subject": "Keep hook tracing from crashing on impostor values (#792)",
+   "tests": [
+    "testing.test_tracer::test_broken_str_subclass_value_does_not_raise",
+    "testing.test_tracer::test_tracing_dict_result_is_not_read_as_arguments",
+    "testing.test_tracer::test_tracing_impostor_value_is_traced_as_itself[mock-spec-dict]"
+   ],
+   "kind": "repr-robustness"
+  },
+  {
+   "id": "test:test_dist_facade_list_attributes",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "testing.test_details::test_dist_facade_list_attributes"
+   ]
+  },
+  {
+   "id": "test:test_load_setuptools_instantiation[bool-raises]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "testing.test_pluginmanager::test_load_setuptools_instantiation[bool-raises]"
+   ]
+  },
+  {
+   "id": "test:test_load_setuptools_instantiation[falsey]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "testing.test_pluginmanager::test_load_setuptools_instantiation[falsey]"
+   ]
+  },
+  {
+   "id": "test:test_load_setuptools_instantiation[truthy]",
+   "label": "feature",
+   "subject": "",
+   "tests": [
+    "testing.test_pluginmanager::test_load_setuptools_instantiation[truthy]"
+   ]
+  }
+ ]
+}

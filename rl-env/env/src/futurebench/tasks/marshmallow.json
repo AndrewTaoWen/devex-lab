@@ -1,0 +1,79 @@
+{
+ "id": "marshmallow",
+ "repo": "marshmallow-code/marshmallow",
+ "split": "train",
+ "snapshot": "b12919269c17b504993869fa0e6d914bad792d52",
+ "snapshot_date": "2026-06-01",
+ "cutoff": "2026-06-01",
+ "head": "b762ea2d59ca52fe5df76b90de14bed7e5ec5607",
+ "head_date": "2026-10-19",
+ "packages": [
+  "src"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "5761bea",
+   "label": "bug",
+   "subject": "Fix Pluck handling of empty data_key",
+   "tests": [
+    "tests.test_fields.TestPluckFiekd::test_pluck_empty_data_key[False]",
+    "tests.test_fields.TestPluckFiekd::test_pluck_empty_data_key[True]"
+   ],
+   "kind": "falsy-sentinel"
+  },
+  {
+   "id": "ec2178c",
+   "label": "feature",
+   "subject": "Improve the allow_none default for by_value enums",
+   "tests": [
+    "tests.test_deserialization.TestFieldDeserialization::test_enum_by_value_allow_none_default"
+   ]
+  },
+  {
+   "id": "test:test_invalid_timedelta_field_deserialization[nan]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_deserialization.TestFieldDeserialization::test_invalid_timedelta_field_deserialization[nan]"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "test:test_url_absolute_valid[http://example.org#fragment]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_validate::test_url_absolute_valid[http://example.org#fragment]"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "test:test_url_absolute_valid[http://user@example.com#fragment]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_validate::test_url_absolute_valid[http://user@example.com#fragment]"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "test:test_url_relative_only_valid[#frag]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_validate::test_url_relative_only_valid[#frag]"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "test:test_url_relative_valid[#frag]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_validate::test_url_relative_valid[#frag]"
+   ],
+   "kind": "domain-semantics"
+  }
+ ]
+}
