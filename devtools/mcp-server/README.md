@@ -1,6 +1,6 @@
 # repomap MCP server
 
-**Status: v0.1.** `repomap-mcp` exposes the repomap memory as MCP tools, so any agent (Claude Code, IDE assistants, the RL environment's agents) gets change impact without shelling out and parsing text. The code is [`cli/src/repomap/mcp_server.py`](../cli/src/repomap/mcp_server.py), part of the `repomap` package.
+**Status: v0.1.** `repomap-mcp` exposes the repomap memory as MCP tools, so any agent (Claude Code, IDE assistants, the reward benchmark's agents) gets change impact without shelling out and parsing text. The code is [`cli/src/repomap/mcp_server.py`](../cli/src/repomap/mcp_server.py), part of the `repomap` package.
 
 ```
 pip install "./devtools/cli[mcp]"        # from this repo; PyPI: pip install "repomap[mcp]"
@@ -32,5 +32,5 @@ There is deliberately no `run_tests` tool: agents already have a shell, and `imp
 
 ## Next
 
-- Use it as the tool interface for agents in the RL environment, so the env and real users exercise the same code.
+- Use it as the tool interface for agents in the reward benchmark, so the benchmark and real users exercise the same code.
 - A versioned schema for the tool results (shared with the CLI's `--json`).
