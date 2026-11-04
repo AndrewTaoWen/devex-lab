@@ -106,7 +106,7 @@ def worktree_snapshot(keep=True):
         if run("rev-parse", "--git-dir").returncode:
             return None
         run("read-tree", "HEAD")
-        run("add", "-A")
+        run("add", "-A", "--", ".", ":(exclude).repomap", ":(exclude,glob)**/__pycache__/**")  # not the memory itself
         tree = run("write-tree").stdout.strip()
     head = git("rev-parse", "HEAD", check=False).strip()
     commit = subprocess.run(["git", "commit-tree", tree, *(["-p", head] if head else []), "-m", "repomap memory"],
