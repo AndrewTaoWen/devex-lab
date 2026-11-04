@@ -1,0 +1,459 @@
+{
+ "cattrs-r1": {
+  "total": 0.506743,
+  "terms": {
+   "bugs": 0.428571,
+   "tests": 0.2125,
+   "regressions": -0.0,
+   "collisions": -0.134328
+  },
+  "parts": {
+   "bugs_available": 7,
+   "bugs_fixed": 3.0,
+   "verified_tests": 17,
+   "regressions": 0,
+   "collisions": 9,
+   "changed_lines": 670,
+   "detail": {
+    "task": "cattrs",
+    "units": {
+     "bug": {
+      "units": 7,
+      "all": 3.0,
+      "any": 3.0,
+      "fraction": 3.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "02c3ead",
+     "3d57d6b",
+     "f2e42f3"
+    ],
+    "target_tests_fixed": [
+     "tests.test_gen_dict::test_renaming_to_key_with_special_characters[a'] or 1 or ['b]",
+     "tests.test_gen_dict::test_renaming_to_key_with_special_characters[it's]",
+     "tests.test_typeddicts::test_key_with_single_quote_roundtrip[False]",
+     "tests.test_typeddicts::test_key_with_single_quote_roundtrip[True]",
+     "tests.test_unstructure_collections::test_counter_unstructure_applies_key_hook"
+    ],
+    "target_tests": 44,
+    "verified_tests": [
+     "tests.test_hardening::test_class_name_not_identifier",
+     "tests.test_hardening::test_copy_keeps_fallbacks_and_union_hooks",
+     "tests.test_hardening::test_counter_unstructures_keys",
+     "tests.test_hardening::test_dataclass_stringified_annotated_override",
+     "tests.test_hardening::test_disambiguate_enum_literals",
+     "tests.test_hardening::test_error_formatting_robustness",
+     "tests.test_hardening::test_hetero_tuple_too_many_message",
+     "tests.test_hardening::test_hook_factory_decorators_return_factory",
+     "tests.test_hardening::test_msgspec_counter_unstructures_keys",
+     "tests.test_hardening::test_msgspec_respects_customizations",
+     "tests.test_hardening::test_namedtuple_stringified_annotations",
+     "tests.test_hardening::test_orjson_bare_enum_keys_roundtrip",
+     "tests.test_hardening::test_rename_special_characters",
+     "tests.test_hardening::test_subclasses_filtering",
+     "tests.test_hardening::test_tagged_union_default_does_not_grow",
+     "tests.test_hardening::test_typed_enum_stringified_annotations",
+     "tests.test_hardening::test_typeddict_special_keys"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "HISTORY.md",
+     "src/cattrs/_compat.py",
+     "src/cattrs/cols.py",
+     "src/cattrs/converters.py",
+     "src/cattrs/disambiguators.py",
+     "src/cattrs/dispatch.py",
+     "src/cattrs/enums.py",
+     "src/cattrs/errors.py",
+     "src/cattrs/gen/__init__.py",
+     "src/cattrs/gen/typeddicts.py",
+     "src/cattrs/preconf/msgspec.py",
+     "src/cattrs/preconf/orjson.py",
+     "src/cattrs/strategies/_unions.py",
+     "src/cattrs/subclasses.py",
+     "src/cattrs/v.py",
+     "tests/_hardening_pep563.py",
+     "tests/test_hardening.py"
+    ],
+    "replay": {
+     "collisions": 9,
+     "upstream_commits": 34,
+     "collisions_in_package": 8
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "cattrs-r2": {
+  "total": 0.569481,
+  "terms": {
+   "bugs": 0.428571,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.109091
+  },
+  "parts": {
+   "bugs_available": 7,
+   "bugs_fixed": 3.0,
+   "verified_tests": 21,
+   "regressions": 0,
+   "collisions": 9,
+   "changed_lines": 825,
+   "detail": {
+    "task": "cattrs",
+    "units": {
+     "bug": {
+      "units": 7,
+      "all": 3.0,
+      "any": 4.0,
+      "fraction": 3.84
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "02c3ead",
+     "3d57d6b",
+     "f2e42f3"
+    ],
+    "target_tests_fixed": [
+     "tests.test_disambiguators::test_literal_field_explicit_overrides",
+     "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-False--dataclass]",
+     "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-False--define]",
+     "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-False-type-dataclass]",
+     "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-False-type-define]",
+     "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-True--dataclass]",
+     "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-True--define]",
+     "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-True-type-dataclass]",
+     "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-True-type-define]",
+     "tests.test_disambiguators::test_literal_field_renaming[Converter-False--dataclass]",
+     "tests.test_disambiguators::test_literal_field_renaming[Converter-False--define]",
+     "tests.test_disambiguators::test_literal_field_renaming[Converter-False-type-dataclass]",
+     "tests.test_disambiguators::test_literal_field_renaming[Converter-False-type-define]",
+     "tests.test_disambiguators::test_literal_field_renaming[Converter-True--dataclass]",
+     "tests.test_disambiguators::test_literal_field_renaming[Converter-True--define]",
+     "tests.test_disambiguators::test_literal_field_renaming[Converter-True-type-dataclass]",
+     "tests.test_disambiguators::test_literal_field_renaming[Converter-True-type-define]",
+     "tests.test_disambiguators::test_literal_field_renaming_different_keys[BaseConverter-False]",
+     "tests.test_disambiguators::test_literal_field_renaming_different_keys[BaseConverter-True]",
+     "tests.test_disambiguators::test_literal_field_renaming_different_keys[Converter-False]",
+     "tests.test_disambiguators::test_literal_field_renaming_different_keys[Converter-True]",
+     "tests.test_gen_dict::test_renaming_to_key_with_special_characters[a'] or 1 or ['b]",
+     "tests.test_gen_dict::test_renaming_to_key_with_special_characters[it's]",
+     "tests.test_typeddicts::test_key_with_single_quote_roundtrip[False]",
+     "tests.test_typeddicts::test_key_with_single_quote_roundtrip[True]",
+     "tests.test_unstructure_collections::test_counter_unstructure_applies_key_hook"
+    ],
+    "target_tests": 44,
+    "verified_tests": [
+     "tests.test_regressions_hardening::test_copy_keeps_fallbacks_and_union_hooks",
+     "tests.test_regressions_hardening::test_counter_key_unstructuring",
+     "tests.test_regressions_hardening::test_disambiguation_default_factory_is_not_required",
+     "tests.test_regressions_hardening::test_enum_value_stringified_annotation",
+     "tests.test_regressions_hardening::test_factory_decorators_return_factory",
+     "tests.test_regressions_hardening::test_forbidden_extra_keys_non_str",
+     "tests.test_regressions_hardening::test_format_exception_without_args",
+     "tests.test_regressions_hardening::test_function_dispatch_copy_to_no_skip",
+     "tests.test_regressions_hardening::test_generic_function_names_sanitized",
+     "tests.test_regressions_hardening::test_literal_bool_int_distinct",
+     "tests.test_regressions_hardening::test_literal_disambiguation_stringified_dataclasses",
+     "tests.test_regressions_hardening::test_literal_disambiguation_with_aliases",
+     "tests.test_regressions_hardening::test_msgspec_dataclass_respects_field_hooks",
+     "tests.test_regressions_hardening::test_namedtuple_stringified_and_subclass",
+     "tests.test_regressions_hardening::test_pyyaml_str_subclass",
+     "tests.test_regressions_hardening::test_rename_with_special_chars",
+     "tests.test_regressions_hardening::test_subclasses_of_attrs_slotted_deduplicated",
+     "tests.test_regressions_hardening::test_subclasses_of_slotted_dataclass",
+     "tests.test_regressions_hardening::test_typeddict_annotated_notrequired_override",
+     "tests.test_regressions_hardening::test_typeddict_rename_to_same_name",
+     "tests.test_regressions_hardening::test_unhashable_annotated_metadata"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/cattrs/_compat.py",
+     "src/cattrs/cols.py",
+     "src/cattrs/converters.py",
+     "src/cattrs/disambiguators.py",
+     "src/cattrs/dispatch.py",
+     "src/cattrs/enums.py",
+     "src/cattrs/errors.py",
+     "src/cattrs/gen/__init__.py",
+     "src/cattrs/gen/typeddicts.py",
+     "src/cattrs/preconf/msgspec.py",
+     "src/cattrs/preconf/pyyaml.py",
+     "src/cattrs/subclasses.py",
+     "src/cattrs/v.py",
+     "tests/test_regressions_hardening.py"
+    ],
+    "replay": {
+     "collisions": 9,
+     "upstream_commits": 34,
+     "collisions_in_package": 9
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "cattrs-r3": {
+  "total": 0.756746,
+  "terms": {
+   "bugs": 0.571429,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.064683
+  },
+  "parts": {
+   "bugs_available": 7,
+   "bugs_fixed": 4.0,
+   "verified_tests": 25,
+   "regressions": 0,
+   "collisions": 5,
+   "changed_lines": 773,
+   "detail": {
+    "task": "cattrs",
+    "units": {
+     "bug": {
+      "units": 7,
+      "all": 4.0,
+      "any": 4.0,
+      "fraction": 4.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "02c3ead",
+     "3d57d6b",
+     "bc34a46",
+     "f2e42f3"
+    ],
+    "target_tests_fixed": [
+     "tests.test_gen_dict::test_renaming_to_key_with_special_characters[a'] or 1 or ['b]",
+     "tests.test_gen_dict::test_renaming_to_key_with_special_characters[it's]",
+     "tests.test_typeddicts::test_key_with_single_quote_roundtrip[False]",
+     "tests.test_typeddicts::test_key_with_single_quote_roundtrip[True]",
+     "tests.test_unstructure_collections::test_counter_unstructure_applies_key_hook",
+     "tests.test_v::test_extra_keys_are_sorted"
+    ],
+    "target_tests": 44,
+    "verified_tests": [
+     "tests.test_regressions::test_baseconverter_stringified_annotations",
+     "tests.test_regressions::test_baseconverter_unstructure_defaultdict",
+     "tests.test_regressions::test_copy_keeps_fallback_factories",
+     "tests.test_regressions::test_copy_keeps_union_hooks",
+     "tests.test_regressions::test_counter_keys_unstructured",
+     "tests.test_regressions::test_extra_keys_non_string",
+     "tests.test_regressions::test_format_exception_without_args",
+     "tests.test_regressions::test_function_dispatch_copy_to_without_skip",
+     "tests.test_regressions::test_hetero_tuple_from_iterator",
+     "tests.test_regressions::test_hetero_tuple_too_many_message",
+     "tests.test_regressions::test_init_false_roundtrip",
+     "tests.test_regressions::test_literal_bools_and_ints_not_confused",
+     "tests.test_regressions::test_literal_enum_disambiguation_roundtrip",
+     "tests.test_regressions::test_mapping_unstructure_factory_defaultdict",
+     "tests.test_regressions::test_namedtuple_stringified_annotations",
+     "tests.test_regressions::test_namedtuple_subclass",
+     "tests.test_regressions::test_non_identifier_class_names",
+     "tests.test_regressions::test_renames_with_quotes",
+     "tests.test_regressions::test_subclasses_of_attrs_no_duplicates",
+     "tests.test_regressions::test_subclasses_of_slotted_dataclass",
+     "tests.test_regressions::test_tagged_union_default_unknown_tags_not_stored",
+     "tests.test_regressions::test_tuple_strategy_kw_only",
+     "tests.test_regressions::test_typeddict_keys_with_quotes",
+     "tests.test_regressions::test_typeddict_omit_inside_notrequired",
+     "tests.test_regressions::test_typeddict_rename_to_same_name"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/cattrs/cols.py",
+     "src/cattrs/converters.py",
+     "src/cattrs/disambiguators.py",
+     "src/cattrs/dispatch.py",
+     "src/cattrs/errors.py",
+     "src/cattrs/gen/__init__.py",
+     "src/cattrs/gen/_shared.py",
+     "src/cattrs/gen/typeddicts.py",
+     "src/cattrs/preconf/msgspec.py",
+     "src/cattrs/strategies/_unions.py",
+     "src/cattrs/subclasses.py",
+     "src/cattrs/v.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 5,
+     "upstream_commits": 34,
+     "collisions_in_package": 5
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "cattrs-r4": {
+  "total": 0.580942,
+  "terms": {
+   "bugs": 0.428571,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.097629
+  },
+  "parts": {
+   "bugs_available": 7,
+   "bugs_fixed": 3.0,
+   "verified_tests": 21,
+   "regressions": 0,
+   "collisions": 7,
+   "changed_lines": 717,
+   "detail": {
+    "task": "cattrs",
+    "units": {
+     "bug": {
+      "units": 7,
+      "all": 3.0,
+      "any": 3.0,
+      "fraction": 3.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "02c3ead",
+     "3d57d6b",
+     "f2e42f3"
+    ],
+    "target_tests_fixed": [
+     "tests.test_gen_dict::test_renaming_to_key_with_special_characters[a'] or 1 or ['b]",
+     "tests.test_gen_dict::test_renaming_to_key_with_special_characters[it's]",
+     "tests.test_typeddicts::test_key_with_single_quote_roundtrip[False]",
+     "tests.test_typeddicts::test_key_with_single_quote_roundtrip[True]",
+     "tests.test_unstructure_collections::test_counter_unstructure_applies_key_hook"
+    ],
+    "target_tests": 44,
+    "verified_tests": [
+     "tests.test_regressions::test_base_roundtrip_init_false_kw_only",
+     "tests.test_regressions::test_copy_keeps_fallback_factories",
+     "tests.test_regressions::test_copy_keeps_union_hooks",
+     "tests.test_regressions::test_counter_keys_unstructured",
+     "tests.test_regressions::test_dataclass_stringified_annotated_override",
+     "tests.test_regressions::test_enum_stringified_value_annotation",
+     "tests.test_regressions::test_forbidden_extra_keys_non_str",
+     "tests.test_regressions::test_format_exception_odd_args",
+     "tests.test_regressions::test_hook_decorators_require_annotations",
+     "tests.test_regressions::test_literal_bool_int_distinct",
+     "tests.test_regressions::test_namedtuple_stringified_and_subclasses",
+     "tests.test_regressions::test_preconf_copy_mappings_use_copy",
+     "tests.test_regressions::test_rename_special_characters",
+     "tests.test_regressions::test_sequence_predicates_no_errors",
+     "tests.test_regressions::test_subclasses_of_attrs_no_duplicates",
+     "tests.test_regressions::test_subclasses_of_slotted_dataclass",
+     "tests.test_regressions::test_typeddict_overrides_in_required",
+     "tests.test_regressions::test_typeddict_special_keys",
+     "tests.test_regressions::test_typeddict_special_keys_error_note",
+     "tests.test_regressions::test_union_passthrough_copy_spillover",
+     "tests.test_regressions::test_union_passthrough_literal_bool_int_distinct"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "HISTORY.md",
+     "src/cattrs/_compat.py",
+     "src/cattrs/cols.py",
+     "src/cattrs/converters.py",
+     "src/cattrs/disambiguators.py",
+     "src/cattrs/dispatch.py",
+     "src/cattrs/enums.py",
+     "src/cattrs/errors.py",
+     "src/cattrs/gen/__init__.py",
+     "src/cattrs/gen/typeddicts.py",
+     "src/cattrs/preconf/bson.py",
+     "src/cattrs/preconf/orjson.py",
+     "src/cattrs/preconf/tomlkit.py",
+     "src/cattrs/preconf/tomllib.py",
+     "src/cattrs/strategies/_unions.py",
+     "src/cattrs/subclasses.py",
+     "src/cattrs/v.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 7,
+     "upstream_commits": 34,
+     "collisions_in_package": 6
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}
