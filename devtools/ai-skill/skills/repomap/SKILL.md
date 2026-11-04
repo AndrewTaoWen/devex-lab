@@ -49,7 +49,7 @@ Call `impact` with no targets. That diffs your uncommitted changes against the e
 
 ## 4. Hardening and review
 
-For each function you touched (or are reviewing), call `gaps` on its module and `values` on the function. `gaps` lists arguments the suite never exercised with an empty, zero or negative value. In this project's experiments those are exactly the inputs agents failed to anticipate. For each gap, either add a test for the missing case or explain why the input can't happen.
+For each function you touched (or are reviewing), call `gaps` on its module and `values` on the function. `gaps` lists arguments the suite never fed an edge value: empty, zero or negative, and for strings things like non-ASCII text, quotes, a sign or `0x` prefix, or an empty field between separators. In this project's experiments those are exactly the inputs agents failed to anticipate. For a whole-package sweep, pass `public=True, limit=20` (CLI: `--public --limit 20`) to see the most-called public functions first. For each gap, either add a test for the missing case or explain why the input can't happen.
 
 ## Limits
 
