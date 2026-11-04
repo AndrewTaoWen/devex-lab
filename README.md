@@ -42,7 +42,7 @@ It installs with `pip`, and Claude (and other AI tools) can use it directly thro
 
 - **Finishing futurebench.** It's built, with clearer command names and its own home in `reward-bench/`. Next: decide how to weigh the parts of the score, add a simple reference AI that runs the tasks end to end, and add more projects.
 - **Shipping repomap as a package.** It installs with `pip` (`repomap` and `repomap-mcp` commands) and comes with an MCP server and a Claude Code plugin ([`devtools/ai-skill/`](devtools/ai-skill/README.md)). Next: pick a license, publish it to PyPI, then build the GitHub Action.
-- **Done, and it didn't pan out:** feeding repomap's hints ("this input was never empty in any test") to the AI. A quick check showed those hints almost never point at the bugs people found later, so we stopped before running the AI. The write-up is in review.
+- **Done, and it didn't pan out:** feeding repomap's hints ("this input was never empty in any test") to the AI. A quick check showed those hints almost never point at the bugs people found later, so we stopped before running the AI ([write-up](reward-bench/experiments/06-gaps-ab/README.md)).
 
 The full priority list is in [ROADMAP.md](ROADMAP.md).
 

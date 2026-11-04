@@ -19,7 +19,7 @@ Two directions, one shared core. Items are in priority order within each horizon
 ## Next (weeks)
 
 1. **Reward benchmark.** Built as [futurebench](reward-bench/futurebench/README.md): `prepare(task)` → sandboxed run, `score(attempt)` → reward and parts. Reward = future bug units fixed + verified snapshot-failing regression tests − regressions − upstream replay collisions. Docker per run with no network, and future tests only in a separate score image. 12 tasks (8 train, 4 eval). Re-scoring all 48 old patches reproduces the old harness's results. Next: a reference agent loop, calibrating the collision weight, and more tasks once screen.py handles the setup failures.
-2. **repomap inside the hardening agent.** Give agents `query.py`'s value gaps ("this argument was never empty") and A/B them against the improved prompt on the held-out repos. It is the cheapest test of whether the two directions help each other, and the miss analysis says empty inputs and domain rules are exactly what agents skip.
+2. ~~**repomap inside the hardening agent.**~~ Done as a ceiling check, stopped before agents ran: repomap's value gaps and never-run lines barely point at the real future bugs ([06-gaps-ab](reward-bench/experiments/06-gaps-ab/README.md)). repomap stays a change-impact tool, not a bug finder.
 3. **Publish the package.** v0.1 of the AI skill, MCP server and package is built (see Done). Left: publish `repomap` to PyPI, add a `pytest --repomap` entry point, a versioned JSON schema for `.repomap/memory.json` and the `--json` output, and use the MCP server as the reward benchmark's tool interface. ([cli](devtools/cli/README.md), [mcp-server](devtools/mcp-server/README.md))
 
 ## Then (1 to 2 months)
