@@ -1,0 +1,99 @@
+{
+ "marshmallow-r1": {
+  "total": 0.397324,
+  "terms": {
+   "bugs": 0.166667,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.019342
+  },
+  "parts": {
+   "bugs_available": 6,
+   "bugs_fixed": 1.0,
+   "verified_tests": 24,
+   "regressions": 0,
+   "collisions": 1,
+   "changed_lines": 517,
+   "detail": {
+    "task": "marshmallow",
+    "units": {
+     "bug": {
+      "units": 6,
+      "all": 1.0,
+      "any": 1.0,
+      "fraction": 1.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "test:test_invalid_timedelta_field_deserialization[nan]"
+    ],
+    "target_tests_fixed": [
+     "tests.test_deserialization.TestFieldDeserialization::test_invalid_timedelta_field_deserialization[nan]"
+    ],
+    "target_tests": 8,
+    "verified_tests": [
+     "tests.test_regressions.TestContextReentrancy::test_same_context_instance_interleaved_with_other",
+     "tests.test_regressions.TestContextReentrancy::test_same_context_instance_nested",
+     "tests.test_regressions.TestFieldFixes::test_date_rejects_datetime",
+     "tests.test_regressions.TestFieldFixes::test_function_without_serialize_is_skipped_on_dump",
+     "tests.test_regressions.TestFieldFixes::test_timedelta_nan_is_invalid",
+     "tests.test_regressions.TestFieldValidatorsWithAttribute::test_invalid_value_removed_from_valid_data_when_attribute_set",
+     "tests.test_regressions.TestFieldValidatorsWithAttribute::test_invalid_value_removed_many",
+     "tests.test_regressions.TestFieldValidatorsWithAttribute::test_validator_runs_for_dotted_attribute",
+     "tests.test_regressions.TestNestedSchemaCache::test_cached_schema_not_shared_between_schema_instances",
+     "tests.test_regressions.TestOrderedSetEquality::test_compare_with_non_iterable",
+     "tests.test_regressions.TestRegistryRedefinition::test_redefined_class_in_same_module_replaces_entry",
+     "tests.test_regressions.TestSchemaOptionValidation::test_exclude_with_unknown_nested_parent_raises_value_error",
+     "tests.test_regressions.TestSchemaOptionValidation::test_meta_fields_with_undeclared_field_raises_value_error",
+     "tests.test_regressions.TestSchemaOptionValidation::test_only_with_unknown_nested_parent_raises_value_error",
+     "tests.test_regressions.TestSchemaOptionValidation::test_unknown_include_does_not_overwrite_loaded_field",
+     "tests.test_regressions.TestSchemaValidatorsAndProcessorsMany::test_post_dump_pass_original_with_generator",
+     "tests.test_regressions.TestSchemaValidatorsAndProcessorsMany::test_pre_load_changing_collection_length",
+     "tests.test_regressions.TestSchemaValidatorsAndProcessorsMany::test_schema_validator_many_with_invalid_collection_type",
+     "tests.test_regressions.TestValidatorFixes::test_contains_none_of_unhashable_element",
+     "tests.test_regressions.TestValidatorFixes::test_contains_only_unhashable_element",
+     "tests.test_regressions.TestValidatorFixes::test_none_of_with_generator",
+     "tests.test_regressions.TestValidatorFixes::test_one_of_with_enum_generator",
+     "tests.test_regressions.TestValidatorFixes::test_one_of_with_generator",
+     "tests.test_regressions.TestValidatorFixes::test_one_of_with_generator_labels"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/marshmallow/class_registry.py",
+     "src/marshmallow/experimental/context.py",
+     "src/marshmallow/fields.py",
+     "src/marshmallow/orderedset.py",
+     "src/marshmallow/schema.py",
+     "src/marshmallow/validate.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 1,
+     "upstream_commits": 34,
+     "collisions_in_package": 1
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

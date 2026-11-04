@@ -1,0 +1,114 @@
+{
+ "sqlparse-r1": {
+  "total": 0.596043,
+  "terms": {
+   "bugs": 0.4,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.053957
+  },
+  "parts": {
+   "bugs_available": 5,
+   "bugs_fixed": 2.0,
+   "verified_tests": 28,
+   "regressions": 0,
+   "collisions": 3,
+   "changed_lines": 556,
+   "detail": {
+    "task": "sqlparse",
+    "units": {
+     "bug": {
+      "units": 5,
+      "all": 2.0,
+      "any": 2.0,
+      "fraction": 2.0
+     },
+     "feature": {
+      "units": 2,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "111b35c",
+     "53ff44b"
+    ],
+    "target_tests_fixed": [
+     "tests.test_format.TestOutputFormat::test_php_escapes_backslashes",
+     "tests.test_format.TestOutputFormat::test_python_escapes_backslashes",
+     "tests.test_grouping::test_grouping_alias_ctas_lowercase_as"
+    ],
+    "target_tests": 10,
+    "verified_tests": [
+     "tests.test_cli::test_cli_boolean_options",
+     "tests.test_cli::test_cli_decode_error",
+     "tests.test_cli::test_cli_inplace_keeps_file_on_format_error",
+     "tests.test_cli::test_cli_outfile_not_truncated_on_invalid_options",
+     "tests.test_regressions::test_aligned_indent_case_without_end",
+     "tests.test_regressions::test_as_before_punctuation_not_grouped",
+     "tests.test_regressions::test_ctas_groups_functions_case_insensitive",
+     "tests.test_regressions::test_function_get_parameters_returns_list",
+     "tests.test_regressions::test_function_get_parameters_single_and_multiple_consistent",
+     "tests.test_regressions::test_function_get_window_without_over",
+     "tests.test_regressions::test_identifier_case_keeps_quoted_identifiers",
+     "tests.test_regressions::test_incomplete_alias_or_assignment_keeps_parenthesis",
+     "tests.test_regressions::test_long_operator_chain_does_not_exceed_depth",
+     "tests.test_regressions::test_ordered_identifier_has_no_alias",
+     "tests.test_regressions::test_output_php_escapes",
+     "tests.test_regressions::test_output_python_escapes_backslashes",
+     "tests.test_regressions::test_output_python_reindent_nested_line_breaks",
+     "tests.test_regressions::test_parsestream_binary_and_codecs_streams",
+     "tests.test_regressions::test_reindent_aligned_invalid_option_message",
+     "tests.test_regressions::test_remove_quotes_empty",
+     "tests.test_regressions::test_split_end_repeat",
+     "tests.test_regressions::test_strip_semicolon_before_trailing_comment",
+     "tests.test_regressions::test_token_types_survive_copy_and_pickle",
+     "tests.test_regressions::test_truncate_strings_escaped_quote_prefix",
+     "tests.test_regressions::test_truncate_strings_keeps_literal_valid",
+     "tests.test_regressions::test_typed_literal_in_identifier_list",
+     "tests.test_regressions::test_wide_identifier_list_is_not_quadratic",
+     "tests.test_regressions::test_window_function_has_no_alias"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "CHANGELOG",
+     "sqlparse/cli.py",
+     "sqlparse/engine/grouping.py",
+     "sqlparse/filters/aligned_indent.py",
+     "sqlparse/filters/others.py",
+     "sqlparse/filters/output.py",
+     "sqlparse/filters/tokens.py",
+     "sqlparse/formatter.py",
+     "sqlparse/keywords.py",
+     "sqlparse/lexer.py",
+     "sqlparse/sql.py",
+     "sqlparse/tokens.py",
+     "sqlparse/utils.py",
+     "tests/test_cli.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 3,
+     "upstream_commits": 24,
+     "collisions_in_package": 2
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

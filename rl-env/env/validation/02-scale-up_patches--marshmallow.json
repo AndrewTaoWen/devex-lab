@@ -1,0 +1,286 @@
+{
+ "marshmallow-r1": {
+  "total": 0.390351,
+  "terms": {
+   "bugs": 0.166667,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.026316
+  },
+  "parts": {
+   "bugs_available": 6,
+   "bugs_fixed": 1.0,
+   "verified_tests": 23,
+   "regressions": 0,
+   "collisions": 1,
+   "changed_lines": 380,
+   "detail": {
+    "task": "marshmallow",
+    "units": {
+     "bug": {
+      "units": 6,
+      "all": 1.0,
+      "any": 1.0,
+      "fraction": 1.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "test:test_invalid_timedelta_field_deserialization[nan]"
+    ],
+    "target_tests_fixed": [
+     "tests.test_deserialization.TestFieldDeserialization::test_invalid_timedelta_field_deserialization[nan]"
+    ],
+    "target_tests": 8,
+    "verified_tests": [
+     "tests.test_regressions.TestContainsValidatorsWithUnhashableValues::test_contains_none_of",
+     "tests.test_regressions.TestContainsValidatorsWithUnhashableValues::test_contains_only",
+     "tests.test_regressions.TestContextReentrancy::test_same_instance_nested",
+     "tests.test_regressions.TestContextReentrancy::test_same_instance_reused_sequentially",
+     "tests.test_regressions.TestFieldValidatorWithAttribute::test_dotted_attribute_is_validated",
+     "tests.test_regressions.TestFieldValidatorWithAttribute::test_invalid_value_removed_from_valid_data",
+     "tests.test_regressions.TestNestedOptionsOnUnknownField::test_exclude",
+     "tests.test_regressions.TestNestedOptionsOnUnknownField::test_only",
+     "tests.test_regressions.TestPreLoadReturningNone::test_not_allowed",
+     "tests.test_regressions.TestSchemaValidatorsWithMismatchedOriginalData::test_many_with_non_collection_input_and_no_skip",
+     "tests.test_regressions.TestSchemaValidatorsWithMismatchedOriginalData::test_pre_load_pass_collection_changes_length",
+     "tests.test_regressions.TestURLRelativeWithSchemeInQuery::test_relative_url_with_url_in_query",
+     "tests.test_regressions.TestValidatorsWithGenerators::test_contains_only",
+     "tests.test_regressions.TestValidatorsWithGenerators::test_none_of",
+     "tests.test_regressions.TestValidatorsWithGenerators::test_one_of",
+     "tests.test_regressions.TestValidatorsWithGenerators::test_one_of_labels",
+     "tests.test_regressions::test_constant_callable_not_called_on_load",
+     "tests.test_regressions::test_date_field_rejects_datetime",
+     "tests.test_regressions::test_dict_errors_are_plain_dict",
+     "tests.test_regressions::test_function_without_serialize_is_skipped_on_dump",
+     "tests.test_regressions::test_registry_redefinition_in_same_module_updates_classname_lookup",
+     "tests.test_regressions::test_timedelta_nan_is_invalid",
+     "tests.test_regressions::test_unknown_include_preserves_input_order"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/marshmallow/class_registry.py",
+     "src/marshmallow/experimental/context.py",
+     "src/marshmallow/fields.py",
+     "src/marshmallow/schema.py",
+     "src/marshmallow/validate.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 1,
+     "upstream_commits": 34,
+     "collisions_in_package": 1
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "marshmallow-r2": {
+  "total": 0.393026,
+  "terms": {
+   "bugs": 0.166667,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.023641
+  },
+  "parts": {
+   "bugs_available": 6,
+   "bugs_fixed": 1.0,
+   "verified_tests": 21,
+   "regressions": 0,
+   "collisions": 1,
+   "changed_lines": 423,
+   "detail": {
+    "task": "marshmallow",
+    "units": {
+     "bug": {
+      "units": 6,
+      "all": 1.0,
+      "any": 1.0,
+      "fraction": 1.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "test:test_invalid_timedelta_field_deserialization[nan]"
+    ],
+    "target_tests_fixed": [
+     "tests.test_deserialization.TestFieldDeserialization::test_invalid_timedelta_field_deserialization[nan]"
+    ],
+    "target_tests": 8,
+    "verified_tests": [
+     "tests.test_hardening::test_contains_none_of_unhashable_value_with_set_iterable",
+     "tests.test_hardening::test_contains_only_accepts_generator_choices",
+     "tests.test_hardening::test_contains_only_unhashable_value_with_set_choices",
+     "tests.test_hardening::test_context_instance_is_reentrant",
+     "tests.test_hardening::test_date_field_rejects_datetime",
+     "tests.test_hardening::test_dict_field_error_messages_are_plain_dict",
+     "tests.test_hardening::test_include_unknown_does_not_overwrite_deserialized_field",
+     "tests.test_hardening::test_meta_fields_with_undeclared_field_raises_value_error",
+     "tests.test_hardening::test_nested_option_with_unknown_parent_raises_value_error",
+     "tests.test_hardening::test_noneof_accepts_generator_iterable",
+     "tests.test_hardening::test_oneof_accepts_generator_choices",
+     "tests.test_hardening::test_oneof_options_with_generator_labels",
+     "tests.test_hardening::test_ordered_set_compare_to_non_iterable",
+     "tests.test_hardening::test_post_dump_pass_original_many_with_filtering_pre_dump",
+     "tests.test_hardening::test_post_load_pass_original_many_with_filtering_pre_load",
+     "tests.test_hardening::test_registry_replaces_redefined_class_in_same_module",
+     "tests.test_hardening::test_timedelta_nan_raises_validation_error",
+     "tests.test_hardening::test_validates_schema_many_with_filtering_pre_load",
+     "tests.test_hardening::test_validates_schema_many_with_non_list_input_does_not_crash",
+     "tests.test_hardening::test_validates_with_attribute_removes_invalid_value_from_valid_data",
+     "tests.test_hardening::test_validates_with_dotted_attribute_is_called"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/marshmallow/class_registry.py",
+     "src/marshmallow/experimental/context.py",
+     "src/marshmallow/fields.py",
+     "src/marshmallow/orderedset.py",
+     "src/marshmallow/schema.py",
+     "src/marshmallow/validate.py",
+     "tests/test_hardening.py"
+    ],
+    "replay": {
+     "collisions": 1,
+     "upstream_commits": 34,
+     "collisions_in_package": 1
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "marshmallow-r3": {
+  "total": 0.396341,
+  "terms": {
+   "bugs": 0.166667,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.020325
+  },
+  "parts": {
+   "bugs_available": 6,
+   "bugs_fixed": 1.0,
+   "verified_tests": 21,
+   "regressions": 0,
+   "collisions": 1,
+   "changed_lines": 492,
+   "detail": {
+    "task": "marshmallow",
+    "units": {
+     "bug": {
+      "units": 6,
+      "all": 1.0,
+      "any": 1.0,
+      "fraction": 1.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "test:test_invalid_timedelta_field_deserialization[nan]"
+    ],
+    "target_tests_fixed": [
+     "tests.test_deserialization.TestFieldDeserialization::test_invalid_timedelta_field_deserialization[nan]"
+    ],
+    "target_tests": 8,
+    "verified_tests": [
+     "tests.test_regressions::test_contains_none_of_unhashable_values_with_set_iterable",
+     "tests.test_regressions::test_contains_only_unhashable_values_with_set_choices",
+     "tests.test_regressions::test_context_instance_is_reentrant",
+     "tests.test_regressions::test_context_instance_shared_between_threads",
+     "tests.test_regressions::test_dump_dict_with_missing_key_named_like_dict_method",
+     "tests.test_regressions::test_get_value_does_not_return_dict_methods_for_missing_keys",
+     "tests.test_regressions::test_include_unknown_preserves_input_order",
+     "tests.test_regressions::test_meta_fields_with_undeclared_field_raises_value_error",
+     "tests.test_regressions::test_nested_schema_cache_not_shared_with_bound_copies",
+     "tests.test_regressions::test_noneof_accepts_iterators",
+     "tests.test_regressions::test_oneof_accepts_iterators",
+     "tests.test_regressions::test_ordered_set_compares_unequal_to_non_iterables",
+     "tests.test_regressions::test_pre_load_returning_none_gives_null_error_in_schema",
+     "tests.test_regressions::test_pre_load_returning_none_respects_allow_none",
+     "tests.test_regressions::test_registry_redefinition_in_same_module_replaces_class",
+     "tests.test_regressions::test_relative_url_with_url_in_query_string",
+     "tests.test_regressions::test_schema_validators_and_post_load_when_pre_load_changes_length",
+     "tests.test_regressions::test_timedelta_rejects_nan_and_bool",
+     "tests.test_regressions::test_unknown_dotted_field_name_raises_value_error",
+     "tests.test_regressions::test_validates_failure_removes_value_stored_under_attribute",
+     "tests.test_regressions::test_validates_runs_for_field_with_dotted_attribute"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/marshmallow/class_registry.py",
+     "src/marshmallow/experimental/context.py",
+     "src/marshmallow/fields.py",
+     "src/marshmallow/orderedset.py",
+     "src/marshmallow/schema.py",
+     "src/marshmallow/utils.py",
+     "src/marshmallow/validate.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 1,
+     "upstream_commits": 34,
+     "collisions_in_package": 1
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}
