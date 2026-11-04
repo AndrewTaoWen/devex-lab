@@ -7,7 +7,7 @@ pip install "./devtools/cli[mcp]"        # from this repo; PyPI: pip install "re
 repomap-mcp [--root DIR]                 # stdio; root defaults to $REPOMAP_ROOT_DIR, $CLAUDE_PROJECT_DIR, then cwd
 ```
 
-To add it to Claude Code: `claude mcp add repomap -- repomap-mcp`.
+To add it to Claude Code without the plugin: `claude mcp add repomap -- repomap-mcp`. The [Claude Code plugin](../ai-skill/README.md) bundles it with the skill.
 
 ## Tools
 
