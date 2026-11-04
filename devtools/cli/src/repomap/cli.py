@@ -17,7 +17,7 @@
         Open the map in a browser at a localhost link: modules and functions coloured by how many tests
         run them, a function's callers, callees and recorded values, and the impact of your uncommitted
         changes or of any functions you pick. --export writes the same page as one self-contained file.
-  repomap query       fn|callers|tests|gaps [ARG] [--json]
+  repomap query       fn|callers|tests|gaps [ARG] [--public] [--limit N] [--basic] [--json]
         Ask the memory what the suite actually did: value summaries for a function, who calls it,
         which tests run FILE:LINE, or arguments never seen empty / zero / negative.
 
@@ -512,6 +512,9 @@ def main():
     q = sub.add_parser("query", help="value summaries, callers, tests for a line, or value gaps")
     q.add_argument("kind", choices=["fn", "callers", "tests", "gaps"])
     q.add_argument("arg", nargs="?", default="")
+    q.add_argument("--public", action="store_true", help="gaps: drop private and nested functions")
+    q.add_argument("--limit", type=int, default=None, help="gaps: keep the N most-called functions")
+    q.add_argument("--basic", action="store_true", help="gaps: only the empty/zero/negative probes")
     q.add_argument("--json", action="store_true")
     v = sub.add_parser("serve")
     v.add_argument("--port", type=int, default=8765)
@@ -537,7 +540,7 @@ def main():
         serve(a)
     elif a.cmd == "query":
         from . import query
-        query.show(query.run(load(), a.kind, a.arg), a.kind, a.json)
+        query.show(query.run(load(), a.kind, a.arg, public=a.public, limit=a.limit, basic=a.basic), a.kind, a.json)
     else:
         status(a)
 

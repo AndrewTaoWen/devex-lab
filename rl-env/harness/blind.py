@@ -47,13 +47,13 @@ def prep(a):
             else:
                 sh(["uv", "pip", "install", "-q", "-e", "."], cwd=d, env=env)
             tdir = tests_dir(d)
-            cmd = f".venv/bin/python -m pytest -q -p no:cacheprovider -o addopts= {tdir}"
+            cmd = [".venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "-o", "addopts=", tdir]
             code, out = sh(cmd, cwd=d, timeout=1800)
             (d / ".gitignore").write_text(".venv/\n__pycache__/\n*.egg-info/\njunit.xml\n")
             sh(["git", "init", "-q"], cwd=d)
             sh(["git", "add", "-A"], cwd=d)
             sh(["git", "-c", "user.name=x", "-c", "user.email=x@x", "commit", "-qm", "snapshot"], cwd=d)
-            meta = dict(repo=spec, snapshot=snap, test_cmd=cmd, baseline=out.strip().splitlines()[-1][:200])
+            meta = dict(repo=spec, snapshot=snap, test_cmd=" ".join(cmd), baseline=out.strip().splitlines()[-1][:200])
             (d / ".blind.json").write_text(json.dumps(meta, indent=1))
             print(f"{d.name}: {meta['baseline']}", flush=True)
 

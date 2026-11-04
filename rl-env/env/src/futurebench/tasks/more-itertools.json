@@ -1,0 +1,221 @@
+{
+ "id": "more-itertools",
+ "repo": "more-itertools/more-itertools",
+ "split": "train",
+ "snapshot": "f7b44bba5c4a73ed42bab52cb8ede9d742d95e16",
+ "snapshot_date": "2026-05-23",
+ "cutoff": "2026-06-01",
+ "head": "4aeb4338ae1407d8da9723e86da99efeb446f719",
+ "head_date": "2026-10-14",
+ "packages": [
+  "more_itertools"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "069b110",
+   "label": "bug",
+   "subject": "Add @jokrasno's test cases",
+   "tests": [
+    "tests.test_more.CombinationWithReplacementIndexTests::test_invalid_none_values",
+    "tests.test_more.CombinationWithReplacementIndexTests::test_none_values"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "1fd388b",
+   "label": "bug",
+   "subject": "Validate running window sizes through the index protocol",
+   "tests": [
+    "tests.test_recipes.RunningWindowSizeTests::test_index_protocol",
+    "tests.test_recipes.RunningWindowSizeTests::test_noninteger_window",
+    "tests.test_recipes.RunningWindowSizeTests::test_nonpositive_index"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "2b8d5cd",
+   "label": "bug",
+   "subject": "Issue 1284: don't let a bucket lookup invent a key",
+   "tests": [
+    "tests.test_more.BucketTests::test_getitem_miss_does_not_add_key",
+    "tests.test_more.BucketTests::test_in_does_not_add_key",
+    "tests.test_more.BucketTests::test_in_does_not_add_key_with_validator",
+    "tests.test_more.BucketTests::test_keys_are_only_those_seen"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "3eb4053",
+   "label": "bug",
+   "subject": "Bound zero-cache seekable lookahead storage",
+   "tests": [
+    "tests.test_more.SeekableTest::test_repeated_zero_cache_peek_has_bounded_memory"
+   ],
+   "kind": "degenerate-input"
+  },
+  {
+   "id": "43decdd",
+   "label": "feature",
+   "subject": "Support negative start/stop in iter_index for general iterables",
+   "tests": [
+    "tests.test_more.ChunkedTests::test_negative",
+    "tests.test_more.IchunkedTests::test_negative",
+    "tests.test_more.SlicedTests::test_negative"
+   ]
+  },
+  {
+   "id": "67fcf64",
+   "label": "bug",
+   "subject": "fix: honour a falsey validator in bucket (#1308)",
+   "tests": [
+    "tests.test_more.BucketTests::test_falsey_validator_is_honoured"
+   ],
+   "kind": "falsy-sentinel"
+  },
+  {
+   "id": "6b1907d",
+   "label": "bug",
+   "subject": "fix: seekable.peek/bool no longer drop items when maxlen is 0",
+   "tests": [
+    "tests.test_more.SeekableTest::test_maxlen_zero_bool_does_not_drop_items",
+    "tests.test_more.SeekableTest::test_maxlen_zero_peek_does_not_drop_items"
+   ],
+   "kind": "degenerate-input"
+  },
+  {
+   "id": "752799b",
+   "label": "bug",
+   "subject": "Preserve numeric_range values during reverse iteration",
+   "tests": [
+    "tests.test_more.NumericRangeTests::test_reversed_datetime_limits",
+    "tests.test_more.NumericRangeTests::test_reversed_preserves_float_values"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "7847d43",
+   "label": "bug",
+   "subject": "Don't mask TypeError raised while iterating in value_chain",
+   "tests": [
+    "tests.test_more.ValueChainTests::test_type_error_while_iterating"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "842a2b1",
+   "label": "feature",
+   "subject": "Add subfactorial()",
+   "tests": [
+    "tests.test_more.TestSubfactorial::test_error_cases",
+    "tests.test_more.TestSubfactorial::test_oeis_baseline",
+    "tests.test_more.TestSubfactorial::test_vs_derangements"
+   ]
+  },
+  {
+   "id": "87d1257",
+   "label": "bug",
+   "subject": "test invalid and one-item batch count limits",
+   "tests": [
+    "tests.test_more.ConstrainedBatchesTests::test_nonpositive_max_count"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "b8fe920",
+   "label": "feature",
+   "subject": "Add random ordered combinatoric functions",
+   "tests": [
+    "tests.test_more.TestRandomOrderedRange::test_lcg_mitigation",
+    "tests.test_more.TestRandomOrderedRange::test_vs_ordered_baseline"
+   ]
+  },
+  {
+   "id": "ce676d2",
+   "label": "bug",
+   "subject": "Do not yield an empty list for an empty iterable when maxsplit is 0",
+   "tests": [
+    "tests.test_more.SplitAfterTest::test_empty_collection",
+    "tests.test_more.SplitBeforeTest::test_empty_collection"
+   ],
+   "kind": "degenerate-input"
+  },
+  {
+   "id": "d992be0",
+   "label": "bug",
+   "subject": "Fix stability in running_min and running_max",
+   "tests": [
+    "tests.test_more.TestRunningMax::test_stability",
+    "tests.test_more.TestRunningMin::test_stability"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "dc2664b",
+   "label": "bug",
+   "subject": "Issue 1247: Keep numeric_range consistent with the items it produces",
+   "tests": [
+    "tests.test_more.NumericRangeTests::test_contains_items_with_inexact_step",
+    "tests.test_more.NumericRangeTests::test_len_matches_iteration"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "def2dab",
+   "label": "bug",
+   "subject": "Fix one()/only() dropping a falsy user-supplied exception",
+   "tests": [
+    "tests.test_more.OneTests::test_falsy_custom_exception",
+    "tests.test_more.OneTests::test_too_long_does_not_evaluate_repr",
+    "tests.test_more.OnlyTests::test_falsy_custom_exception",
+    "tests.test_more.OnlyTests::test_too_long_does_not_evaluate_repr"
+   ],
+   "kind": "falsy-sentinel"
+  },
+  {
+   "id": "e426d25",
+   "label": "bug",
+   "subject": "Reuse input iterators in zip_broadcast",
+   "tests": [
+    "tests.test_more.ZipBroadcastTests::test_single_use_iterable"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "f51a53b",
+   "label": "bug",
+   "subject": "fix: handle empty interleave_evenly input",
+   "tests": [
+    "tests.test_more.InterleaveEvenlyTests::test_no_iterables"
+   ],
+   "kind": "degenerate-input"
+  },
+  {
+   "id": "f89d7a3",
+   "label": "bug",
+   "subject": "Issue 1304: make ichunked match chunked for n=0 and negative n",
+   "tests": [
+    "tests.test_more.IchunkedTests::test_zero_nonempty"
+   ],
+   "kind": "degenerate-input"
+  },
+  {
+   "id": "test:test_empty_iterable",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_more.SplitWhenTests::test_empty_iterable"
+   ],
+   "kind": "degenerate-input"
+  },
+  {
+   "id": "test:test_eq",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_more.NumericRangeTests::test_eq"
+   ],
+   "kind": "domain-semantics"
+  }
+ ]
+}
