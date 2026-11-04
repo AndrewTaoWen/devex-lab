@@ -9,7 +9,7 @@ The two feed each other. The benchmark needs fast, precise "what does this chang
 
 ## What I'm working on now
 
-- **Turning repomap into dev tools.** The CLI works (record, impact, refresh, serve with Map and Graph views). Next I'm wrapping it as an AI skill (draft in [`devtools/ai-skill/`](devtools/ai-skill/SKILL.md)) and an MCP server, then packaging it with `pip`.
+- **Turning repomap into dev tools.** The CLI is now an installable package (`repomap` and `repomap-mcp` commands), with an MCP server and a Claude Code plugin that bundles the skill ([`devtools/ai-skill/`](devtools/ai-skill/README.md)). Next: publish to PyPI, then the GitHub Action.
 - **Turning the pilot into a reward benchmark.** First version built: [futurebench](rl-env/env/README.md) has `prepare` / `score`, a Docker sandbox per attempt with no network, the combined reward (future bug tests + verified regression tests − regressions − replay collisions), and 12 tasks. Re-scoring every old patch reproduces the earlier results. Next: tune the reward weights, add a reference agent loop, and grow the task set.
 - **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints.
 
@@ -24,9 +24,9 @@ rl-env/
   experiments/      01-pilot, 02-scale-up, 03-analysis, 04-ab-test, 05-replay (in the order they ran)
   research/         survey of repo-evolution benchmarks and training data
 devtools/
-  cli/              repomap.py record | impact | refresh | status | serve, plus mutbench.py and impact.py
-  ai-skill/         plan and draft SKILL.md so coding agents use repomap        (planned)
-  mcp-server/       repomap as MCP tools for any agent                          (planned)
+  cli/              the repomap package (src/repomap: CLI, MCP server, tracer, map page), plus mutbench.py and impact.py
+  ai-skill/         Claude Code plugin: the repomap skill + MCP server config
+  mcp-server/       docs for repomap-mcp, the MCP tools for any agent
   vscode-extension/ impact and coverage in the editor                           (planned)
   github-action/    test selection and an impact comment on every PR            (planned)
 tests/              tests for the harness's shell and XML hardening
@@ -43,10 +43,15 @@ tests/              tests for the harness's shell and XML hardening
 ## Quick start
 
 ```
-# dev tools: trace a repo once, then ask what a change affects
-python devtools/cli/repomap.py record --package src/mypkg
-python devtools/cli/repomap.py impact          # your uncommitted diff
-python devtools/cli/repomap.py serve           # map and graph at http://localhost:8765
+# dev tools: install, trace a repo once, then ask what a change affects
+pip install "./devtools/cli[mcp]"   # or run python devtools/cli/repomap.py without installing
+repomap record --package src/mypkg
+repomap impact                      # your uncommitted diff
+repomap serve                       # map and graph at http://localhost:8765
+
+# Claude Code: the skill + MCP server as a plugin
+/plugin marketplace add AndrewTaoWen/devex-lab
+/plugin install repomap@devex-lab
 
 # reward benchmark: run and score one attempt (needs Docker)
 pip install -e rl-env/env
