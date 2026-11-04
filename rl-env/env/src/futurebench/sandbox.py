@@ -1,10 +1,10 @@
-"""Docker images and containers for episodes.
+"""Docker images and containers for runs.
 
 Two images per task, built once and cached by tag:
-  agent  the snapshot tree at /workspace with its dependencies in /opt/venv. Episodes run in it with
+  agent  the snapshot tree at /workspace with its dependencies in /opt/venv. Runs execute in it with
          --network none and the host workspace mounted over /workspace.
   score  upstream HEAD's tree at /future with HEAD's dependencies. Only the scorer uses it, on a
-         copy outside the episode, so nothing from after the snapshot ever enters an episode.
+         copy outside the run's sandbox, so nothing from after the snapshot ever enters it.
 Files that an install generates inside package code (e.g. a hatch-vcs _version.py) are saved in
 /opt/generated and copied into any mounted tree that lacks them.
 
@@ -133,7 +133,7 @@ def run_in(image: str, kind: str, tree: Path, cmd: list[str], timeout=2400, netw
 
 
 class Container:
-    """A long-lived episode container: --network none, workspace mounted at /workspace."""
+    """A long-lived sandbox container for one run: --network none, workspace mounted at /workspace."""
 
     def __init__(self, image: str, workspace: Path, name: str):
         self.image, self.workspace, self.name = image, workspace, name
@@ -146,7 +146,7 @@ class Container:
         return self
 
     def exec(self, command: str, timeout=1800):
-        """Run a shell command inside the episode container; returns (exit code, combined output)."""
+        """Run a shell command inside the run's container; returns (exit code, combined output)."""
         p = subprocess.run(["docker", "exec", "-w", MOUNTS["agent"], self.name, "sh", "-c", command],
                            capture_output=True, text=True, timeout=timeout)
         return p.returncode, p.stdout + p.stderr
