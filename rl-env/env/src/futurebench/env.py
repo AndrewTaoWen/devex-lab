@@ -1,4 +1,4 @@
-"""The environment: reset(task) -> Episode, score(episode or workspace) -> Reward."""
+"""The benchmark API: reset(task) -> Episode (one sandboxed attempt), score(episode or workspace) -> Reward."""
 import json
 import os
 import re

@@ -1,6 +1,6 @@
 # futurebench
 
-A reward-signal environment built from the experiments in [`../experiments`](../experiments). Each episode is one Python repo frozen at the model's knowledge cutoff (2026-06-01). An agent hardens the snapshot inside a Docker sandbox with no network and nothing newer than the snapshot. A scorer outside the sandbox then runs the repo's real later tests against the agent's code and returns a reward and every part of it.
+A reward benchmark built from the experiments in [`../experiments`](../experiments). Each task is one Python repo frozen at the model's knowledge cutoff (2026-06-01). An agent hardens the snapshot inside a Docker sandbox with no network and nothing newer than the snapshot. A scorer outside the sandbox then runs the repo's real later tests against the agent's code and returns a reward and every part of it.
 
 ```
 pip install -e rl-env/env          # needs Docker, git and uv on the host
@@ -23,7 +23,7 @@ r = fb.score(ep)                   # Reward: total, terms, parts (+ detail)
 ep.close()
 ```
 
-Episodes are single-turn: the agent edits `/workspace` however it likes, and `score` runs once at the end. Any agent harness works as long as it runs its tool calls through `Episode.exec` (or `docker exec` into the episode container).
+It is a benchmark, not an RL environment: each attempt (an `Episode` in the API) is one patch, scored once at the end, with no step-by-step rewards and no training loop. The score is meant to be usable as a reward by whatever trains or compares agents. The agent edits `/workspace` however it likes, and `score` runs once at the end. Any agent harness works as long as it runs its tool calls through `Episode.exec` (or `docker exec` into the episode container).
 
 ## Tasks
 
