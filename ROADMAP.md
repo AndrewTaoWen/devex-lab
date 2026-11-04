@@ -6,18 +6,18 @@ Two directions, one shared core. Items are in priority order within each horizon
 
 | Direction | What | Where |
 |---|---|---|
-| Reward bench | Pilot on tinydb and click: future tests work as a reward | [01-pilot](rl-env/experiments/01-pilot/README.md) |
-| Reward bench | 8 repos x 3 blind runs, bug vs feature labels, sandboxed reruns | [02-scale-up](rl-env/experiments/02-scale-up/README.md) |
-| Reward bench | Miss analysis and precision of agent fixes | [03-analysis](rl-env/experiments/03-analysis/README.md) |
-| Reward bench | Prompt A/B on 4 held-out repos | [04-ab-test](rl-env/experiments/04-ab-test/README.md) |
-| Reward bench | Replay of upstream history onto agent patches | [05-replay](rl-env/experiments/05-replay/README.md) |
-| Reward bench | futurebench: prepare/score benchmark with Docker sandboxes, validated on 48 old patches | [env](rl-env/env/README.md) |
+| Reward bench | Pilot on tinydb and click: future tests work as a reward | [01-pilot](reward-bench/experiments/01-pilot/README.md) |
+| Reward bench | 8 repos x 3 blind runs, bug vs feature labels, sandboxed reruns | [02-scale-up](reward-bench/experiments/02-scale-up/README.md) |
+| Reward bench | Miss analysis and precision of agent fixes | [03-analysis](reward-bench/experiments/03-analysis/README.md) |
+| Reward bench | Prompt A/B on 4 held-out repos | [04-ab-test](reward-bench/experiments/04-ab-test/README.md) |
+| Reward bench | Replay of upstream history onto agent patches | [05-replay](reward-bench/experiments/05-replay/README.md) |
+| Reward bench | futurebench: prepare/score benchmark with Docker sandboxes, validated on 48 old patches | [futurebench](reward-bench/futurebench/README.md) |
 | Dev tools | repomap CLI: record, impact, refresh, status, serve (map + graph view) | [cli](devtools/cli/README.md) |
 | Dev tools | Accuracy on werkzeug history (85/85) and 200 injected faults (171/171) | [cli](devtools/cli/README.md) |
 
 ## Next (weeks)
 
-1. **Reward benchmark.** Built as [futurebench](rl-env/env/README.md): `prepare(task)` → sandboxed run, `score(attempt)` → reward and parts. Reward = future bug units fixed + verified snapshot-failing regression tests − regressions − upstream replay collisions. Docker per run with no network, and future tests only in a separate score image. 12 tasks (8 train, 4 eval). Re-scoring all 48 old patches reproduces the old harness's results. Next: a reference agent loop, calibrating the collision weight, and more tasks once screen.py handles the setup failures.
+1. **Reward benchmark.** Built as [futurebench](reward-bench/futurebench/README.md): `prepare(task)` → sandboxed run, `score(attempt)` → reward and parts. Reward = future bug units fixed + verified snapshot-failing regression tests − regressions − upstream replay collisions. Docker per run with no network, and future tests only in a separate score image. 12 tasks (8 train, 4 eval). Re-scoring all 48 old patches reproduces the old harness's results. Next: a reference agent loop, calibrating the collision weight, and more tasks once screen.py handles the setup failures.
 2. **repomap inside the hardening agent.** Give agents `query.py`'s value gaps ("this argument was never empty") and A/B them against the improved prompt on the held-out repos. It is the cheapest test of whether the two directions help each other, and the miss analysis says empty inputs and domain rules are exactly what agents skip.
 3. **AI skill and MCP server.** Wrap the CLI so Claude Code (and any MCP client) runs `impact` before editing and selected tests after. A few days of work, usable immediately, and it gives the benchmark's agents the same tool interface. ([ai-skill](devtools/ai-skill/README.md), [mcp-server](devtools/mcp-server/README.md))
 4. **Package the CLI.** `pip install repomap` with a pytest plugin entry point (`pytest --repomap`), a stable JSON schema for `.repomap/memory.json`, and versioned output. Every other dev tool depends on this.

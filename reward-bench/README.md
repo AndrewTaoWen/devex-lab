@@ -29,12 +29,12 @@ Run in this order, each building on the last:
 
 ## The benchmark: futurebench
 
-[`env/`](env/README.md) packages the steps above as a pip-installable benchmark. It is not an RL environment: an attempt is one patch, scored once at the end, with no per-step rewards or training loop. The score can serve as a reward for whatever trains agents elsewhere.
+[`futurebench/`](futurebench/README.md) packages the steps above as a pip-installable benchmark. It is not an RL environment: an attempt is one patch, scored once at the end, with no per-step rewards or training loop. The score can serve as a reward for whatever trains agents elsewhere.
 
 - **API.** `futurebench.prepare(task)` lays out the snapshot and starts a Docker sandbox with no network. `Run.exec(cmd)` runs the agent's commands in it. `futurebench.score(run)` returns the reward and its parts.
 - **Reward.** Future bug units fixed + capped verified regression tests − regressions − upstream replay collisions. The weights are flags, and every part is stored so attempts can be re-weighed later without rerunning tests.
 - **Isolation.** The sandbox container only ever holds the snapshot. Future tests run in a separate score image, on a copy of the workspace, outside the sandbox.
 - **Tasks.** The 12 repos above: 8 train (116 bug units) and 4 eval (30 bug units, from the 04 held-out set).
-- **Validation.** Re-scoring the 48 patches from 02 and 04 reproduces the old harness's fixed tests and regressions ([`env/validation/`](env/validation/README.md)).
+- **Validation.** Re-scoring the 48 patches from 02 and 04 reproduces the old harness's fixed tests and regressions ([`futurebench/validation/`](futurebench/validation/README.md)).
 
 Still open: more repos (the screened-but-unrun ones mostly failed setup, so screen.py needs fixes first), repomap test selection to make scoring cheaper, and a reference agent loop on top of `Run.exec`.
