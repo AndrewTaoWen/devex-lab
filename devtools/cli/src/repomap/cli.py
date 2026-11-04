@@ -1,6 +1,6 @@
 """repomap: remember what the test suite runs, then ask what a change will touch without running anything.
 
-  repomap record   [--package src/pkg] [--tests tests] [--python PY]
+  repomap record   [--package src/pkg] [--tests tests] [--python PY] [--json]
         Trace the whole suite once and save the memory to .repomap/memory.json (lines per test,
         call graph, value summaries, and the commit + file hashes it was recorded at).
   repomap impact   [TARGET ...] [--diff [REV]] [--json]
@@ -8,15 +8,18 @@
         uses your uncommitted changes against the recorded commit. Reads only the memory file.
         Prints the changed functions, their callers grouped by module, the tests that run them,
         a pytest command for those tests, and anything the memory can't vouch for.
-  repomap refresh  [--diff [REV]]
+  repomap refresh  [--diff [REV]] [--json]
         Re-trace only the tests that run code in the changed files (plus changed test files) and
         merge them into the memory, so the next lookup is current without a full re-record.
-  repomap status
+  repomap status   [--json]
         What the memory covers and which package files have changed since it was recorded.
   repomap serve    [--port 8765] [--open] [--export FILE.html]
         Open the map in a browser at a localhost link: modules and functions coloured by how many tests
         run them, a function's callers, callees and recorded values, and the impact of your uncommitted
         changes or of any functions you pick. --export writes the same page as one self-contained file.
+  repomap query       fn|callers|tests|gaps [ARG] [--public] [--limit N] [--basic] [--json]
+        Ask the memory what the suite actually did: value summaries for a function, who calls it,
+        which tests run FILE:LINE, or arguments never seen empty / zero / negative.
 
 Run from the repo root. Needs Python 3.12+ in the interpreter that runs the tests.
 """
@@ -132,8 +135,14 @@ def record(a):
     m.update(prefix=str(Path(m["package"]).parent) + "/", tests_map=raw["tests"], functions=raw["functions"],
              edges=raw["edges"], hashes={f: file_hash(f) for f in package_files(m)}, recorded=time.time())
     save(m)
-    print(f"Recorded {len(raw['tests'])} tests, {len(raw['functions'])} functions, {len(raw['edges'])} call edges "
-          f"in {time.time() - t0:.0f}s -> {MEM}")
+    res = dict(tests=len(raw["tests"]), functions=len(raw["functions"]), edges=len(raw["edges"]),
+               seconds=round(time.time() - t0, 1), memory=str(MEM), commit=m["commit"])
+    if getattr(a, "json", False):
+        print(json.dumps(res, indent=1))
+    elif not getattr(a, "quiet", False):
+        print(f"Recorded {res['tests']} tests, {res['functions']} functions, {res['edges']} call edges "
+              f"in {res['seconds']:.0f}s -> {MEM}")
+    return res
 
 
 # ---------- working out what changed ----------
@@ -181,8 +190,8 @@ def changed_targets(m, rev):
     return keys, test_files
 
 
-def resolve(m, targets):
-    """Function names, partial names or path.py:LINE -> memory keys."""
+def resolve(m, targets, unmatched=None):
+    """Function names, partial names or path.py:LINE -> memory keys. Names that match nothing go to unmatched."""
     keys = set()
     for t in targets:
         mm = re.match(r"(.+\.py):(\d+)$", t)
@@ -194,7 +203,10 @@ def resolve(m, targets):
         found = [k for k in m["functions"] if k.endswith(":" + t) or k.endswith("." + t)] or \
                 [k for k in m["functions"] if t in k]
         if not found:
-            print(f"  (nothing in memory matches {t!r})")
+            if unmatched is None:
+                print(f"  (nothing in memory matches {t!r})")
+            else:
+                unmatched.append(t)
         keys.update(found)
     return keys
 
@@ -245,8 +257,9 @@ def callers_of(m, keys, depth=2):
 def compute_impact(m, targets=(), diff=None, use_diff=True, depth=2):
     """The impact of named targets, or of the working-tree diff against the memory's snapshot (or REV)."""
     t0 = time.time()
+    unmatched = []
     if targets:
-        keys, test_files = resolve(m, targets), set()
+        keys, test_files = resolve(m, targets, unmatched), set()
         source = "named targets"
     else:
         keys, test_files = changed_targets(m, diff)
@@ -261,7 +274,8 @@ def compute_impact(m, targets=(), diff=None, use_diff=True, depth=2):
     stale = sorted(f for f, h in m["hashes"].items() if file_hash(f) != h)
     return dict(source=source, changed=sorted(keys), changed_tests={k: len(v) for k, v in per_key.items()},
                 test_files=sorted(test_files), callers=[sorted(l) for l in layers], tests=sorted(tests),
-                untested=unknown, files_changed_since_record=stale, seconds=round(time.time() - t0, 2))
+                untested=unknown, unmatched=unmatched, files_changed_since_record=stale,
+                seconds=round(time.time() - t0, 2))
 
 
 def impact(a):
@@ -274,6 +288,8 @@ def impact(a):
     if a.json:
         print(json.dumps(res, indent=1))
         return
+    for t in res["unmatched"]:
+        print(f"  (nothing in memory matches {t!r})")
     print(f"Impact of {source}  ({len(m['tests_map'])} tests in memory, looked up in {res['seconds']}s)\n")
     if not keys and not test_files:
         print("No changes to library or test code.")
@@ -323,8 +339,12 @@ def refresh(a):
     rerun = {t for f in files for t, _ in by_file.get(f, [])}
     targets = sorted({t.split("::", 1)[0] for t in rerun} | test_files) if a.by_file else sorted(rerun | test_files)
     if not targets:
-        print("Nothing to refresh.")
-        return
+        res = dict(retraced=0, tests=len(m["tests_map"]), changed_files=[], seconds=round(time.time() - t0, 1))
+        if getattr(a, "json", False):
+            print(json.dumps(res, indent=1))
+        elif not getattr(a, "quiet", False):
+            print("Nothing to refresh.")
+        return res
     with tempfile.TemporaryDirectory() as td:
         args = targets
         if len(" ".join(args)) > 100_000:  # very long node-id lists: fall back to whole test files
@@ -344,16 +364,28 @@ def refresh(a):
     m["hashes"].update({f: file_hash(f) for f in package_files(m)})
     m["commit"] = worktree_snapshot() or m.get("commit")
     save(m)
-    print(f"Re-traced {len(raw['tests'])} tests (of {len(m['tests_map'])}) touching {len(touched)} changed files "
-          f"in {time.time() - t0:.0f}s; memory updated.")
+    res = dict(retraced=len(raw["tests"]), tests=len(m["tests_map"]), changed_files=sorted(touched),
+               seconds=round(time.time() - t0, 1))
+    if getattr(a, "json", False):
+        print(json.dumps(res, indent=1))
+    elif not getattr(a, "quiet", False):
+        print(f"Re-traced {res['retraced']} tests (of {res['tests']}) touching {len(touched)} changed files "
+              f"in {res['seconds']:.0f}s; memory updated.")
+    return res
 
 
 def status(a):
     m = load()
     stale = sorted(f for f, h in m["hashes"].items() if file_hash(f) != h)
-    print(f"Memory: {len(m['tests_map'])} tests, {len(m['functions'])} functions, recorded at "
-          f"snapshot {(m.get('commit') or '?')[:10]} (refs/repomap/memory)")
-    print(f"Library files changed since: {len(stale)}" + ("".join(f"\n  {f}" for f in stale)))
+    res = dict(tests=len(m["tests_map"]), functions=len(m["functions"]), edges=len(m["edges"]),
+               package=m["package"], commit=m.get("commit"), recorded=m.get("recorded"), changed_files=stale)
+    if getattr(a, "json", False):
+        print(json.dumps(res, indent=1))
+    elif not getattr(a, "quiet", False):
+        print(f"Memory: {res['tests']} tests, {res['functions']} functions, recorded at "
+              f"snapshot {(res['commit'] or '?')[:10]} (refs/repomap/memory)")
+        print(f"Library files changed since: {len(stale)}" + ("".join(f"\n  {f}" for f in stale)))
+    return res
 
 
 # ---------- serve ----------
@@ -466,6 +498,7 @@ def main():
     r.add_argument("--package", default=None)
     r.add_argument("--tests", default="tests")
     r.add_argument("--python", default=sys.executable)
+    r.add_argument("--json", action="store_true")
     i = sub.add_parser("impact")
     i.add_argument("targets", nargs="*")
     i.add_argument("--diff", nargs="?", const=None, default=False)
@@ -474,7 +507,15 @@ def main():
     f = sub.add_parser("refresh")
     f.add_argument("--diff", nargs="?", const=None, default=None)
     f.add_argument("--by-file", action="store_true", help="re-run whole test files instead of single tests")
-    sub.add_parser("status")
+    f.add_argument("--json", action="store_true")
+    sub.add_parser("status").add_argument("--json", action="store_true")
+    q = sub.add_parser("query", help="value summaries, callers, tests for a line, or value gaps")
+    q.add_argument("kind", choices=["fn", "callers", "tests", "gaps"])
+    q.add_argument("arg", nargs="?", default="")
+    q.add_argument("--public", action="store_true", help="gaps: drop private and nested functions")
+    q.add_argument("--limit", type=int, default=None, help="gaps: keep the N most-called functions")
+    q.add_argument("--basic", action="store_true", help="gaps: only the empty/zero/negative probes")
+    q.add_argument("--json", action="store_true")
     v = sub.add_parser("serve")
     v.add_argument("--port", type=int, default=8765)
     v.add_argument("--host", default="127.0.0.1")
@@ -497,6 +538,9 @@ def main():
         refresh(a)
     elif a.cmd == "serve":
         serve(a)
+    elif a.cmd == "query":
+        from . import query
+        query.show(query.run(load(), a.kind, a.arg, public=a.public, limit=a.limit, basic=a.basic), a.kind, a.json)
     else:
         status(a)
 
