@@ -31,7 +31,7 @@ repomap record --package src/werkzeug          # traces the suite once; werkzeug
 repomap impact Range.range_for_length          # or path.py:LINE, or no argument for your uncommitted diff
 repomap refresh                                # after a change: re-trace only tests that run the changed files
 repomap status
-repomap query gaps routing                     # also: query fn NAME, query callers NAME, query tests FILE:LINE
+repomap query gaps routing --public --limit 20  # also: query fn NAME, query callers NAME, query tests FILE:LINE
 repomap serve                                  # the map in your browser at http://localhost:8765
 ```
 
