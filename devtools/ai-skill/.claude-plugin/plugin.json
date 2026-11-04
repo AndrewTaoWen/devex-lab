@@ -1,0 +1,15 @@
+{
+  "name": "repomap",
+  "version": "0.1.0",
+  "description": "Change impact for Python repos: see what an edit reaches and run only the tests it touches, from a traced map of the test suite.",
+  "homepage": "https://github.com/AndrewTaoWen/devex-lab/tree/main/devtools",
+  "keywords": [
+    "testing",
+    "pytest",
+    "test-selection",
+    "change-impact"
+  ],
+  "author": {
+    "name": "AndrewTaoWen"
+  }
+}
