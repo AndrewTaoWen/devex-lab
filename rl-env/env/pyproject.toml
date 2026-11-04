@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "futurebench"
 version = "0.1.0"
-description = "Reward-signal environment: harden a repo snapshot, get scored on the repo's own future tests"
+description = "Reward benchmark: harden a repo snapshot blind, get scored on the repo's own future tests"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["defusedxml>=0.7.1"]
