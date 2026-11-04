@@ -5,7 +5,7 @@ import sys
 import pytest
 
 ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/'rl-env'/'harness'))
+sys.path.insert(0,str(ROOT/'reward-bench'/'harness'))
 from screen import archive_tree, sh
 from blind import junit_results
 

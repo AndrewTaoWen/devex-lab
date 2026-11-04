@@ -3,7 +3,7 @@
 A reward benchmark built from the experiments in [`../experiments`](../experiments). Each task is one Python repo frozen at the model's knowledge cutoff (2026-06-01). An agent hardens the snapshot inside a Docker sandbox with no network and nothing newer than the snapshot. A scorer outside the sandbox then runs the repo's real later tests against the agent's code and returns a reward and every part of it.
 
 ```
-pip install -e rl-env/env          # needs Docker, git and uv on the host
+pip install -e reward-bench/futurebench          # needs Docker, git and uv on the host
 futurebench list                   # 12 tasks: 8 train, 4 eval
 futurebench prepare tinydb ./ws    # builds images on first use, starts the sandbox
 futurebench exec ./ws -- python -m pytest -q tests
@@ -32,7 +32,7 @@ It is a benchmark, not an RL environment: each attempt (a `Run` in the API) is o
 | train | attrs, cachetools, marshmallow, more-itertools, pluggy, sqlparse, tinydb, tomlkit | 116 | [02-scale-up](../experiments/02-scale-up/README.md), [03-analysis](../experiments/03-analysis/README.md) |
 | eval | python-dotenv, cattrs, werkzeug, pydantic-settings | 30 | [04-ab-test](../experiments/04-ab-test/README.md) (held out from the prompt design) |
 
-`src/futurebench/tasks/<repo>.json` holds the snapshot and upstream HEAD shas, package and test paths, and the target tests: the HEAD tests that fail on the snapshot code. They are grouped into **units**. A unit is the upstream commit that added the tests, or a single test where no commit was found, and each unit carries its bug, feature or unclear label. `python -m futurebench.build_tasks rl-env/experiments` regenerates the manifests from the experiment files, and a unit test checks that they still match.
+`src/futurebench/tasks/<repo>.json` holds the snapshot and upstream HEAD shas, package and test paths, and the target tests: the HEAD tests that fail on the snapshot code. They are grouped into **units**. A unit is the upstream commit that added the tests, or a single test where no commit was found, and each unit carries its bug, feature or unclear label. `python -m futurebench.build_tasks reward-bench/experiments` regenerates the manifests from the experiment files, and a unit test checks that they still match.
 
 The eval split's improved prompt was written from the train split's misses. python-dotenv is the least blind of the eval repos.
 
