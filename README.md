@@ -36,12 +36,12 @@ Along the way we built **repomap**. It watches your test suite run once and reme
 - On werkzeug (a popular Python web library), it picked out every one of the 85 tests affected by 54 real changes while running only 24% of the tests.
 - When we planted 200 small bugs on purpose, it caught every one that any test could catch (171 of 171), usually by running just 6 of the 1,003 tests (about 0.6%).
 
-We're packaging it so you can install it with `pip` and so Claude (and other AI tools) can use it directly.
+It installs with `pip`, and Claude (and other AI tools) can use it directly through its MCP server and Claude Code plugin.
 
 ## What I'm working on now
 
-- **Finishing futurebench.** It's built. The last two pieces (clearer names for its commands and moving it into `reward-bench/`) are in review. Next: decide how to weigh the parts of the score, add a simple reference AI that runs the tasks end to end, and add more projects.
-- **Shipping repomap as a package.** It installs with `pip` and comes with an MCP server and a Claude Code plugin; the docs are in review. Next: pick a license, publish it to PyPI, then build the GitHub Action.
+- **Finishing futurebench.** It's built, with clearer command names and its own home in `reward-bench/`. Next: decide how to weigh the parts of the score, add a simple reference AI that runs the tasks end to end, and add more projects.
+- **Shipping repomap as a package.** It installs with `pip` (`repomap` and `repomap-mcp` commands) and comes with an MCP server and a Claude Code plugin ([`devtools/ai-skill/`](devtools/ai-skill/README.md)). Next: pick a license, publish it to PyPI, then build the GitHub Action.
 - **Done, and it didn't pan out:** feeding repomap's hints ("this input was never empty in any test") to the AI. A quick check showed those hints almost never point at the bugs people found later, so we stopped before running the AI. The write-up is in review.
 
 The full priority list is in [ROADMAP.md](ROADMAP.md).
@@ -63,9 +63,9 @@ reward-bench/
   experiments/      01-pilot, 02-scale-up, 03-analysis, 04-ab-test, 05-replay (in the order they ran)
   research/         survey of related benchmarks and training data
 devtools/
-  cli/              repomap: record | impact | refresh | status | serve, plus mutbench.py and impact.py
-  ai-skill/         teaching coding agents to use repomap
-  mcp-server/       repomap as tools any AI agent can call
+  cli/              the repomap package (record | impact | refresh | status | serve, MCP server, map page), plus mutbench.py and impact.py
+  ai-skill/         Claude Code plugin: the repomap skill + MCP server config
+  mcp-server/       docs for repomap-mcp, the tools any AI agent can call
   vscode-extension/ impact and coverage in the editor                           (planned)
   github-action/    run only the affected tests on every PR                      (planned)
 tests/              tests for the harness's safety checks
@@ -74,10 +74,15 @@ tests/              tests for the harness's safety checks
 ## Try it
 
 ```
-# repomap: watch your tests once, then ask what a change affects
-python devtools/cli/repomap.py record --package src/mypkg
-python devtools/cli/repomap.py impact          # your uncommitted changes
-python devtools/cli/repomap.py serve           # a map and graph at http://localhost:8765
+# repomap: install, watch your tests once, then ask what a change affects
+pip install "./devtools/cli[mcp]"   # or run python devtools/cli/repomap.py without installing
+repomap record --package src/mypkg
+repomap impact                      # your uncommitted changes
+repomap serve                       # a map and graph at http://localhost:8765
+
+# Claude Code: the repomap skill + MCP server as a plugin
+/plugin marketplace add AndrewTaoWen/devex-lab
+/plugin install repomap@devex-lab
 
 # futurebench: prepare one task, let an AI work on ./ws, then score it (needs Docker)
 pip install -e reward-bench/futurebench

@@ -1,0 +1,14 @@
+{
+  "name": "devex-lab",
+  "owner": {
+    "name": "AndrewTaoWen"
+  },
+  "description": "Developer tools from the devex lab project: repomap change impact for Python repos.",
+  "plugins": [
+    {
+      "name": "repomap",
+      "source": "./devtools/ai-skill",
+      "description": "Change impact for Python repos: see what an edit reaches and run only the tests it touches."
+    }
+  ]
+}
