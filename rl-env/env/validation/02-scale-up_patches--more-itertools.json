@@ -1,0 +1,293 @@
+{
+ "more-itertools-r1": {
+  "total": 0.356104,
+  "terms": {
+   "bugs": 0.277778,
+   "tests": 0.25,
+   "regressions": -0.0,
+   "collisions": -0.171674
+  },
+  "parts": {
+   "bugs_available": 18,
+   "bugs_fixed": 5.0,
+   "verified_tests": 21,
+   "regressions": 0,
+   "collisions": 8,
+   "changed_lines": 466,
+   "detail": {
+    "task": "more-itertools",
+    "units": {
+     "bug": {
+      "units": 18,
+      "all": 5.0,
+      "any": 6.0,
+      "fraction": 5.5
+     },
+     "feature": {
+      "units": 3,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "069b110",
+     "2b8d5cd",
+     "752799b",
+     "7847d43",
+     "f51a53b"
+    ],
+    "target_tests_fixed": [
+     "tests.test_more.BucketTests::test_getitem_miss_does_not_add_key",
+     "tests.test_more.BucketTests::test_in_does_not_add_key",
+     "tests.test_more.BucketTests::test_in_does_not_add_key_with_validator",
+     "tests.test_more.BucketTests::test_keys_are_only_those_seen",
+     "tests.test_more.CombinationWithReplacementIndexTests::test_invalid_none_values",
+     "tests.test_more.CombinationWithReplacementIndexTests::test_none_values",
+     "tests.test_more.InterleaveEvenlyTests::test_no_iterables",
+     "tests.test_more.NumericRangeTests::test_len_matches_iteration",
+     "tests.test_more.NumericRangeTests::test_reversed_datetime_limits",
+     "tests.test_more.NumericRangeTests::test_reversed_preserves_float_values",
+     "tests.test_more.ValueChainTests::test_type_error_while_iterating"
+    ],
+    "target_tests": 40,
+    "verified_tests": [
+     "tests.test_more.BucketKeyTests::test_lookup_while_iterating_keys",
+     "tests.test_more.BucketKeyTests::test_missing_key_lookup_does_not_add_key",
+     "tests.test_more.CombinationWithReplacementIndexNoneTests::test_none_values",
+     "tests.test_more.DistinctCombinationsUnhashableTests::test_unhashable",
+     "tests.test_more.DivideMappingTests::test_dict",
+     "tests.test_more.IequalsErrorPropagationTests::test_value_error_propagates",
+     "tests.test_more.InterleaveEvenlyNoIterablesTests::test_no_iterables",
+     "tests.test_more.LastErrorPropagationTests::test_error_while_iterating_propagates",
+     "tests.test_more.LastErrorPropagationTests::test_sequence_without_negative_indexing",
+     "tests.test_more.NumericRangeFloatConsistencyTests::test_len_matches_iteration",
+     "tests.test_more.NumericRangeFloatConsistencyTests::test_reversed_matches_forward",
+     "tests.test_more.NumericRangeIncomparableTests::test_contains_and_index",
+     "tests.test_more.OuterProductEmptyTests::test_empty_ys",
+     "tests.test_more.PeekableSliceReadAheadTests::test_negative_step_without_stop",
+     "tests.test_more.PeekableSliceReadAheadTests::test_positive_step_reads_only_needed_items",
+     "tests.test_more.SampleZeroWeightTests::test_empty_population",
+     "tests.test_more.SampleZeroWeightTests::test_unorderable_elements_with_tied_keys",
+     "tests.test_more.SampleZeroWeightTests::test_zero_weights",
+     "tests.test_more.SampleZeroWeightTests::test_zero_weights_fill_when_needed",
+     "tests.test_more.SortTogetherEmptyTests::test_empty_iterables",
+     "tests.test_more.ValueChainErrorPropagationTests::test_error_while_iterating_propagates"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "more_itertools/more.py",
+     "tests/test_more.py"
+    ],
+    "replay": {
+     "collisions": 8,
+     "upstream_commits": 66,
+     "collisions_in_package": 7
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "more-itertools-r2": {
+  "total": 0.143981,
+  "terms": {
+   "bugs": 0.277778,
+   "tests": 0.1625,
+   "regressions": -0.0,
+   "collisions": -0.296296
+  },
+  "parts": {
+   "bugs_available": 18,
+   "bugs_fixed": 5.0,
+   "verified_tests": 13,
+   "regressions": 0,
+   "collisions": 8,
+   "changed_lines": 270,
+   "detail": {
+    "task": "more-itertools",
+    "units": {
+     "bug": {
+      "units": 18,
+      "all": 5.0,
+      "any": 6.0,
+      "fraction": 5.5
+     },
+     "feature": {
+      "units": 3,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "069b110",
+     "2b8d5cd",
+     "752799b",
+     "7847d43",
+     "f51a53b"
+    ],
+    "target_tests_fixed": [
+     "tests.test_more.BucketTests::test_getitem_miss_does_not_add_key",
+     "tests.test_more.BucketTests::test_in_does_not_add_key",
+     "tests.test_more.BucketTests::test_in_does_not_add_key_with_validator",
+     "tests.test_more.BucketTests::test_keys_are_only_those_seen",
+     "tests.test_more.CombinationWithReplacementIndexTests::test_invalid_none_values",
+     "tests.test_more.CombinationWithReplacementIndexTests::test_none_values",
+     "tests.test_more.InterleaveEvenlyTests::test_no_iterables",
+     "tests.test_more.NumericRangeTests::test_len_matches_iteration",
+     "tests.test_more.NumericRangeTests::test_reversed_datetime_limits",
+     "tests.test_more.NumericRangeTests::test_reversed_preserves_float_values",
+     "tests.test_more.ValueChainTests::test_type_error_while_iterating"
+    ],
+    "target_tests": 40,
+    "verified_tests": [
+     "tests.test_more.RegressionTests::test_bucket_missing_key_not_added",
+     "tests.test_more.RegressionTests::test_combination_with_replacement_index_none",
+     "tests.test_more.RegressionTests::test_distinct_combinations_unhashable",
+     "tests.test_more.RegressionTests::test_interleave_evenly_no_iterables",
+     "tests.test_more.RegressionTests::test_last_propagates_iteration_errors",
+     "tests.test_more.RegressionTests::test_numeric_range_float_consistency",
+     "tests.test_more.RegressionTests::test_outer_product_empty_ys",
+     "tests.test_more.RegressionTests::test_sample_zero_weights",
+     "tests.test_more.RegressionTests::test_time_limited_does_not_consume_after_timeout",
+     "tests.test_more.RegressionTests::test_value_chain_propagates_iteration_errors",
+     "tests.test_recipes.RunningMeanNonFiniteTests::test_infinity_leaves_window",
+     "tests.test_recipes.RunningMeanNonFiniteTests::test_nan_leaves_window",
+     "tests.test_recipes.RunningMeanNonFiniteTests::test_running_statistics_recovers"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "more_itertools/more.py",
+     "more_itertools/recipes.py",
+     "tests/test_more.py",
+     "tests/test_recipes.py"
+    ],
+    "replay": {
+     "collisions": 8,
+     "upstream_commits": 66,
+     "collisions_in_package": 6
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "more-itertools-r3": {
+  "total": 0.015946,
+  "terms": {
+   "bugs": 0.277778,
+   "tests": 0.1125,
+   "regressions": -0.0,
+   "collisions": -0.374332
+  },
+  "parts": {
+   "bugs_available": 18,
+   "bugs_fixed": 5.0,
+   "verified_tests": 9,
+   "regressions": 0,
+   "collisions": 7,
+   "changed_lines": 187,
+   "detail": {
+    "task": "more-itertools",
+    "units": {
+     "bug": {
+      "units": 18,
+      "all": 5.0,
+      "any": 6.0,
+      "fraction": 5.5
+     },
+     "feature": {
+      "units": 3,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "069b110",
+     "2b8d5cd",
+     "752799b",
+     "7847d43",
+     "f51a53b"
+    ],
+    "target_tests_fixed": [
+     "tests.test_more.BucketTests::test_getitem_miss_does_not_add_key",
+     "tests.test_more.BucketTests::test_in_does_not_add_key",
+     "tests.test_more.BucketTests::test_in_does_not_add_key_with_validator",
+     "tests.test_more.BucketTests::test_keys_are_only_those_seen",
+     "tests.test_more.CombinationWithReplacementIndexTests::test_invalid_none_values",
+     "tests.test_more.CombinationWithReplacementIndexTests::test_none_values",
+     "tests.test_more.InterleaveEvenlyTests::test_no_iterables",
+     "tests.test_more.NumericRangeTests::test_len_matches_iteration",
+     "tests.test_more.NumericRangeTests::test_reversed_datetime_limits",
+     "tests.test_more.NumericRangeTests::test_reversed_preserves_float_values",
+     "tests.test_more.ValueChainTests::test_type_error_while_iterating"
+    ],
+    "target_tests": 40,
+    "verified_tests": [
+     "tests.test_more.HardeningRegressionTests::test_bucket_no_phantom_keys",
+     "tests.test_more.HardeningRegressionTests::test_combination_with_replacement_index_none",
+     "tests.test_more.HardeningRegressionTests::test_divide_mapping",
+     "tests.test_more.HardeningRegressionTests::test_iequals_propagates_value_error",
+     "tests.test_more.HardeningRegressionTests::test_interleave_evenly_no_iterables",
+     "tests.test_more.HardeningRegressionTests::test_last_propagates_iteration_errors",
+     "tests.test_more.HardeningRegressionTests::test_numeric_range_float_len_matches_iteration",
+     "tests.test_more.HardeningRegressionTests::test_outer_product_empty_ys",
+     "tests.test_more.HardeningRegressionTests::test_value_chain_propagates_type_error"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "more_itertools/more.py",
+     "tests/test_more.py"
+    ],
+    "replay": {
+     "collisions": 7,
+     "upstream_commits": 66,
+     "collisions_in_package": 6
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

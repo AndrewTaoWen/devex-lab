@@ -2,15 +2,15 @@
 
 This project asks one question from two sides: **what happens to code after it is written?**
 
-1. **[RL environment](rl-env/README.md)** (`rl-env/`). Train and score models on whether their code survives a repository's real future. Each repo is frozen at the model's knowledge cutoff (2026-06-01), an agent hardens the snapshot blind, and the repo's own later tests become an automatic reward.
+1. **[Reward benchmark](rl-env/README.md)** (`rl-env/`). Score models on whether their code survives a repository's real future. Each repo is frozen at the model's knowledge cutoff (2026-06-01), an agent hardens the snapshot blind, and the repo's own later tests become an automatic reward.
 2. **[Dev tools](devtools/README.md)** (`devtools/`). Tools that tell a developer (or an agent) what a change will affect before anything runs. They are built on **repomap**, which traces a test suite once and remembers which lines each test runs, who calls whom, and what values every function saw.
 
-The two feed each other. The environment needs fast, precise "what does this change touch" answers to score and to guide agents, and the dev tools get a benchmark built from real repo history.
+The two feed each other. The benchmark needs fast, precise "what does this change touch" answers to score and to guide agents, and the dev tools get a benchmark built from real repo history.
 
 ## What I'm working on now
 
 - **Turning repomap into dev tools.** The CLI works (record, impact, refresh, serve with Map and Graph views). Next I'm wrapping it as an AI skill (draft in [`devtools/ai-skill/`](devtools/ai-skill/SKILL.md)) and an MCP server, then packaging it with `pip`.
-- **Turning the pilot into an RL environment.** The harness and five experiments are done. Next is a `reset` / `score` API with containerized episodes and the combined reward (future bug tests + verified regression tests − regressions − replay conflicts).
+- **Turning the pilot into a reward benchmark.** First version built: [futurebench](rl-env/env/README.md) has `reset` / `score`, a Docker sandbox per attempt with no network, the combined reward (future bug tests + verified regression tests − regressions − replay collisions), and 12 tasks. Re-scoring every old patch reproduces the earlier results. Next: tune the reward weights, add a reference agent loop, and grow the task set.
 - **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints.
 
 The full priority list is in [ROADMAP.md](ROADMAP.md).
@@ -19,6 +19,7 @@ The full priority list is in [ROADMAP.md](ROADMAP.md).
 
 ```
 rl-env/
+  env/              futurebench: the reward benchmark (reset / score, Docker sandbox, 12 tasks)
   harness/          screen.py, blind.py, label.py, audit.py, replay.py, future_tests.sh
   experiments/      01-pilot, 02-scale-up, 03-analysis, 04-ab-test, 05-replay (in the order they ran)
   research/         survey of repo-evolution benchmarks and training data
@@ -47,7 +48,11 @@ python devtools/cli/repomap.py record --package src/mypkg
 python devtools/cli/repomap.py impact          # your uncommitted diff
 python devtools/cli/repomap.py serve           # map and graph at http://localhost:8765
 
-# RL environment: find a repo's failing future tests, then run and score blind agents
+# reward benchmark: run and score one attempt (needs Docker)
+pip install -e rl-env/env
+futurebench reset tinydb ./ws && futurebench score ./ws
+
+# the original scripts: find a repo's failing future tests, then run and score blind agents
 python rl-env/harness/screen.py --help
 python rl-env/harness/blind.py --help
 ```

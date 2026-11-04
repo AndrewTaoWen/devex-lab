@@ -1,0 +1,340 @@
+{
+ "pydantic-settings-r1": {
+  "total": -0.125784,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.125,
+   "regressions": -0.0,
+   "collisions": -0.250784
+  },
+  "parts": {
+   "bugs_available": 6,
+   "bugs_fixed": 0.0,
+   "verified_tests": 10,
+   "regressions": 0,
+   "collisions": 8,
+   "changed_lines": 319,
+   "detail": {
+    "task": "pydantic-settings",
+    "units": {
+     "bug": {
+      "units": 6,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "feature": {
+      "units": 5,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 6,
+      "all": 1.0,
+      "any": 1.0,
+      "fraction": 1.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [
+     "tests.test_docs::test_docs_examples[docs/index.md:1468-1505]"
+    ],
+    "target_tests": 42,
+    "verified_tests": [
+     "tests.test_hardening::test_aws_secrets_manager_nested_json_values",
+     "tests.test_hardening::test_case_insensitive_nested_optional_submodel",
+     "tests.test_hardening::test_case_insensitive_optional_model_with_none_first",
+     "tests.test_hardening::test_cli_app_run_plain_model_with_alias",
+     "tests.test_hardening::test_dotenv_extra_with_uppercase_prefix_case_insensitive",
+     "tests.test_hardening::test_get_field_metadata_does_not_mutate_field_metadata",
+     "tests.test_hardening::test_get_field_metadata_returns_copy",
+     "tests.test_hardening::test_nested_secrets_dir_with_glob_metacharacters",
+     "tests.test_hardening::test_partial_update_default_with_aliased_nested_field",
+     "tests.test_hardening::test_partial_update_init_kwarg_with_aliased_nested_field"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "pydantic_settings/main.py",
+     "pydantic_settings/sources/base.py",
+     "pydantic_settings/sources/providers/aws.py",
+     "pydantic_settings/sources/providers/dotenv.py",
+     "pydantic_settings/sources/providers/nested_secrets.py",
+     "pydantic_settings/sources/utils.py",
+     "tests/test_hardening.py"
+    ],
+    "replay": {
+     "collisions": 8,
+     "upstream_commits": 115,
+     "collisions_in_package": 8
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "pydantic-settings-r2": {
+  "total": -0.157258,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.125,
+   "regressions": -0.0,
+   "collisions": -0.282258
+  },
+  "parts": {
+   "bugs_available": 6,
+   "bugs_fixed": 0.0,
+   "verified_tests": 10,
+   "regressions": 0,
+   "collisions": 7,
+   "changed_lines": 248,
+   "detail": {
+    "task": "pydantic-settings",
+    "units": {
+     "bug": {
+      "units": 6,
+      "all": 0.0,
+      "any": 1.0,
+      "fraction": 0.5
+     },
+     "feature": {
+      "units": 5,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 6,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [
+     "tests.test_source_yaml::test_yaml_config_section_empty_section"
+    ],
+    "target_tests": 42,
+    "verified_tests": [
+     "tests.test_regressions::test_case_insensitive_nested_optional_models",
+     "tests.test_regressions::test_cli_async_cmd_system_exit_propagates_with_running_loop",
+     "tests.test_regressions::test_cli_dict_json_with_escaped_backslash_before_quote",
+     "tests.test_regressions::test_dotenv_extra_strips_uppercase_prefix_case_insensitive",
+     "tests.test_regressions::test_get_field_metadata_does_not_mutate_field",
+     "tests.test_regressions::test_nested_secrets_dir_accepts_generic_pathlike",
+     "tests.test_regressions::test_nested_secrets_dir_with_glob_metacharacters",
+     "tests.test_regressions::test_non_string_values_are_not_json_decoded",
+     "tests.test_regressions::test_secrets_exact_case_match_preferred",
+     "tests.test_regressions::test_yaml_empty_config_section"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "pydantic_settings/main.py",
+     "pydantic_settings/sources/base.py",
+     "pydantic_settings/sources/providers/cli.py",
+     "pydantic_settings/sources/providers/dotenv.py",
+     "pydantic_settings/sources/providers/nested_secrets.py",
+     "pydantic_settings/sources/providers/secrets.py",
+     "pydantic_settings/sources/providers/yaml.py",
+     "pydantic_settings/sources/utils.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 7,
+     "upstream_commits": 115,
+     "collisions_in_package": 7
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "pydantic-settings-r3": {
+  "total": -0.159347,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.175,
+   "regressions": -0.0,
+   "collisions": -0.334347
+  },
+  "parts": {
+   "bugs_available": 6,
+   "bugs_fixed": 0.0,
+   "verified_tests": 14,
+   "regressions": 0,
+   "collisions": 11,
+   "changed_lines": 329,
+   "detail": {
+    "task": "pydantic-settings",
+    "units": {
+     "bug": {
+      "units": 6,
+      "all": 0.0,
+      "any": 1.0,
+      "fraction": 0.5
+     },
+     "feature": {
+      "units": 5,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 6,
+      "all": 1.0,
+      "any": 1.0,
+      "fraction": 1.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [
+     "tests.test_docs::test_docs_examples[docs/index.md:1160-1189]",
+     "tests.test_source_yaml::test_yaml_config_section_empty_section"
+    ],
+    "target_tests": 42,
+    "verified_tests": [
+     "tests.test_regressions::test_case_insensitive_optional_sub_sub_model",
+     "tests.test_regressions::test_case_insensitive_union_none_first",
+     "tests.test_regressions::test_cli_empty_list",
+     "tests.test_regressions::test_cli_list_str_escaped_quote_and_bools",
+     "tests.test_regressions::test_cli_serialize_round_trip",
+     "tests.test_regressions::test_cli_unknown_args_not_accepted_by_similarly_named_subcommand",
+     "tests.test_regressions::test_dotenv_extra_with_uppercase_prefix",
+     "tests.test_regressions::test_get_field_metadata_does_not_mutate_field",
+     "tests.test_regressions::test_json_non_mapping_file_raises_settings_error",
+     "tests.test_regressions::test_json_null_file_is_empty",
+     "tests.test_regressions::test_nested_secrets_dir_with_glob_chars",
+     "tests.test_regressions::test_pyproject_accepts_str_path",
+     "tests.test_regressions::test_secrets_exact_case_match_preferred",
+     "tests.test_regressions::test_yaml_empty_config_section"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "pydantic_settings/sources/base.py",
+     "pydantic_settings/sources/providers/cli.py",
+     "pydantic_settings/sources/providers/dotenv.py",
+     "pydantic_settings/sources/providers/nested_secrets.py",
+     "pydantic_settings/sources/providers/pyproject.py",
+     "pydantic_settings/sources/providers/secrets.py",
+     "pydantic_settings/sources/providers/yaml.py",
+     "pydantic_settings/sources/utils.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 11,
+     "upstream_commits": 115,
+     "collisions_in_package": 11
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ },
+ "pydantic-settings-r4": {
+  "total": -0.09837,
+  "terms": {
+   "bugs": 0.0,
+   "tests": 0.1625,
+   "regressions": -0.0,
+   "collisions": -0.26087
+  },
+  "parts": {
+   "bugs_available": 6,
+   "bugs_fixed": 0.0,
+   "verified_tests": 13,
+   "regressions": 0,
+   "collisions": 9,
+   "changed_lines": 345,
+   "detail": {
+    "task": "pydantic-settings",
+    "units": {
+     "bug": {
+      "units": 6,
+      "all": 0.0,
+      "any": 1.0,
+      "fraction": 0.5
+     },
+     "feature": {
+      "units": 5,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 6,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [],
+    "target_tests_fixed": [
+     "tests.test_source_yaml::test_yaml_config_section_empty_section"
+    ],
+    "target_tests": 42,
+    "verified_tests": [
+     "tests.test_regressions::test_case_insensitive_nested_union_none_first",
+     "tests.test_regressions::test_case_insensitive_optional_deeply_nested_model",
+     "tests.test_regressions::test_cli_prefix_from_model_config_without_argument",
+     "tests.test_regressions::test_cli_serialize_enum_kebab_case_all",
+     "tests.test_regressions::test_cli_serialize_round_trip",
+     "tests.test_regressions::test_decode_does_not_grow_field_metadata",
+     "tests.test_regressions::test_dotenv_extra_strips_uppercase_prefix_case_insensitive",
+     "tests.test_regressions::test_json_file_non_mapping_top_level",
+     "tests.test_regressions::test_nested_secrets_dir_with_glob_metacharacters",
+     "tests.test_regressions::test_pyproject_toml_accepts_str_path",
+     "tests.test_regressions::test_secrets_dangling_symlink_is_missing",
+     "tests.test_regressions::test_secrets_prefers_exact_case_match",
+     "tests.test_regressions::test_yaml_config_section_empty_or_scalar"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "pydantic_settings/sources/base.py",
+     "pydantic_settings/sources/providers/cli.py",
+     "pydantic_settings/sources/providers/dotenv.py",
+     "pydantic_settings/sources/providers/nested_secrets.py",
+     "pydantic_settings/sources/providers/pyproject.py",
+     "pydantic_settings/sources/providers/secrets.py",
+     "pydantic_settings/sources/providers/yaml.py",
+     "pydantic_settings/sources/utils.py",
+     "tests/test_regressions.py"
+    ],
+    "replay": {
+     "collisions": 9,
+     "upstream_commits": 115,
+     "collisions_in_package": 9
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}

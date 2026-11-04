@@ -1,0 +1,90 @@
+{
+ "attrs-r1": {
+  "total": 0.658932,
+  "terms": {
+   "bugs": 0.5,
+   "tests": 0.2,
+   "regressions": -0.0,
+   "collisions": -0.041068
+  },
+  "parts": {
+   "bugs_available": 2,
+   "bugs_fixed": 1.0,
+   "verified_tests": 16,
+   "regressions": 0,
+   "collisions": 2,
+   "changed_lines": 487,
+   "detail": {
+    "task": "attrs",
+    "units": {
+     "bug": {
+      "units": 2,
+      "all": 1.0,
+      "any": 1.0,
+      "fraction": 1.0
+     },
+     "feature": {
+      "units": 1,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     },
+     "unclear": {
+      "units": 0,
+      "all": 0.0,
+      "any": 0.0,
+      "fraction": 0.0
+     }
+    },
+    "bugs_fixed_ids": [
+     "f53fc54"
+    ],
+    "target_tests_fixed": [
+     "tests.test_functional.TestReplace::test_is_not_evolve"
+    ],
+    "target_tests": 10,
+    "verified_tests": [
+     "tests.test_hardening.TestAsdictNamedTupleInCollection::test_retained",
+     "tests.test_hardening.TestAstupleDefaultdict::test_retained",
+     "tests.test_hardening.TestBaseSlots::test_private_slot_names",
+     "tests.test_hardening.TestBaseSlots::test_string_slots",
+     "tests.test_hardening.TestCmpUsingForeign::test_not_implemented",
+     "tests.test_hardening.TestConverterAnnotations::test_callable_instance_class_untouched",
+     "tests.test_hardening.TestConverterAnnotations::test_partial",
+     "tests.test_hardening.TestDefineDecoratorReuse::test_default_on_setattr_does_not_leak",
+     "tests.test_hardening.TestDefineDecoratorReuse::test_frozen_base_does_not_leak_no_op",
+     "tests.test_hardening.TestFilterUnhashableAttribute::test_exclude_include",
+     "tests.test_hardening.TestMakeClassDoesNotMutate::test_hooks_kept",
+     "tests.test_hardening.TestModuleGlobalsDoNotShadow::test_module_level_config_and_compat",
+     "tests.test_hardening.TestOptionalListHashable::test_hashable",
+     "tests.test_hardening.TestPickleUnsetSlots::test_unset_attribute",
+     "tests.test_hardening.TestReplace::test_copy_replace",
+     "tests.test_hardening.TestReplace::test_evolve_untouched"
+    ],
+    "regressed_snapshot_tests": [],
+    "regressed_future_tests": [],
+    "changed_files": [
+     "src/attr/_cmp.py",
+     "src/attr/_funcs.py",
+     "src/attr/_make.py",
+     "src/attr/_next_gen.py",
+     "src/attr/filters.py",
+     "tests/test_hardening.py"
+    ],
+    "replay": {
+     "collisions": 2,
+     "upstream_commits": 64,
+     "collisions_in_package": 2
+    }
+   }
+  },
+  "weights": {
+   "bugs": 1.0,
+   "tests": 0.25,
+   "tests_cap": 20,
+   "regressions": 1.0,
+   "collisions": 0.1,
+   "bug_credit": "all"
+  }
+ }
+}
