@@ -1,4 +1,4 @@
-"""The benchmark API: reset(task) -> Episode (one sandboxed attempt), score(episode or workspace) -> Reward."""
+"""The benchmark API: prepare(task) -> Run (one sandboxed attempt), score(run or workspace) -> Reward."""
 import json
 import os
 import re
@@ -146,10 +146,10 @@ def baselines(task, repo):
     return _cache(task, "snapshot", snap), _cache(task, "future-on-snapshot", future_on_snapshot)
 
 
-# ---------------------------------------------------------------- episodes
+# ---------------------------------------------------------------- runs
 
 @dataclass
-class Episode:
+class Run:
     task: Task
     workspace: Path
     container: sandbox.Container | None
@@ -157,7 +157,7 @@ class Episode:
 
     def exec(self, command: str, timeout=1800):
         if not self.container:
-            raise RuntimeError("episode has no container (reset with start=True)")
+            raise RuntimeError("run has no container (prepare with start=True)")
         return self.container.exec(command, timeout=timeout)
 
     def close(self):
@@ -165,7 +165,7 @@ class Episode:
             self.container.stop()
 
 
-def reset(task_id, workspace: Path | None = None, variant="improved", start=True, log=print) -> Episode:
+def prepare(task_id, workspace: Path | None = None, variant="improved", start=True, log=print) -> Run:
     """Build the task's images if needed, lay out a fresh workspace, and start its sandbox."""
     task = get_task(task_id) if isinstance(task_id, str) else task_id
     repo = ensure_images(task, log=log)
@@ -182,7 +182,7 @@ def reset(task_id, workspace: Path | None = None, variant="improved", start=True
     (ws / ".git" / "futurebench.json").write_text(json.dumps({"task": task.id, "snapshot_commit": git(ws, "rev-parse", "HEAD").strip()}))
     known = [t for t, s in snap_res.items() if s == "fail"]
     container = sandbox.Container(agent_image(task), ws, f"fb-{task.id}-{ws.name}").start() if start else None
-    return Episode(task, ws, container, prompt(task, variant, known))
+    return Run(task, ws, container, prompt(task, variant, known))
 
 
 def workspace_tree(ws: Path):
@@ -197,8 +197,8 @@ def workspace_tree(ws: Path):
 
 
 def score(target, weights: Weights = Weights(), replay=True, log=print) -> Reward:
-    """Score an Episode or a workspace path. Runs outside the episode's sandbox, on copies."""
-    ws = Path(target.workspace if isinstance(target, Episode) else target)
+    """Score a Run or a workspace path. Runs outside the run's sandbox, on copies."""
+    ws = Path(target.workspace if isinstance(target, Run) else target)
     meta, base, tree = workspace_tree(ws)
     task = get_task(meta["task"])
     repo = ensure_images(task, log=log)

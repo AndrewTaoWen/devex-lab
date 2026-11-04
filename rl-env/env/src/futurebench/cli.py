@@ -2,9 +2,9 @@
 
   futurebench list [--split train|eval]
   futurebench build TASK... [--rebuild]          build the agent and score images
-  futurebench reset TASK WORKSPACE [--prompt improved|baseline] [--no-start]
-  futurebench exec WORKSPACE -- CMD...           run a command in the episode's sandbox
-  futurebench stop WORKSPACE                     remove the episode's container
+  futurebench prepare TASK WORKSPACE [--prompt improved|baseline] [--no-start]
+  futurebench exec WORKSPACE -- CMD...           run a command in the run's sandbox
+  futurebench stop WORKSPACE                     remove the run's container
   futurebench score WORKSPACE [--out FILE] [--no-replay]
   futurebench rescore TASK PATCH... [--out FILE] apply old patches to fresh workspaces and score them
   futurebench reweigh FILE [--tests 0.25 ...]    recompute totals from stored parts with new weights
@@ -59,7 +59,7 @@ def main(argv=None):
     p = sub.add_parser("build")
     p.add_argument("tasks", nargs="+")
     p.add_argument("--rebuild", action="store_true")
-    p = sub.add_parser("reset")
+    p = sub.add_parser("prepare")
     p.add_argument("task")
     p.add_argument("workspace", type=Path)
     p.add_argument("--prompt", default="improved", choices=["improved", "baseline"])
@@ -93,11 +93,11 @@ def main(argv=None):
     elif a.cmd == "build":
         for tid in a.tasks:
             env.ensure_images(env.get_task(tid), rebuild=a.rebuild)
-    elif a.cmd == "reset":
-        ep = env.reset(a.task, a.workspace, variant=a.prompt, start=not a.no_start)
-        (ep.workspace / ".git" / "futurebench-prompt.txt").write_text(ep.prompt)
-        print(f"workspace {ep.workspace}" + (f"\ncontainer {ep.container.name}" if ep.container else ""))
-        print(f"prompt in {ep.workspace / '.git' / 'futurebench-prompt.txt'}")
+    elif a.cmd == "prepare":
+        run = env.prepare(a.task, a.workspace, variant=a.prompt, start=not a.no_start)
+        (run.workspace / ".git" / "futurebench-prompt.txt").write_text(run.prompt)
+        print(f"workspace {run.workspace}" + (f"\ncontainer {run.container.name}" if run.container else ""))
+        print(f"prompt in {run.workspace / '.git' / 'futurebench-prompt.txt'}")
     elif a.cmd == "exec":
         cmd = a.command[1:] if a.command[:1] == ["--"] else a.command
         sys.exit(subprocess.run(["docker", "exec", "-w", sandbox.MOUNTS["agent"], _container_name(a.workspace), *cmd]).returncode)
@@ -112,19 +112,19 @@ def main(argv=None):
     elif a.cmd == "rescore":
         task = env.get_task(a.task)
         for patch in a.patches:
-            ep = env.reset(task, start=False, log=lambda *_: None)
+            run = env.prepare(task, start=False, log=lambda *_: None)
             try:
-                p = subprocess.run(["git", "-C", str(ep.workspace), "apply", "--whitespace=nowarn", str(patch.resolve())],
+                p = subprocess.run(["git", "-C", str(run.workspace), "apply", "--whitespace=nowarn", str(patch.resolve())],
                                    capture_output=True, text=True)
                 if p.returncode:
                     print(f"{patch.stem}: patch does not apply: {p.stderr[:300]}")
                     continue
-                r = env.score(ep.workspace, _weights(a), replay=not a.no_replay, log=lambda *_: None)
+                r = env.score(run.workspace, _weights(a), replay=not a.no_replay, log=lambda *_: None)
                 _save(a.out, patch.stem, r)
                 print(_summary(patch.stem, r), flush=True)
             finally:
                 if not a.keep:
-                    shutil.rmtree(ep.workspace, ignore_errors=True)
+                    shutil.rmtree(run.workspace, ignore_errors=True)
     elif a.cmd == "reweigh":
         data = json.loads(a.file.read_text())
         for k, d in data.items():

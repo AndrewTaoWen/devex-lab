@@ -5,7 +5,7 @@ A reward benchmark built from the experiments in [`../experiments`](../experimen
 ```
 pip install -e rl-env/env          # needs Docker, git and uv on the host
 futurebench list                   # 12 tasks: 8 train, 4 eval
-futurebench reset tinydb ./ws      # builds images on first use, starts the sandbox
+futurebench prepare tinydb ./ws    # builds images on first use, starts the sandbox
 futurebench exec ./ws -- python -m pytest -q tests
 futurebench score ./ws --out scores.json
 futurebench stop ./ws
@@ -16,14 +16,14 @@ From Python:
 ```python
 import futurebench as fb
 
-ep = fb.reset("tinydb", "./ws")    # Episode: workspace, container, prompt
-print(ep.prompt)                   # task prompt for the agent
-code, out = ep.exec("python -m pytest -q tests")   # any harness can drive the agent through exec()
-r = fb.score(ep)                   # Reward: total, terms, parts (+ detail)
-ep.close()
+run = fb.prepare("tinydb", "./ws")  # Run: workspace, container, prompt
+print(run.prompt)                  # task prompt for the agent
+code, out = run.exec("python -m pytest -q tests")   # any harness can drive the agent through exec()
+r = fb.score(run)                  # Reward: total, terms, parts (+ detail)
+run.close()
 ```
 
-It is a benchmark, not an RL environment: each attempt (an `Episode` in the API) is one patch, scored once at the end, with no step-by-step rewards and no training loop. The score is meant to be usable as a reward by whatever trains or compares agents. The agent edits `/workspace` however it likes, and `score` runs once at the end. Any agent harness works as long as it runs its tool calls through `Episode.exec` (or `docker exec` into the episode container).
+It is a benchmark, not an RL environment: each attempt (a `Run` in the API) is one patch, scored once at the end, with no step-by-step rewards and no training loop. The score is meant to be usable as a reward by whatever trains or compares agents. The agent edits `/workspace` however it likes, and `score` runs once at the end. Any agent harness works as long as it runs its tool calls through `Run.exec` (or `docker exec` into the run container).
 
 ## Tasks
 
@@ -56,8 +56,8 @@ Each scoring writes the parts as well as the total. `futurebench reweigh scores.
 
 ## Isolation
 
-- **agent image** (`futurebench/<task>:agent-…`): the snapshot tree, its dependencies in `/opt/venv`, and git. The episode container runs with `--network none` and the host workspace mounted at `/workspace`.
-- **score image** (`futurebench/<task>:score-…`): upstream HEAD's tree and its dependencies at `/future`. Only the scorer uses it, in throwaway containers on copies of the workspace. Nothing newer than the snapshot is ever in an episode container.
+- **agent image** (`futurebench/<task>:agent-…`): the snapshot tree, its dependencies in `/opt/venv`, and git. The run container runs with `--network none` and the host workspace mounted at `/workspace`.
+- **score image** (`futurebench/<task>:score-…`): upstream HEAD's tree and its dependencies at `/future`. Only the scorer uses it, in throwaway containers on copies of the workspace. Nothing newer than the snapshot is ever in a run container.
 - Images are built with `docker run` + `docker commit` on `mirror.gcr.io/library/python:3.13`, which avoids Docker Hub's anonymous rate limit. The host's `uv`, proxy variables and CA bundle are lent to the build and not baked into the image. Set `FUTUREBENCH_BASE_IMAGE` to use another base.
 - Install-generated files inside package code, such as a hatch-vcs `_version.py`, are kept in `/opt/generated` and copied into any mounted tree that lacks them.
 
@@ -72,9 +72,9 @@ This replaces the move-the-data-and-audit-the-transcript isolation of 02 to 04. 
 ```
 src/futurebench/
   manifest.py     Task, list_tasks(), get_task()
-  env.py          reset(), score(), Episode
+  env.py          prepare(), score(), Run
   reward.py       Weights, Parts, Reward, bug credit
-  sandbox.py      image builds, throwaway and episode containers
+  sandbox.py      image builds, throwaway and run containers
   replay.py       upstream-history collisions
   build_tasks.py  manifests from the experiment files
   tasks/          12 frozen task manifests

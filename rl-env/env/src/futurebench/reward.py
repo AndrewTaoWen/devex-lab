@@ -1,11 +1,11 @@
-"""Reward from an episode's measured parts.
+"""Reward from a run's measured parts.
 
 R = w_bugs  * bugs_fixed / bugs_available
   + w_tests * min(verified_tests / tests_cap, 1)
   - w_regr  * regressions / bugs_available
   - w_coll  * collisions_per_100_lines
 
-Every part is stored alongside the total, so a change of weights re-scores old episodes with
+Every part is stored alongside the total, so a change of weights re-scores old runs with
 `Reward.from_parts(parts, weights)` and no test runs.
 """
 import re

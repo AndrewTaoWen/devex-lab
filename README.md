@@ -10,7 +10,7 @@ The two feed each other. The benchmark needs fast, precise "what does this chang
 ## What I'm working on now
 
 - **Turning repomap into dev tools.** The CLI works (record, impact, refresh, serve with Map and Graph views). Next I'm wrapping it as an AI skill (draft in [`devtools/ai-skill/`](devtools/ai-skill/SKILL.md)) and an MCP server, then packaging it with `pip`.
-- **Turning the pilot into a reward benchmark.** First version built: [futurebench](rl-env/env/README.md) has `reset` / `score`, a Docker sandbox per attempt with no network, the combined reward (future bug tests + verified regression tests − regressions − replay collisions), and 12 tasks. Re-scoring every old patch reproduces the earlier results. Next: tune the reward weights, add a reference agent loop, and grow the task set.
+- **Turning the pilot into a reward benchmark.** First version built: [futurebench](rl-env/env/README.md) has `prepare` / `score`, a Docker sandbox per attempt with no network, the combined reward (future bug tests + verified regression tests − regressions − replay collisions), and 12 tasks. Re-scoring every old patch reproduces the earlier results. Next: tune the reward weights, add a reference agent loop, and grow the task set.
 - **Connecting the two.** An A/B test that gives hardening agents repomap's value gaps ("this argument was never empty") as hints.
 
 The full priority list is in [ROADMAP.md](ROADMAP.md).
@@ -19,7 +19,7 @@ The full priority list is in [ROADMAP.md](ROADMAP.md).
 
 ```
 rl-env/
-  env/              futurebench: the reward benchmark (reset / score, Docker sandbox, 12 tasks)
+  env/              futurebench: the reward benchmark (prepare / score, Docker sandbox, 12 tasks)
   harness/          screen.py, blind.py, label.py, audit.py, replay.py, future_tests.sh
   experiments/      01-pilot, 02-scale-up, 03-analysis, 04-ab-test, 05-replay (in the order they ran)
   research/         survey of repo-evolution benchmarks and training data
@@ -50,7 +50,7 @@ python devtools/cli/repomap.py serve           # map and graph at http://localho
 
 # reward benchmark: run and score one attempt (needs Docker)
 pip install -e rl-env/env
-futurebench reset tinydb ./ws && futurebench score ./ws
+futurebench prepare tinydb ./ws && futurebench score ./ws
 
 # the original scripts: find a repo's failing future tests, then run and score blind agents
 python rl-env/harness/screen.py --help
