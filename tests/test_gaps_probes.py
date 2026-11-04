@@ -6,9 +6,11 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = ROOT / "devtools" / "cli"
-sys.path.insert(0, str(CLI))
+PKG = CLI / "src" / "repomap"
+sys.path.insert(0, str(PKG / "_plugin"))
+sys.path.insert(0, str(PKG))
 import repomap_trace  # noqa: E402
-import query  # noqa: E402
+import query  # noqa: E402  (src/repomap/query.py, imported as a plain module: stdlib only)
 
 
 def flags_of(v):
