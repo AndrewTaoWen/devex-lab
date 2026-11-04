@@ -1,0 +1,80 @@
+{
+ "id": "sqlparse",
+ "repo": "andialbrecht/sqlparse",
+ "split": "train",
+ "snapshot": "c923da9c5a8e8403dd32efc2171b60a177444d43",
+ "snapshot_date": "2026-05-21",
+ "cutoff": "2026-06-01",
+ "head": "60cdc649726bf1bc4f1b336050560b336da715ec",
+ "head_date": "2026-08-13",
+ "packages": [
+  "sqlparse"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "111b35c",
+   "label": "bug",
+   "subject": "Fix function grouping skipped for lowercase 'as' in CREATE TABLE AS SELECT",
+   "tests": [
+    "tests.test_grouping::test_grouping_alias_ctas_lowercase_as"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "26d7d65",
+   "label": "feature",
+   "subject": "Recognize ROW_FORMAT as a keyword (issue773)",
+   "tests": [
+    "tests.test_regressions::test_alter_table_row_format_issue773"
+   ]
+  },
+  {
+   "id": "53ff44b",
+   "label": "bug",
+   "subject": "Escape backslashes in output formatters.",
+   "tests": [
+    "tests.test_format.TestOutputFormat::test_php_escapes_backslashes",
+    "tests.test_format.TestOutputFormat::test_python_escapes_backslashes"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "a194d31",
+   "label": "bug",
+   "subject": "Keep keyword before leading-dot float literal (issue601)",
+   "tests": [
+    "tests.test_regressions::test_between_leading_dot_float_issue601[a BETWEEN .03 AND .06]",
+    "tests.test_regressions::test_between_leading_dot_float_issue601[a between .03 and .06]"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "ac3b9e0",
+   "label": "feature",
+   "subject": "Recognize MATERIALIZED as a keyword (issue752)",
+   "tests": [
+    "tests.test_regressions::test_materialized_view_issue752"
+   ]
+  },
+  {
+   "id": "f66d12c",
+   "label": "bug",
+   "subject": "Fix get_real_name for names with more than two dotted parts (#332)",
+   "tests": [
+    "tests.test_parse::test_get_real_name_multi_part_dotted"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "f80af6a",
+   "label": "bug",
+   "subject": "Add tests from PR, update CHANGELOG and AUTHORS.",
+   "tests": [
+    "tests.test_dos_prevention.TestDoSPrevention::test_nested_case_within_cap_under_1s",
+    "tests.test_dos_prevention.TestDoSPrevention::test_nested_paren_within_cap_under_1s"
+   ],
+   "kind": "performance"
+  }
+ ]
+}

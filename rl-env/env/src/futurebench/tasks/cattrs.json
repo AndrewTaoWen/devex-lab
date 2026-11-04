@@ -1,0 +1,116 @@
+{
+ "id": "cattrs",
+ "repo": "python-attrs/cattrs",
+ "split": "eval",
+ "snapshot": "a735ca69d5b5420e1dbe2b82d8cc593452ac0ab2",
+ "snapshot_date": "2026-05-13",
+ "cutoff": "2026-06-01",
+ "head": "73fa273b1239fc5c110c4f9b6674972284a2f456",
+ "head_date": "2026-10-09",
+ "packages": [
+  "src"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "02c3ead",
+   "label": "bug",
+   "subject": "Unpack the single type arg for Counter keys when unstructuring",
+   "tests": [
+    "tests.test_unstructure_collections::test_counter_unstructure_applies_key_hook"
+   ]
+  },
+  {
+   "id": "2c6cf5b",
+   "label": "bug",
+   "subject": "Inherit omit_if_default in generated dict hooks",
+   "tests": [
+    "tests.strategies.test_include_subclasses::test_omit_if_default_with_discriminator_override[None]",
+    "tests.strategies.test_include_subclasses::test_omit_if_default_with_discriminator_override[configure_tagged_union]",
+    "tests.test_gen_dict::test_omit_if_default_from_converter[None-True-False-dataclass]",
+    "tests.test_gen_dict::test_omit_if_default_from_converter[None-True-False-define]",
+    "tests.test_gen_dict::test_omit_if_default_from_converter[None-True-True-dataclass]",
+    "tests.test_gen_dict::test_omit_if_default_from_converter[None-True-True-define]",
+    "tests.test_gen_dict::test_omit_if_default_from_converter_attribute_overrides[False-True]",
+    "tests.test_gen_dict::test_omit_if_default_from_converter_attribute_overrides[True-True]"
+   ]
+  },
+  {
+   "id": "3d57d6b",
+   "label": "bug",
+   "subject": "Escape override rename keys when generating structure/unstructure code",
+   "tests": [
+    "tests.test_gen_dict::test_renaming_to_key_with_special_characters[a'] or 1 or ['b]",
+    "tests.test_gen_dict::test_renaming_to_key_with_special_characters[it's]"
+   ]
+  },
+  {
+   "id": "a6c0900",
+   "label": "bug",
+   "subject": "Disambiguate unions independent of member class order",
+   "tests": [
+    "tests.test_disambiguators::test_disambiguation_is_order_independent"
+   ]
+  },
+  {
+   "id": "b618aab",
+   "label": "bug",
+   "subject": "Honor renamed literal fields in union disambiguation",
+   "tests": [
+    "tests.test_disambiguators::test_literal_field_explicit_overrides",
+    "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-False--dataclass]",
+    "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-False--define]",
+    "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-False-type-dataclass]",
+    "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-False-type-define]",
+    "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-True--dataclass]",
+    "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-True--define]",
+    "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-True-type-dataclass]",
+    "tests.test_disambiguators::test_literal_field_renaming[BaseConverter-True-type-define]",
+    "tests.test_disambiguators::test_literal_field_renaming[Converter-False--dataclass]",
+    "tests.test_disambiguators::test_literal_field_renaming[Converter-False--define]",
+    "tests.test_disambiguators::test_literal_field_renaming[Converter-False-type-dataclass]",
+    "tests.test_disambiguators::test_literal_field_renaming[Converter-False-type-define]",
+    "tests.test_disambiguators::test_literal_field_renaming[Converter-True--dataclass]",
+    "tests.test_disambiguators::test_literal_field_renaming[Converter-True--define]",
+    "tests.test_disambiguators::test_literal_field_renaming[Converter-True-type-dataclass]",
+    "tests.test_disambiguators::test_literal_field_renaming[Converter-True-type-define]",
+    "tests.test_disambiguators::test_literal_field_renaming_different_attributes[BaseConverter-False]",
+    "tests.test_disambiguators::test_literal_field_renaming_different_attributes[BaseConverter-True]",
+    "tests.test_disambiguators::test_literal_field_renaming_different_attributes[Converter-False]",
+    "tests.test_disambiguators::test_literal_field_renaming_different_attributes[Converter-True]",
+    "tests.test_disambiguators::test_literal_field_renaming_different_keys[BaseConverter-False]",
+    "tests.test_disambiguators::test_literal_field_renaming_different_keys[BaseConverter-True]",
+    "tests.test_disambiguators::test_literal_field_renaming_different_keys[Converter-False]",
+    "tests.test_disambiguators::test_literal_field_renaming_different_keys[Converter-True]"
+   ]
+  },
+  {
+   "id": "bc34a46",
+   "label": "bug",
+   "subject": "Sort extra keys when formatting ForbiddenExtraKeysError (#776)",
+   "tests": [
+    "tests.test_v::test_extra_keys_are_sorted"
+   ]
+  },
+  {
+   "id": "f2e42f3",
+   "label": "bug",
+   "subject": "Improve TypedDict key quoting",
+   "tests": [
+    "tests.test_typeddicts::test_key_with_single_quote_roundtrip[False]",
+    "tests.test_typeddicts::test_key_with_single_quote_roundtrip[True]"
+   ]
+  },
+  {
+   "id": "f693a0b",
+   "label": "feature",
+   "subject": "Support type aliases in union passthrough",
+   "tests": [
+    "tests.strategies.test_union_passthrough_695::test_type_alias_union_member[BaseConverter-False]",
+    "tests.strategies.test_union_passthrough_695::test_type_alias_union_member[BaseConverter-True]",
+    "tests.strategies.test_union_passthrough_695::test_type_alias_union_member[Converter-False]",
+    "tests.strategies.test_union_passthrough_695::test_type_alias_union_member[Converter-True]"
+   ]
+  }
+ ]
+}

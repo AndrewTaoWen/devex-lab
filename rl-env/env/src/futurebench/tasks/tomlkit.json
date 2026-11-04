@@ -1,0 +1,631 @@
+{
+ "id": "tomlkit",
+ "repo": "python-poetry/tomlkit",
+ "split": "train",
+ "snapshot": "6057016c882161772a83309d3d08d7517f9f7b95",
+ "snapshot_date": "2026-06-01",
+ "cutoff": "2026-06-01",
+ "head": "eddd27e43a62fe58707c311bfad2f52e72493f53",
+ "head_date": "2026-10-16",
+ "packages": [
+  "tomlkit"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "01b0f45",
+   "label": "bug",
+   "subject": "fix: write ESC as \\u001b instead of TOML 1.1-only \\e (#641)",
+   "tests": [
+    "tests.test_write::test_write_escape_char_as_unicode_escape",
+    "tests.test_write::test_write_escape_char_readable_by_tomllib"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "11e22ae",
+   "label": "bug",
+   "subject": "fix: reject tables inside inline tables (#532)",
+   "tests": [
+    "tests.test_items::test_append_table_to_inline_table_raises"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "18e7f98",
+   "label": "bug",
+   "subject": "Compare Bool items by value (#660)",
+   "tests": [
+    "tests.test_items::test_booleans_compare_equal_to_each_other"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "1e70531",
+   "label": "bug",
+   "subject": "Use \", \" separator when appending to a spaced inline table (#595)",
+   "tests": [
+    "tests.test_items::test_appending_to_compact_inline_table_uses_spaced_separator"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "21a4942",
+   "label": "bug",
+   "subject": "reject a comment containing line breaks in Item.comment and add_line (#544)",
+   "tests": [
+    "tests.test_items::test_array_add_line_multiline_comment_is_rejected",
+    "tests.test_items::test_comment_method_multiline_comment_is_rejected"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "229ee86",
+   "label": "bug",
+   "subject": "fix: don't reject an out-of-order super-table extended by a dotted key (#565)",
+   "tests": [
+    "tests.test_toml_document::test_valid_out_of_order_super_table_extended_by_dotted_key"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "25ae63a",
+   "label": "bug",
+   "subject": "Merge AoT fragments when building an out-of-order table proxy (#507)",
+   "tests": [
+    "tests.test_toml_document::test_out_of_order_table_merges_aot_fragments",
+    "tests.test_toml_document::test_out_of_order_table_merges_three_aot_fragments"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "281ca00",
+   "label": "bug",
+   "subject": "Place inline-table separator after the value, not the comment (#514)",
+   "tests": [
+    "tests.test_items::test_append_key_after_inline_table_trailing_comment"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "40dd59c",
+   "label": "bug",
+   "subject": "Preserve fold in datetime subtraction (#623)",
+   "tests": [
+    "tests.test_items::test_datetime_subtraction_preserves_input_fold[1]"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "43668dd",
+   "label": "bug",
+   "subject": "fix: keep newline after dotted inline table (#533)",
+   "tests": [
+    "tests.test_toml_document::test_add_key_after_dotted_inline_table_without_ending_newline"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "446d6fa",
+   "label": "bug",
+   "subject": "Reject non-lowercase special float literals (#628)",
+   "tests": [
+    "tests.test_parser::test_parser_preserves_valid_numeric_literals[+0E+2-0.0]",
+    "tests.test_parser::test_parser_preserves_valid_numeric_literals[-0E-2--0.0]",
+    "tests.test_parser::test_parser_preserves_valid_numeric_literals[0E2-0.0]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[INF-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[INF--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[INf-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[INf--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[InF-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[InF--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[Inf-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[Inf--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[NAN-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[NAN--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[NAn-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[NAn--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[NaN-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[NaN--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[Nan-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[Nan--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[iNF-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[iNF--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[iNf-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[iNf--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[inF-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[inF--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[nAN-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[nAN--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[nAn-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[nAn--]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[naN-+]",
+    "tests.test_parser::test_parser_rejects_non_lowercase_special_floats[naN--]"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "483f240",
+   "label": "bug",
+   "subject": "Return a single key from key() for a single-element list (#520)",
+   "tests": [
+    "tests.test_api::test_key_with_single_element_list_is_a_single_key"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "4906936",
+   "label": "bug",
+   "subject": "Preserve table display names on self assignment (#537)",
+   "tests": [
+    "tests.test_toml_document::test_replace_table_with_itself_preserves_display_name"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "495a42e",
+   "label": "bug",
+   "subject": "Fix top-level scalar captured by a table rendered from a dotted key (#550)",
+   "tests": [
+    "tests.test_toml_document::test_scalar_is_not_captured_by_table_rendered_from_dotted_key"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "49d6efa",
+   "label": "feature",
+   "subject": "fix: add the stdlib `fold` argument to Time and DateTime (#619) (#620)",
+   "tests": [
+    "tests.test_items::test_datetimes_behave_like_datetimes_fold",
+    "tests.test_items::test_times_behave_like_times_fold"
+   ]
+  },
+  {
+   "id": "4b38bec",
+   "label": "bug",
+   "subject": "fix: reject array slice assignment before mutation (#600)",
+   "tests": [
+    "tests.test_items::test_array_slice_assignment_does_not_mutate[index0-replacement0]",
+    "tests.test_items::test_array_slice_assignment_does_not_mutate[index1-replacement1]",
+    "tests.test_items::test_array_slice_assignment_does_not_mutate[index2-replacement2]",
+    "tests.test_items::test_array_slice_assignment_does_not_mutate[index3-replacement3]",
+    "tests.test_items::test_array_slice_assignment_does_not_mutate[index4-replacement4]",
+    "tests.test_items::test_array_slice_assignment_does_not_mutate[index5-replacement5]"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "5687396",
+   "label": "bug",
+   "subject": "Fix duplicated comma when removing a middle inline table element (#486)",
+   "tests": [
+    "tests.test_items::test_deleting_inline_table_middle_element_does_not_leave_double_separator"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "5b2b1ff",
+   "label": "bug",
+   "subject": "Prefix every line of a multiline comment with # (#511)",
+   "tests": [
+    "tests.test_api::test_comment_multiline_is_valid_toml"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "61941de",
+   "label": "bug",
+   "subject": "Escape content appended to a String via __add__ (#612)",
+   "tests": [
+    "tests.test_items::test_string_add_escapes_appended_content"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "67d3e86",
+   "label": "bug",
+   "subject": "Fix array of tables replacing a dotted key swallowing the next sibling (#542) (#549)",
+   "tests": [
+    "tests.test_toml_document::test_replace_dotted_key_with_aot_keeps_following_sibling"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "6b5f079",
+   "label": "bug",
+   "subject": "Render an emptied array of tables as an empty array (#567)",
+   "tests": [
+    "tests.test_toml_document::test_emptied_array_of_tables_is_hoisted_above_table_headers",
+    "tests.test_toml_document::test_emptied_array_of_tables_is_relative_to_the_nearest_header",
+    "tests.test_toml_document::test_emptied_array_of_tables_keeps_preceding_scalars",
+    "tests.test_toml_document::test_emptied_array_of_tables_renders_as_empty_array",
+    "tests.test_toml_document::test_emptied_array_of_tables_under_implicit_parent_keeps_its_path",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[[e]]\\nn = 1\\n\\n[[e.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[[e]]\\nn = 1\\n\\n[[e.s.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[[t.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[[t.u.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[t]\\n\\n[[t.a]]\\nx = 1\\n\\n[t.b]\\ny = 3\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[t]\\n\\n[[t.u.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[t]\\n\\n[[t.u.a]]\\nx = 1\\n\\n[t.u.b]\\ny = 3\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[t]\\n\\n[t.b]\\ny = 3\\n\\n[[t.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[t]\\n\\n[t.u]\\n\\n[[t.u.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[t]\\nq = 2\\n\\n[[t.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[x]\\nq = 1\\n\\n[[t.a]]\\nx = 1\\n-<lambda>]",
+    "tests.test_toml_document::test_emptied_nested_array_of_tables_round_trips[[x]\\nq = 1\\n\\n[[t.a]]\\nx = 1\\n\\n[t.b]\\ny = 3\\n-<lambda>]"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "76d4714",
+   "label": "bug",
+   "subject": "Do not add a plus sign to a negative zero float result (#629)",
+   "tests": [
+    "tests.test_items::test_no_extra_plus_sign_on_negative_zero"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "7ab7469",
+   "label": "bug",
+   "subject": "Accept uppercase E exponent after a leading-zero mantissa (#586)",
+   "tests": [
+    "tests.test_parser::test_parser_accepts_uppercase_exponent_after_leading_zero"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "7c978a5",
+   "label": "bug",
+   "subject": "reject a table redefined after its parent table header (#516)",
+   "tests": [
+    "tests.test_parser::test_parser_rejects_table_redefined_after_parent[[a.b.c]\\n[a]\\n[a.b.c]]",
+    "tests.test_parser::test_parser_rejects_table_redefined_after_parent[[a.b]\\n[a.c]\\n[a]\\n[a.b]]",
+    "tests.test_parser::test_parser_rejects_table_redefined_after_parent[[a.b]\\n[a]\\n[a.b]]",
+    "tests.test_parser::test_parser_rejects_table_redefined_after_parent[[a.b]\\nx = 1\\n[a]\\n[a.b]\\ny = 2]"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "8571bcd",
+   "label": "bug",
+   "subject": "reject non-hex digits in \\u and \\U escapes (#501)",
+   "tests": [
+    "tests.test_parser::test_parser_rejects_non_hex_unicode_escapes[a = \"\\\\U0000_0041\"]",
+    "tests.test_parser::test_parser_rejects_non_hex_unicode_escapes[a = \"\\\\U0010_FFFF\"]",
+    "tests.test_parser::test_parser_rejects_non_hex_unicode_escapes[a = \"\\\\u 123\"]",
+    "tests.test_parser::test_parser_rejects_non_hex_unicode_escapes[a = \"\\\\u+123\"]",
+    "tests.test_parser::test_parser_rejects_non_hex_unicode_escapes[a = \"\\\\u12_3\"]",
+    "tests.test_parser::test_parser_rejects_non_hex_unicode_escapes[a = \"\\\\u1_23\"]"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "86f4562",
+   "label": "bug",
+   "subject": "Render inline tables in O(n) instead of O(n^2) (#525)",
+   "tests": [
+    "tests.test_items::test_inline_table_render_after_edits"
+   ],
+   "kind": "performance"
+  },
+  {
+   "id": "88aa4b1",
+   "label": "bug",
+   "subject": "Keep single-line array bracket off a trailing comment line (#581)",
+   "tests": [
+    "tests.test_items::test_array_add_line_single_line_comment_round_trips"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "89cdcc7",
+   "label": "bug",
+   "subject": "Keep fold when unwrapping a datetime or time. (#626)",
+   "tests": [
+    "tests.test_items::test_unwrap_keeps_fold"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "8c30fc1",
+   "label": "bug",
+   "subject": "Fix Array.__delitem__ corrupting rendered output on slice deletion (#599)",
+   "tests": [
+    "tests.test_items::test_array_slice_deletion_keeps_render_in_sync"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "8cd44f5",
+   "label": "bug",
+   "subject": "fix: preserve leading newline of multiline string built with string() (#551)",
+   "tests": [
+    "tests.test_api::test_create_multiline_string_with_leading_newline_round_trips[kwargs0-\\n]",
+    "tests.test_api::test_create_multiline_string_with_leading_newline_round_trips[kwargs1-\\nMy\\nString\\n]",
+    "tests.test_api::test_create_multiline_string_with_leading_newline_round_trips[kwargs2-\\r\\nMy\\nString]",
+    "tests.test_api::test_create_multiline_string_with_leading_newline_round_trips[kwargs3-\\nMy\\nString]",
+    "tests.test_api::test_create_multiline_string_with_leading_newline_round_trips[kwargs4-\\r\\nMy\\nString]"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "90365ea",
+   "label": "bug",
+   "subject": "Reject trailing characters in key_value() (#594)",
+   "tests": [
+    "tests.test_api::test_key_value_raises_on_a_second_pair",
+    "tests.test_api::test_key_value_raises_on_invalid_example",
+    "tests.test_api::test_key_value_raises_on_trailing_chars[foo = 12 = 13]",
+    "tests.test_api::test_key_value_raises_on_trailing_chars[foo = 12 junk]",
+    "tests.test_api::test_key_value_raises_on_trailing_chars[foo = 12]]]]"
+   ],
+   "kind": "validation"
+  },
+  {
+   "id": "94e62fb",
+   "label": "bug",
+   "subject": "Float is not a sequence  (#563)",
+   "tests": [
+    "tests.test_items::test_float_is_not_a_sequence"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "9ac3f98",
+   "label": "bug",
+   "subject": "Speed up unwrap() by resolving keys from the key map, not items() (#521)",
+   "tests": [
+    "tests.test_toml_document::test_unwrap_preserves_raise_on_invalid_out_of_order_fragment"
+   ],
+   "kind": "performance"
+  },
+  {
+   "id": "9c12677",
+   "label": "bug",
+   "subject": "reject array-of-tables header missing its second closing bracket (#519)",
+   "tests": [
+    "tests.test_parser::test_parser_rejects_aot_header_missing_second_bracket[[[a.b]x]",
+    "tests.test_parser::test_parser_rejects_aot_header_missing_second_bracket[[[a]]",
+    "tests.test_parser::test_parser_rejects_aot_header_missing_second_bracket[[[a]b]",
+    "tests.test_parser::test_parser_rejects_aot_header_missing_second_bracket[[[a]x\\ny = 1]"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "a076a6a",
+   "label": "bug",
+   "subject": "Fix corrupt output when adding to a dotted key inside an inline table (#500)",
+   "tests": [
+    "tests.test_items::test_adding_to_dotted_key_inside_inline_table",
+    "tests.test_items::test_adding_to_nested_dotted_key_inside_inline_table"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "a1c5bd2",
+   "label": "bug",
+   "subject": "reject tab characters in bare keys (#497)",
+   "tests": [
+    "tests.test_parser::test_parser_rejects_tab_in_bare_key[[a\\tb]]",
+    "tests.test_parser::test_parser_rejects_tab_in_bare_key[a\\tb = 1]",
+    "tests.test_parser::test_parser_rejects_tab_in_bare_key[x.y\\tz = 1]"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "a963fe1",
+   "label": "bug",
+   "subject": "Preserve inline table key order in item() (#546) (#552)",
+   "tests": [
+    "tests.test_api::test_item_inline_table_preserves_key_order"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "afa41a5",
+   "label": "bug",
+   "subject": "Render self-dumping wrappers via as_string in dumps() (#508)",
+   "tests": [
+    "tests.test_api::test_dumps_wrapper_delegating_as_string_preserves_layout"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "b1399c3",
+   "label": "bug",
+   "subject": "reject surrogate code points in \\U unicode escapes (#493)",
+   "tests": [
+    "tests.test_parser::test_parser_rejects_surrogate_unicode_escapes[a = \"\\\\U0000D800\"]",
+    "tests.test_parser::test_parser_rejects_surrogate_unicode_escapes[a = \"\\\\U0000DC00\"]",
+    "tests.test_parser::test_parser_rejects_surrogate_unicode_escapes[a = \"\\\\U0000DFFF\"]"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "b282137",
+   "label": "bug",
+   "subject": "Preserve whitespace when replacing super tables (#534)",
+   "tests": [
+    "tests.test_toml_document::test_replace_super_table_preserves_whitespace"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "b48c094",
+   "label": "bug",
+   "subject": "reject overlong decimal integer instead of coercing to inf (#538)",
+   "tests": [
+    "tests.test_parser::test_parser_rejects_overlong_decimal_integer"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "c07c0c1",
+   "label": "bug",
+   "subject": "fix: report the right line and column for CRLF and mixed line endings (#642)",
+   "tests": [
+    "tests.test_parser::test_parser_reports_the_right_position_for_mixed_line_endings",
+    "tests.test_parser::test_parser_reports_the_same_position_regardless_of_line_ending[\\r\\n]"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "cc05afa",
+   "label": "bug",
+   "subject": "Represent out-of-order table proxies with merged values (#536)",
+   "tests": [
+    "tests.test_toml_document::test_repr_out_of_order_table_proxy"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "ce8f8ee",
+   "label": "bug",
+   "subject": "Render tz-aware times as local times without an offset (#613)",
+   "tests": [
+    "tests.test_items::test_time_with_tzinfo_renders_as_local_time"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "d3c76f0",
+   "label": "bug",
+   "subject": "fix: reject out-of-order concrete+super table redefinitions at parse time (#530)",
+   "tests": [
+    "tests.test_toml_document::test_reject_out_of_order_dotted_key_redefinition_at_parse"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "d548e18",
+   "label": "bug",
+   "subject": "raise on malformed array element instead of dropping it (#527)",
+   "tests": [
+    "tests.test_parser::test_array_with_malformed_element_raises"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "de68fd0",
+   "label": "bug",
+   "subject": "Fix ParseError when a sub-table extends an array of tables out of order (#498)",
+   "tests": [
+    "tests.test_toml_document::test_subtable_of_aot_element_after_other_table"
+   ],
+   "kind": "parser-strictness"
+  },
+  {
+   "id": "e23a254",
+   "label": "bug",
+   "subject": "fix: avoid duplicate table header when adding a key to an out-of-order table (#545)",
+   "tests": [
+    "tests.test_toml_document::test_set_value_on_out_of_order_table_with_empty_concrete_part"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "ea9263f",
+   "label": "unclear",
+   "subject": "Limit parser nesting depth instead of crashing with RecursionError (#510)",
+   "tests": [
+    "tests.test_api::test_parse_accepts_nesting_at_the_depth_limit",
+    "tests.test_api::test_parse_rejects_deeply_nested_documents[[[a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a]]\\nx = 1]",
+    "tests.test_api::test_parse_rejects_deeply_nested_documents[[a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a]\\nx = 1]",
+    "tests.test_api::test_parse_rejects_deeply_nested_documents[a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a = 1]",
+    "tests.test_api::test_parse_rejects_deeply_nested_documents[x = [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+    "tests.test_api::test_parse_rejects_deeply_nested_documents[x = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = [{a = 1}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]]",
+    "tests.test_api::test_parse_rejects_deeply_nested_documents[x = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = {a = 1}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}]"
+   ]
+  },
+  {
+   "id": "ee4eedb",
+   "label": "bug",
+   "subject": "Fix duplicated prefix and captured sibling when replacing a dotted key with a table (#526)",
+   "tests": [
+    "tests.test_toml_document::test_replace_dotted_key_with_empty_table_keeps_following_sibling",
+    "tests.test_toml_document::test_replace_dotted_key_with_table",
+    "tests.test_toml_document::test_replace_dotted_key_with_table_keeps_following_sibling",
+    "tests.test_toml_document::test_replace_value_with_table_keeps_following_dotted_sibling"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "f466807",
+   "label": "bug",
+   "subject": "fix: preserve underscores when creating integers from strings (#610)",
+   "tests": [
+    "tests.test_api::test_integer_emission_matches_parse[+1_000]",
+    "tests.test_api::test_integer_emission_matches_parse[0o7_7]",
+    "tests.test_api::test_integer_emission_matches_parse[0xdead_beef]",
+    "tests.test_api::test_integer_emission_matches_parse[1_000]",
+    "tests.test_api::test_integer_preserves_grouping_underscores[+1_000]",
+    "tests.test_api::test_integer_preserves_grouping_underscores[-1_000]",
+    "tests.test_api::test_integer_preserves_grouping_underscores[0b1_0]",
+    "tests.test_api::test_integer_preserves_grouping_underscores[0o7_7]",
+    "tests.test_api::test_integer_preserves_grouping_underscores[0xDEAD_BEEF]",
+    "tests.test_api::test_integer_preserves_grouping_underscores[0xdead_beef]",
+    "tests.test_api::test_integer_preserves_grouping_underscores[1_000]",
+    "tests.test_api::test_integer_preserves_grouping_underscores[5_349_221]",
+    "tests.test_api::test_integer_rejects_invalid_strings[ 1]",
+    "tests.test_api::test_integer_rejects_invalid_strings[01_2]",
+    "tests.test_api::test_integer_rejects_invalid_strings[1 ]"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "f8ce14b",
+   "label": "bug",
+   "subject": "Fix doubled comma when inserting into a comma-first array (#499)",
+   "tests": [
+    "tests.test_items::test_appending_to_comma_first_array_does_not_double_separator",
+    "tests.test_items::test_inserting_into_comma_first_array_does_not_double_separator"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "f9b4b22",
+   "label": "bug",
+   "subject": "Move a value replacing a table out of the table region (#506)",
+   "tests": [
+    "tests.test_toml_document::test_replace_middle_table_with_value"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "test:test_create_string[kwargs13-\\nMy\\nString\\n-\"\"\"\\n\\nMy\\nString\\n\"\"\"]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_api::test_create_string[kwargs13-\\nMy\\nString\\n-\"\"\"\\n\\nMy\\nString\\n\"\"\"]"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "test:test_create_string[kwargs18-My\\rString-\"\"\"My\\\\rString\"\"\"]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_api::test_create_string[kwargs18-My\\rString-\"\"\"My\\\\rString\"\"\"]"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "test:test_create_string_with_invalid_characters[kwargs8-My\\rString]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_api::test_create_string_with_invalid_characters[kwargs8-My\\rString]"
+   ],
+   "kind": "output-fidelity"
+  },
+  {
+   "id": "test:test_create_string_with_invalid_characters[kwargs9-My\\r\\nMy\\rString]",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_api::test_create_string_with_invalid_characters[kwargs9-My\\r\\nMy\\rString]"
+   ],
+   "kind": "output-fidelity"
+  }
+ ]
+}

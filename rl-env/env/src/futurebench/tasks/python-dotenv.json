@@ -1,0 +1,98 @@
+{
+ "id": "python-dotenv",
+ "repo": "theskumar/python-dotenv",
+ "split": "eval",
+ "snapshot": "f1937b68f338d7ebd7754da377ca08b2f0df8dbb",
+ "snapshot_date": "2026-05-30",
+ "cutoff": "2026-06-01",
+ "head": "0b2880591780a426b0551436f47a17e7a76d954f",
+ "head_date": "2026-10-01",
+ "packages": [
+  "src"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "0b28805",
+   "label": "bug",
+   "subject": "fix: expand ~ in find_dotenv and the %dotenv magic (#714)",
+   "tests": [
+    "tests.test_main::test_find_dotenv_expands_user"
+   ]
+  },
+  {
+   "id": "6a49d6d",
+   "label": "bug",
+   "subject": "fix: name the .env path in set_key and unset_key write errors (#711)",
+   "tests": [
+    "tests.test_cli::test_set_missing_directory",
+    "tests.test_main::test_set_key_missing_directory"
+   ]
+  },
+  {
+   "id": "6bdf86a",
+   "label": "bug",
+   "subject": "fix: don't leak or mask errors when rewrite cleanup fails on Windows (#686)",
+   "tests": [
+    "tests.test_main::test_rewrite_read_only_file_leaves_no_temp_file[set_key]",
+    "tests.test_main::test_rewrite_read_only_file_leaves_no_temp_file[unset_key]",
+    "tests.test_main::test_rewrite_reports_original_error_when_cleanup_fails"
+   ]
+  },
+  {
+   "id": "7914148",
+   "label": "bug",
+   "subject": "fix: expand ~ in dotenv_path and the CLI --file option (#615)",
+   "tests": [
+    "tests.test_main::test_dotenv_path_expands_user[dotenv_values-Path]",
+    "tests.test_main::test_dotenv_path_expands_user[dotenv_values-str]",
+    "tests.test_main::test_dotenv_path_expands_user[get_key-Path]",
+    "tests.test_main::test_dotenv_path_expands_user[get_key-str]",
+    "tests.test_main::test_dotenv_path_expands_user[set_key-Path]",
+    "tests.test_main::test_dotenv_path_expands_user[set_key-str]",
+    "tests.test_main::test_dotenv_path_expands_user[unset_key-Path]",
+    "tests.test_main::test_dotenv_path_expands_user[unset_key-str]",
+    "tests.test_main::test_dotenv_path_keeps_type[path1-expected1]",
+    "tests.test_main::test_dotenv_path_keeps_type[~/.env-{home}/.env]",
+    "tests.test_main::test_load_dotenv_expands_user"
+   ]
+  },
+  {
+   "id": "f215c02",
+   "label": "bug",
+   "subject": "fix: dotenv get exits 0 for empty string values (#700)",
+   "tests": [
+    "tests.test_cli::test_get_empty_string_value"
+   ]
+  },
+  {
+   "id": "f5485a6",
+   "label": "bug",
+   "subject": "fix: parse empty unquoted value with inline comment as empty string",
+   "tests": [
+    "tests.test_main::test_dotenv_values_empty_value_with_inline_comment[KEY=  # comment-expected1]",
+    "tests.test_main::test_dotenv_values_empty_value_with_inline_comment[KEY= # comment-expected0]",
+    "tests.test_main::test_dotenv_values_empty_value_with_inline_comment[KEY= # comment\\nOTHER=val-expected7]",
+    "tests.test_main::test_dotenv_values_empty_value_with_inline_comment[KEY=\\t# comment-expected6]",
+    "tests.test_parser::test_parse_stream[a=  # b-expected12]",
+    "tests.test_parser::test_parse_stream[a= #b-expected11]",
+    "tests.test_parser::test_parse_stream[a= #c\\nd=e-expected16]",
+    "tests.test_parser::test_parse_stream[a=\\t#c-expected15]"
+   ]
+  },
+  {
+   "id": "f7b18d9",
+   "label": "bug",
+   "subject": "fix: round-trip backslashes through set_key (#680)",
+   "tests": [
+    "tests.test_main::test_set_key[-a-b\\\\'c-expected15-a='b\\\\\\\\\\\\'c'\\n]",
+    "tests.test_main::test_set_key[-a-b\\\\-expected14-a='b\\\\\\\\'\\n]",
+    "tests.test_main::test_set_key[-a-b\\\\c-expected13-a='b\\\\\\\\c'\\n]",
+    "tests.test_main::test_set_key_round_trips[C:\\\\Users\\\\]",
+    "tests.test_main::test_set_key_round_trips[back\\\\]",
+    "tests.test_parser::test_parse_stream[a=\"b\\\\\\\\\"\\nc=\"d\"-expected36]",
+    "tests.test_parser::test_parse_stream[a='b\\\\\\\\'\\nc='d'-expected35]"
+   ]
+  }
+ ]
+}
