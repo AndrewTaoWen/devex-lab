@@ -1,0 +1,89 @@
+{
+ "id": "tinydb",
+ "repo": "msiemens/tinydb",
+ "split": "train",
+ "snapshot": "a7174d1bf711d1f59455f8f363a5ccee2ebdf8e7",
+ "snapshot_date": "2026-05-28",
+ "cutoff": "2026-06-01",
+ "head": "edff96aeb2616402e9489d46e90a592c05565621",
+ "head_date": "2026-10-15",
+ "packages": [
+  "tinydb"
+ ],
+ "tests": "tests",
+ "units": [
+  {
+   "id": "18d73a1",
+   "label": "bug",
+   "subject": "fix: reject CachingMiddleware reads and writes after close (#634)",
+   "tests": [
+    "tests.test_middlewares::test_caching_rejects_use_after_close"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "19066e0",
+   "label": "bug",
+   "subject": "fix: fix LRUCache treating stored None values as missing (#635)",
+   "tests": [
+    "tests.test_utils::test_lru_cache_none_value"
+   ],
+   "kind": "falsy-sentinel"
+  },
+  {
+   "id": "717616b",
+   "label": "bug",
+   "subject": "fix: persist_empty must not wipe existing table data (#642)",
+   "tests": [
+    "tests.test_tables::test_persist_empty_does_not_wipe_existing_data"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "770486f",
+   "label": "bug",
+   "subject": "fix: freeze unhashable args in Query.test to prevent TypeError (#618)",
+   "tests": [
+    "tests.test_queries::test_custom_with_unhashable_params"
+   ],
+   "kind": "object-model"
+  },
+  {
+   "id": "bd034d0",
+   "label": "bug",
+   "subject": "fix: don't reuse IDs in mixed insert_multiple batches (#633)",
+   "tests": [
+    "tests.test_tinydb::test_insert_multiple_mixed_document_and_dict[json]",
+    "tests.test_tinydb::test_insert_multiple_mixed_document_and_dict[memory]"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "e83efcd",
+   "label": "bug",
+   "subject": "fix: include regex flags in matches/search query hash (#640)",
+   "tests": [
+    "tests.test_queries::test_regex_flags_affect_hash_and_query_cache"
+   ],
+   "kind": "state-consistency"
+  },
+  {
+   "id": "test:test_all",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_queries::test_all"
+   ],
+   "kind": "domain-semantics"
+  },
+  {
+   "id": "test:test_any",
+   "label": "bug",
+   "subject": "",
+   "tests": [
+    "tests.test_queries::test_any"
+   ],
+   "kind": "domain-semantics"
+  }
+ ]
+}

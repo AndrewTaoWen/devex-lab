@@ -8,7 +8,9 @@ the lines run by class-, module- and session-scoped fixtures it uses (setup_clas
 inside whichever test needs them first, but every test that uses them depends on them. Each line
 event is disabled after its first hit and re-armed at the next test, so the cost is one callback per
 distinct line per test. For every package function it keeps a bounded summary of argument and return
-values: types seen and whether empty / zero / negative / None / bool values ever appeared.
+values: types seen and whether empty / zero / negative / None / bool values ever appeared, and for
+strings which character classes appeared (non-ASCII, sign or radix prefix, quotes, control characters,
+an empty field between separators).
 
 Output JSON:
   tests:     {nodeid: {"outcome": pass|fail|skip, "lines": ["rel/file.py:123", ...]}}
@@ -35,6 +37,30 @@ def summary():
     return {"types": defaultdict(int), "flags": defaultdict(int)}
 
 
+SEPS = ",;:/=&@|"
+QUOTES = "\"'"
+
+
+def note_str(f, v):
+    """Character classes of a non-empty string: what kind of text the tests actually fed in."""
+    if not v.isascii():
+        f["non_ascii"] += 1
+        if any(c.isdigit() and not c.isascii() for c in v[:200]):
+            f["non_ascii_digit"] += 1
+    if v[0] in "+-":
+        f["sign_prefix"] += 1
+    if v[:2].lower() in ("0x", "0o", "0b"):
+        f["radix_prefix"] += 1
+    if any(c in QUOTES for c in v[:200]):
+        f["quote"] += 1
+    if any(ord(c) < 32 or ord(c) == 127 for c in v[:200]):
+        f["control_char"] += 1
+    # an empty field: a separator at either end, or two separators with nothing between them
+    w = v[:200].replace(" ", "")
+    if w and (w[0] in SEPS or w[-1] in SEPS or any(a in SEPS and b in SEPS for a, b in zip(w, w[1:]))):
+        f["empty_field"] += 1
+
+
 def note(s, v):
     t = type(v)
     s["types"][t.__qualname__ if t.__module__ == "builtins" else f"{t.__module__}.{t.__qualname__}"] += 1
@@ -52,8 +78,8 @@ def note(s, v):
             f["empty" if len(v) == 0 else "nonempty"] += 1
             if isinstance(v, (str, bytes)) and v and (v.strip() != v):
                 f["edge_whitespace"] += 1
-            if isinstance(v, str) and not v.isascii():
-                f["non_ascii"] += 1
+            if isinstance(v, str) and v:
+                note_str(f, v)
     except Exception:
         f["unsummarisable"] += 1
 
