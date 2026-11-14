@@ -148,6 +148,15 @@ $ query.py snapshot-map.json fn Range.range_for_length
 
 Both are places where werkzeug later fixed real bugs: float URLs for whole numbers and small values, and suffix ranges longer than the content. The full `gaps` view lists 375 functions with an argument never tried empty, zero or negative, so on its own it's a long list rather than a pointer. Whether it helps hardening agents find more future bugs is the next experiment.
 
+## The code graph: `repomap graph`
+
+`repomap graph update` keeps `.repomap/graph.db` current. The graph merges two layers: the calls the tests were seen making (trusted), and calls, imports and subclasses read from the source (used only for code no test runs). Since the trusted layer comes from running tests, updating it means re-running tests, and the rules choose how many:
+
+- **Usually:** re-trace only the tests that run the changed files, and re-read just those files' source.
+- **Full re-trace** when what the tests run may have shifted everywhere: dependencies changed (`pyproject.toml`, `setup.py`/`.cfg`, `requirements*.txt`, lock files), test setup changed (`conftest.py`, `pytest.ini`, `tox.ini`, anything under a `fixtures/` folder), more than 20% of the package's files changed (`--max-share`), or more than 50 commits passed (`--max-commits`) since the last full trace. `--no-full` only reports that one is due.
+
+`repomap graph show` prints how stale the graph is and which functions no test runs. `repomap graph show price_of --level function` lists what uses a function and what it uses, and says whether each arrow was seen in tests or only read from source. `--level class|module|file` rolls the same arrows up. `repomap status` also says when a full re-trace is due.
+
 ## Call order and values per test
 
 `record` also saves every package call each test made, in order, to `.repomap/calls.json`. Each row has the function, how deep it was nested, which call made it, a short `repr` of its arguments and return value, and the exception that left it, if any. This lets a test be replayed step by step, from its input to the final result. The code graph (`src/repomap/graph.py`, `.repomap/graph.db`) loads these rows into `test_calls` and `test_runs`.
@@ -162,6 +171,7 @@ Both are places where werkzeug later fixed real bugs: float URLs for whole numbe
   - `cli.py`: the everyday command (`record`, `impact`, `refresh`, `status`, `serve`, `query`).
   - `query.py`: value summaries, callers, tests for a line, and gaps.
   - `static.py`: dots and arrows read from source (calls, imports, subclasses), the code graph's fallback layer.
+  - `recompute.py`: when an update re-traces only changed files' tests and when it re-traces everything.
   - `graph.py`: the code graph in `.repomap/graph.db`: traced arrows as truth, static arrows for untested code, roll-ups, per-test call order.
   - `mcp_server.py`: `repomap-mcp`.
   - `ui.html`: the page `serve` shows.
