@@ -148,11 +148,21 @@ $ query.py snapshot-map.json fn Range.range_for_length
 
 Both are places where werkzeug later fixed real bugs: float URLs for whole numbers and small values, and suffix ranges longer than the content. The full `gaps` view lists 375 functions with an argument never tried empty, zero or negative, so on its own it's a long list rather than a pointer. Whether it helps hardening agents find more future bugs is the next experiment.
 
+## Call order and values per test
+
+`record` also saves every package call each test made, in order, to `.repomap/calls.json`. Each row has the function, how deep it was nested, which call made it, a short `repr` of its arguments and return value, and the exception that left it, if any. This lets a test be replayed step by step, from its input to the final result. The code graph (`src/repomap/graph.py`, `.repomap/graph.db`) loads these rows into `test_calls` and `test_runs`.
+
+- `--steps N` keeps at most N rows per test (default 500; `test_runs.truncated` marks tests that hit it). `--steps 0` turns call order off.
+- `--no-values` keeps the order but no values; `--repr-len N` shortens each value (default 80 characters). `self`/`cls` keep only their type.
+- **Values come from your tests, so they can include secrets from fixtures (tokens, passwords, keys).** `.repomap/` is local data: keep it out of git and don't upload it. Use `--no-values` on suites with real credentials.
+
 ## Files
 
 - `pyproject.toml` and `src/repomap/`: the package.
   - `cli.py`: the everyday command (`record`, `impact`, `refresh`, `status`, `serve`, `query`).
   - `query.py`: value summaries, callers, tests for a line, and gaps.
+  - `static.py`: dots and arrows read from source (calls, imports, subclasses), the code graph's fallback layer.
+  - `graph.py`: the code graph in `.repomap/graph.db`: traced arrows as truth, static arrows for untested code, roll-ups, per-test call order.
   - `mcp_server.py`: `repomap-mcp`.
   - `ui.html`: the page `serve` shows.
   - `_plugin/repomap_trace.py`: the pytest plugin (`-p repomap_trace`, with `REPOMAP_ROOT`, `REPOMAP_OUT` and optional `REPOMAP_EDGES=1`). Only this directory goes on the traced interpreter's path.

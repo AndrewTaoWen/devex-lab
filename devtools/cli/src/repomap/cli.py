@@ -2,7 +2,10 @@
 
   repomap record   [--package src/pkg] [--tests tests] [--python PY] [--json]
         Trace the whole suite once and save the memory to .repomap/memory.json (lines per test,
-        call graph, value summaries, and the commit + file hashes it was recorded at).
+        call graph, value summaries, and the commit + file hashes it was recorded at), plus each test's
+        calls in order with short argument/return values in .repomap/calls.json (--steps N caps rows per
+        test, default 500, 0 = off; --no-values; --repr-len N). Values come from your tests and can hold
+        fixture secrets: .repomap/ is local data, don't commit it.
   repomap impact   [TARGET ...] [--diff [REV]] [--json]
         TARGET is a function name (or part of one) or path.py:LINE. With --diff (or no target),
         uses your uncommitted changes against the recorded commit. Reads only the memory file.
@@ -32,6 +35,7 @@ from urllib.parse import urlparse
 HERE = Path(__file__).resolve().parent
 PLUGIN = HERE / "_plugin"  # only the pytest plugin goes on the traced interpreter's path
 MEM = Path(".repomap/memory.json")
+CALLS = Path(".repomap/calls.json")  # per-test call order and values; kept apart so memory.json stays small
 
 
 # ---------- helpers ----------
@@ -89,9 +93,12 @@ def save(m):
 
 
 def trace(m, test_args, out):
+    opts = m.get("trace_opts", {})
     env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(Path(m["package"]).parent), str(PLUGIN),
                                                         os.environ.get("PYTHONPATH", "")]),
-           "REPOMAP_ROOT": m["package"], "REPOMAP_OUT": str(out), "REPOMAP_EDGES": "1"}
+           "REPOMAP_ROOT": m["package"], "REPOMAP_OUT": str(out), "REPOMAP_EDGES": "1",
+           "REPOMAP_STEPS": str(opts.get("steps", 500)), "REPOMAP_VALUES": "1" if opts.get("values", True) else "0",
+           "REPOMAP_REPR": str(opts.get("repr_len", 80))}
     cmd = [m["python"], "-m", "pytest", "-q", "-p", "no:cacheprovider", "-p", "no:randomly", "-o", "addopts=",
            "-p", "repomap_trace", *test_args]
     p = subprocess.run(cmd, env=env, capture_output=True, text=True)
@@ -144,14 +151,29 @@ def guess_python():
     return sys.executable
 
 
+def load_calls():
+    try:
+        return json.loads(CALLS.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def save_calls(calls):
+    CALLS.parent.mkdir(exist_ok=True)
+    CALLS.write_text(json.dumps(calls, separators=(",", ":")))
+
+
 def record(a):
-    m = dict(package=a.package.rstrip("/"), tests=a.tests, python=a.python, commit=worktree_snapshot())
+    m = dict(package=a.package.rstrip("/"), tests=a.tests, python=a.python, commit=worktree_snapshot(),
+             trace_opts=dict(steps=getattr(a, "steps", 500), values=not getattr(a, "no_values", False),
+                             repr_len=getattr(a, "repr_len", 80)))
     t0 = time.time()
     with tempfile.TemporaryDirectory() as td:
         raw = trace(m, [a.tests], Path(td) / "map.json")
     m.update(prefix=str(Path(m["package"]).parent) + "/", tests_map=raw["tests"], functions=raw["functions"],
              edges=raw["edges"], hashes={f: file_hash(f) for f in package_files(m)}, recorded=time.time())
     save(m)
+    save_calls(raw.get("calls", {}))
     res = dict(tests=len(raw["tests"]), functions=len(raw["functions"]), edges=len(raw["edges"]),
                seconds=round(time.time() - t0, 1), memory=str(MEM), commit=m["commit"])
     if getattr(a, "json", False):
@@ -373,6 +395,10 @@ def refresh(a):
         if t in raw["tests"] or any(t.startswith(tf) for tf in test_files):
             m["tests_map"].pop(t, None)
     m["tests_map"].update(raw["tests"])
+    calls = load_calls()
+    calls = {t: v for t, v in calls.items() if t in m["tests_map"] and t not in raw["tests"]}
+    calls.update(raw.get("calls", {}))
+    save_calls(calls)
     touched = {m["prefix"] + f for f in files}
     m["edges"] = [e for e in m["edges"] if not any(x.split(":", 1)[0] in files for x in e)]
     m["edges"] = sorted({tuple(e) for e in m["edges"]} | {tuple(e) for e in raw["edges"]})
@@ -515,6 +541,10 @@ def main():
     r.add_argument("--package", default=None)
     r.add_argument("--tests", default="tests")
     r.add_argument("--python", default=None, help="interpreter with pytest (default: ./.venv if present, else this one)")
+    r.add_argument("--steps", type=int, default=500,
+                   help="call-order rows kept per test in .repomap/calls.json (0 = don't record call order)")
+    r.add_argument("--no-values", action="store_true", help="don't store argument and return values per call")
+    r.add_argument("--repr-len", type=int, default=80, help="characters kept of each stored value (default 80)")
     r.add_argument("--json", action="store_true")
     i = sub.add_parser("impact")
     i.add_argument("targets", nargs="*")
