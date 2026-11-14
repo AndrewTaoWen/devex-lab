@@ -26,6 +26,17 @@ def test_differs_sees_new_values_exceptions_and_missing_calls():
     assert graphbench.differs(base, now) == ["m.py:f", "m.py:g", "m.py:h"]
 
 
+def test_noise_between_clean_runs_is_ignored():
+    a = graphbench.behaviour(calls(("m.py:now", {}, {"type": "float", "repr": "1.0"}, None),
+                                   ("m.py:f", {}, {"type": "int", "repr": "1"}, None)))
+    b = graphbench.behaviour(calls(("m.py:now", {}, {"type": "float", "repr": "2.0"}, None),
+                                   ("m.py:f", {}, {"type": "int", "repr": "1"}, None)))
+    noise = graphbench.noisy(a, b)
+    c = graphbench.behaviour(calls(("m.py:now", {}, {"type": "float", "repr": "3.0"}, None),
+                                   ("m.py:f", {}, {"type": "int", "repr": "5"}, None)))
+    assert graphbench.differs(a, c, noise) == ["m.py:f"]
+
+
 def test_first_fail_and_rollup():
     assert graphbench.first_fail(["a", "b", "c"], {"c", "b"}) == 2
     assert graphbench.first_fail(["a"], {"z"}) is None

@@ -7,8 +7,9 @@ usage: (from the repo root, with .repomap/memory.json and .repomap/graph.db)
 
 `truth` reuses mutbench's faults (flip a comparison, nudge a constant, return None ...). For each one it runs
 the whole suite under the tracer with call order and values, then compares every package function's calls
-with a clean run. A function "behaved differently" if the set of (arguments, result, exception) it was seen
-with changed. Those functions, minus the one that was edited, are the true downstream of the fault: the
+with a clean run, test by test. A function "behaved differently" if, in some test, the set of (arguments,
+result, exception) it was seen with changed. Two clean runs are compared first, and (test, function) pairs
+that differ between them (timestamps, temp paths, random ids) are left out. Those functions, minus the one that was edited, are the true downstream of the fault: the
 code that a reviewer should have looked at. The broken tests are kept too.
 
 `score` reports, for the graph's downstream bucket at the default cutoff:
@@ -38,18 +39,24 @@ ADDR = re.compile(r"0x[0-9a-fA-F]+")
 
 
 def behaviour(calls):
-    """function -> set of (args, ret, raised) seen across the suite, with memory addresses blanked out."""
+    """(test, function) -> set of (args, ret, raised) seen, with memory addresses blanked out."""
     out = {}
-    for c in calls.values():
+    for test, c in calls.items():
         for _, _, _, fn, args, ret, raised in c["rows"]:
             sig = ADDR.sub("0x?", json.dumps([args, ret, raised], sort_keys=True))
-            out.setdefault(fn, set()).add(sig)
+            out.setdefault((test, fn), set()).add(sig)
     return out
 
 
-def differs(base, now):
-    """Functions whose observed behaviour changed, including ones that stopped or started being called."""
-    return sorted(f for f in base.keys() | now.keys() if base.get(f) != now.get(f))
+def differs(base, now, noise=frozenset()):
+    """Functions whose behaviour changed in some test, including calls that stopped or started. Pairs in noise
+    (a test and function that differ between two clean runs: times, temp paths, random ids) are ignored."""
+    return sorted({fn for (t, fn) in base.keys() | now.keys()
+                   if (t, fn) not in noise and base.get((t, fn)) != now.get((t, fn))})
+
+
+def noisy(a, b):
+    return frozenset(k for k in a.keys() | b.keys() if a.get(k) != b.get(k))
 
 
 def rollup_key(k):
@@ -80,9 +87,13 @@ def truth(a):
     out = Path(a.out)
     results = json.loads(out.read_text()) if out.exists() else []
     done = {r["function"] for r in results}
-    with tempfile.TemporaryDirectory() as td:
+    with tempfile.TemporaryDirectory() as td:  # two clean runs: what differs between them is noise
         base_calls, base_failed = run_trace(m, td, "base")
+        again_calls, again_failed = run_trace(m, td, "again")
     base = behaviour(base_calls)
+    noise = noisy(base, behaviour(again_calls))
+    base_failed |= again_failed
+    print(f"clean runs differ in {len(noise)} (test, function) pairs; those are ignored", flush=True)
     keys = [k for k in m["functions"] if "<" not in k.split(":", 1)[1]]
     rng.shuffle(keys)
     for k in keys:
@@ -112,7 +123,7 @@ def truth(a):
         finally:
             path.write_text(src)
             clear_pyc(path)
-        changed = sorted({rollup_key(f) for f in differs(base, behaviour(calls))} - {k})
+        changed = sorted({rollup_key(f) for f in differs(base, behaviour(calls), noise)} - {k})
         r = dict(function=k, kind=kind, line=target.lineno, mutant=mutbench.splice(src, target, text).splitlines()
                  [target.lineno - 1].strip(), behaved_differently=changed,
                  broken_tests=sorted(failed - base_failed), seconds=round(time.time() - t0, 1))
