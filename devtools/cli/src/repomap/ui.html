@@ -151,6 +151,8 @@ svg .gn.sel rect { stroke: var(--fg); stroke-width: 2; }
 svg .ge { fill: none; stroke: var(--l1); stroke-opacity: .7; }
 svg .ge.et { stroke: var(--accent); stroke-opacity: .35; }
 svg .ge.e0 { stroke: var(--chg); }
+svg .ge.es { stroke-dasharray: 5 4; }
+svg .gn.pub rect { stroke-width: 2.5; }
 svg.fade .gn { opacity: .25; }
 svg.fade .ge { stroke-opacity: .08; }
 svg.fade .gn.hl { opacity: 1; }
@@ -197,7 +199,7 @@ svg.fade .ge.hl { stroke-opacity: .95; }
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[c]);
-let D, F = [], up = [], down = [], byKey = new Map(), live = true;
+let D, F = [], up = [], down = [], byKey = new Map(), live = true, ekind = new Map(), pub = new Set();
 const S = {targets: new Set(), testFiles: [], unknown: [], source: null, depth: 2, sel: null, stale: [], view: null};
 let savedView = null;
 try { savedView = localStorage.getItem("repomap.view"); } catch {}
@@ -221,6 +223,9 @@ async function boot() {
   F.forEach(f => byKey.set(f.k, f.i));
   up = F.map(() => []); down = F.map(() => []);
   for (const [a, b] of D.edges) { up[b].push(a); down[a].push(b); }
+  // with the code graph: arrows read only from source fill in code no test runs (drawn dashed, counted lower)
+  if (D.graph) for (const [a, b, kind] of D.graph.sedges) { up[b].push(a); down[a].push(b); ekind.set(a + ">" + b, kind); }
+  pub = new Set(D.graph ? D.graph.public : []);
   S.stale = D.stale || [];
   $("#title").innerHTML = `Repo map <span>· ${esc(D.name)}</span>`;
   const tested = F.filter(f => !f.mod && f.t.length).length, total = F.filter(f => !f.mod).length;
@@ -284,13 +289,24 @@ function drawMap() {
   });
 }
 
+// confidence kept along an arrow followed backwards, as `impact --graph` scores it
+function weight(a, b) {
+  const g = D.graph, k = ekind.get(a + ">" + b);
+  if (!g) return 1;
+  return !k ? g.step : g.step * g.static * (k === "calls_by_name" ? g.guess : 1);
+}
 function compute() {
   const targets = [...S.targets];
-  const seen = new Set(targets), layers = [];
+  const seen = new Set(targets), layers = [], conf = new Map(targets.map(i => [i, 1]));
   let frontier = targets.filter(i => !F[i].mod);
   for (let d = 0; d < S.depth && frontier.length; d++) {
     const nxt = [];
-    for (const i of frontier) for (const c of up[i]) if (!seen.has(c)) { seen.add(c); nxt.push(c); }
+    for (const i of frontier) for (const c of up[i]) {
+      const s = conf.get(i) * weight(c, i);
+      if (D.graph && s < D.graph.cutoff) continue;
+      if (!seen.has(c)) { seen.add(c); nxt.push(c); }
+      if (s > (conf.get(c) || 0)) conf.set(c, s);
+    }
     if (!nxt.length) break;
     layers.push(nxt); frontier = nxt;
   }
@@ -298,7 +314,7 @@ function compute() {
   for (const i of targets) for (const t of F[i].t) tests.add(t);
   for (const tf of S.testFiles) D.tests.forEach(([t], j) => { if (t.startsWith(tf)) tests.add(j); });
   const untested = targets.filter(i => !F[i].mod && !F[i].t.length);
-  return {targets, layers, tests: [...tests], untested};
+  return {targets, layers, tests: [...tests], untested, conf};
 }
 
 function render() {
@@ -326,7 +342,7 @@ function render() {
   for (const b of document.querySelectorAll("[data-view]")) b.classList.toggle("on", b.dataset.view === S.view);
   if (graph) drawGraph(r, on, state);
   $("#legend").innerHTML = graph
-    ? (on ? `<span><i style="background:var(--accent)"></i>test files that run the change</span><span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers</span><span>Arrows point from a function to its callers. Hover to trace, click to inspect, shift-click to add or remove</span>` : "")
+    ? (on ? `<span><i style="background:var(--accent)"></i>test files that run the change</span><span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers</span>${D.graph ? `<span><i style="border:1.5px dashed var(--l1);background:none"></i>seen only in source (no test runs it)</span><span><i style="border:2.5px solid var(--l1);background:none"></i>public: package users call it</span><span>Numbers: how sure the graph is that the change reaches it</span>` : ""}<span>Arrows point from a function to its callers. Hover to trace, click to inspect, shift-click to add or remove</span>` : "")
     : on
     ? `<span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers${S.depth > 2 ? " and up" : ""}</span><span><i style="background:var(--empty)"></i>not reached</span><span>Shift-click a cell to add or remove it from the change</span>`
     : `<span><i style="background:var(--heat)"></i>run by tests (darker = more tests)</span><span><i style="box-shadow:inset 0 0 0 1px var(--empty)"></i>no test runs it</span><span>Click a cell to inspect it, shift-click to add it to a change</span>`;
@@ -567,7 +583,7 @@ function drawGraph(r, on, state) {
     for (const c of cs) {
       const n = add(d + 2, {fn: c.i, kind: d === 0 ? "k1" : "k2"});
       node.set(c.i, n);
-      for (const m of c.nb) edges.push({a: m, b: n, w: 1, cls: m.col === 1 ? "e0" : ""});
+      for (const m of c.nb) edges.push({a: m, b: n, w: 1, cls: (m.col === 1 ? "e0" : "") + (ekind.has(c.i + ">" + m.fn) ? " es" : "")});
     }
     if (more.length) add(d + 2, {kind: "km", label: `+${more.length} more`, sub: `in ${new Set(more.map(c => modName(F[c.i].k))).size} modules`});
   });
@@ -579,6 +595,8 @@ function drawGraph(r, on, state) {
       const f = F[n.fn];
       n.label = f.mod ? `${file(f.k).split("/").pop()} (module level)` : short(f.k);
       n.sub = `${modName(f.k).replace(pkgPrefix, "") || modName(f.k)} · ${f.t.length} test${f.t.length === 1 ? "" : "s"}`;
+      if (D.graph && n.kind !== "k0" && r.conf.has(n.fn)) n.sub += ` · ${r.conf.get(n.fn).toFixed(2)}`;
+      if (pub.has(n.fn)) n.pub = true;
     }
     n.label = clip(n.label, 34); n.sub = clip(n.sub, 40);
     n.w = Math.max(n.label.length, n.sub.length + (n.broke ? 10 : 0)) * G.cw + 18;
@@ -604,7 +622,8 @@ function drawGraph(r, on, state) {
     svg += `<path class="ge ${e.cls}" data-e="${j}" d="M${x1} ${y1}C${x1 + dx} ${y1} ${x2 - dx} ${y2} ${x2} ${y2}" stroke-width="${sw}"${e.cls === "et" ? "" : ` marker-end="url(#arr)"`}/>`;
   });
   for (const n of nodes) {
-    const cls = `gn ${n.kind}${n.fn !== undefined ? " fn" : ""}${n.untested ? " untested" : ""}${n.fn === S.sel && n.fn !== undefined ? " sel" : ""}`;
+    const untested = n.untested || (D.graph && n.fn !== undefined && !F[n.fn].mod && !F[n.fn].t.length);
+    const cls = `gn ${n.kind}${n.fn !== undefined ? " fn" : ""}${untested ? " untested" : ""}${n.pub ? " pub" : ""}${n.fn === S.sel && n.fn !== undefined ? " sel" : ""}`;
     const sub = esc(n.sub) + (n.broke ? ` · <tspan class="bk">${n.broke} broke</tspan>` : "");
     svg += `<g class="${cls}" data-n="${n.id}"${n.fn !== undefined ? ` tabindex="0" role="button" aria-label="${esc(qual(F[n.fn].k))}"` : ""}><rect x="${n.x}" y="${n.y}" width="${n.w}" height="${G.h}" rx="5"/>
       <text class="t1" x="${n.x + 9}" y="${n.y + 15}">${esc(n.label)}</text><text class="t2" x="${n.x + 9}" y="${n.y + 29}">${sub}</text></g>`;

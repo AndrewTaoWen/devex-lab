@@ -638,6 +638,16 @@ def graph_show(a):
 
 # ---------- serve ----------
 
+def cell(fidx, k):
+    """A traced or graph key -> its cell on the page: module code is the module cell, and nested code objects
+    (genexprs, lambdas, inner functions) roll into the function that holds them, so calls made through a
+    generator expression still connect caller and callee."""
+    k = k.replace(":<module>", ":<module level>")
+    while k not in fidx and ".<locals>." in k:
+        k = k.rsplit(".<locals>.", 1)[0]
+    return fidx.get(k)
+
+
 def ui_data(m):
     """Everything the map page needs, indexed so the browser can work out impact by itself
     (same rules as `impact`: a function's tests are those that ran any line of it)."""
@@ -664,12 +674,33 @@ def ui_data(m):
     for k, f in m["functions"].items():
         if k in fidx:
             vals[fidx[k]] = {"calls": f["calls"], "args": f["args"], "returns": f["returns"], "raises": f["raises"]}
-    edges = sorted({(fidx[a], fidx[b]) for a, b in m["edges"] if a in fidx and b in fidx and a != b})
+    edges = sorted({(i, j) for a, b in m["edges"] for i, j in [(cell(fidx, a), cell(fidx, b))]
+                    if i is not None and j is not None and i != j})
     stale = sorted(f for f, h in m["hashes"].items() if file_hash(f) != h)
     return dict(name=Path.cwd().name, package=m["package"], tests_dir=m["tests"], python=m["python"],
                 commit=(m.get("commit") or "")[:10], recorded=m.get("recorded"),
                 tests=[[t, m["tests_map"][t]["outcome"]] for t in tests],
-                fns=[[k, s_, e, sorted(t)] for k, s_, e, t in fns], vals=vals, edges=edges, stale=stale)
+                fns=[[k, s_, e, sorted(t)] for k, s_, e, t in fns], vals=vals, edges=edges, stale=stale,
+                graph=ui_graph(fidx))
+
+
+def ui_graph(fidx):
+    """What the code graph adds to the page, if .repomap/graph.db exists: the source-only arrows impact uses
+    (for code no test runs), which functions are public, and the confidence weights, so the page can score
+    a change the same way `impact --graph` does."""
+    from . import graph
+    if not graph.DB.exists():
+        return None
+    db = graph.connect()
+
+    sedges = set()
+    for a, b, kind in db.execute("SELECT src, dst, kind FROM effective_arrows WHERE source = 'static' AND kind IN "
+                                 "('calls', 'calls_by_name', 'inherits')"):
+        i, j = cell(fidx, a), cell(fidx, b)
+        if i is not None and j is not None and i != j:
+            sedges.add((i, j, kind))
+    return dict(sedges=sorted(sedges), public=sorted(i for k, i in fidx.items() if graph.is_public(k)),
+                step=graph.STEP, static=graph.STATIC_WEIGHT, guess=graph.GUESS_WEIGHT, cutoff=graph.CUTOFF)
 
 
 def page_with(data, changes):
