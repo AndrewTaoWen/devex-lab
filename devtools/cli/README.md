@@ -188,6 +188,7 @@ Both are places where werkzeug later fixed real bugs: float URLs for whole numbe
 - `repomap.py`, `query.py`: run the package from the checkout without installing it.
 - `tests/`: CLI `--json` and MCP server tests on the shopkit example (`python -m pytest devtools/cli/tests`).
 - `mutbench.py`: the mutation benchmark; `werkzeug/mutbench.json` and `werkzeug/mutbench-score.txt`: its faults, broken tests and scores.
+- `graphbench.py`: scorecard for `impact --graph`: injects faults, re-traces with values to find which functions really behaved differently, and scores the graph's downstream list and test ranking against that.
 - `impact.py`: replays a repo's history and scores the predictors; `build_ui.py`: bundles results for the viewer.
 - `werkzeug/`:
   - `impact.json`: per-commit truth and predictions;
