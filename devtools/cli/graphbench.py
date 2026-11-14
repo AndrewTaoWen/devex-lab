@@ -153,10 +153,20 @@ def reach(db, start, forward):
     return seen - {start}
 
 
+_DOTS = {}
+
+
+def package_dots(db):
+    if id(db) not in _DOTS:
+        _DOTS[id(db)] = {k for (k,) in db.execute("SELECT key FROM dots")}
+    return _DOTS[id(db)]
+
+
 def score_one(db, r, suite):
     imp = graph.impact(db, {r["function"]})
     listed = {d["key"] for d in imp["downstream"]}
-    truth_ = set(r["behaved_differently"])
+    # package code only: modules a test writes to a temp dir and imports can show up in the trace
+    truth_ = {f for f in r["behaved_differently"] if f in package_dots(db)}
     sure = [t["test"] for t in imp["tests"] if t["reason"] == "runs changed code"]
     broken = set(r["broken_tests"])
     ranked, plain = first_fail(sure, broken), first_fail(sorted(sure), broken)

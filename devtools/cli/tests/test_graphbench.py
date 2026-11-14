@@ -37,6 +37,15 @@ def test_noise_between_clean_runs_is_ignored():
     assert graphbench.differs(a, c, noise) == ["m.py:f"]
 
 
+def test_only_package_functions_count(shop):
+    from repomap import graph
+    repomap(shop, "graph", "update")
+    db = graph.connect(shop / ".repomap/graph.db")
+    r = dict(function="shopkit/money.py:round_cents", kind="return None", broken_tests=[],
+             behaved_differently=["shopkit/tax.py:tax_for", "../../tmp/pytest-1/x/a.py:<module>"])
+    assert graphbench.score_one(db, r, 18)["truth"] == 1
+
+
 def test_first_fail_and_rollup():
     assert graphbench.first_fail(["a", "b", "c"], {"c", "b"}) == 2
     assert graphbench.first_fail(["a"], {"z"}) is None
