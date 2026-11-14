@@ -60,7 +60,8 @@ def friendly(fn):
 
 @server.tool(annotations=READ)
 @friendly
-def impact(targets: list[str] | None = None, diff_rev: str | None = None, depth: int = 2) -> dict:
+def impact(targets: list[str] | None = None, diff_rev: str | None = None, depth: int = 2, graph: bool = False,
+           level: str = "function") -> dict:
     """What a change reaches, and which tests to run for it.
 
     targets: function names (or parts of names, e.g. "Range.range_for_length") or "path/to/file.py:LINE".
@@ -69,8 +70,19 @@ def impact(targets: list[str] | None = None, diff_rev: str | None = None, depth:
 
     Returns the changed functions with how many tests run each, callers by level, the selected pytest node ids,
     `untested` (changed functions no test runs, so nothing verifies them), `unmatched` (target names that match
-    no function) and library files changed since the memory was recorded."""
+    no function) and library files changed since the memory was recorded.
+
+    graph=True uses the code graph (.repomap/graph.db, made by `repomap graph update`) instead: `tests` lists
+    every test that runs changed code, closest first, then tests that only run dependent code with a confidence;
+    `downstream` is code that may now behave differently (confidence, next hop, seen in tests or only in
+    source); `public` the package functions at risk; `untested` the affected code no test runs. level rolls the
+    result up to line, function, class, module or file."""
     m = memory()
+    if graph:
+        res = cli.compute_graph_impact(m, targets or (), diff_rev, level)
+        sel = [t["test"] for t in res["tests"] if t["confidence"] == 1.0]
+        res["pytest_command"] = (f"{m['python']} -m pytest -q " + " ".join(sel)) if sel else None
+        return res
     res = cli.compute_impact(m, targets or (), diff_rev, depth=max(1, min(depth, 6)))
     res["pytest_command"] = (f"{m['python']} -m pytest -q " + " ".join(res["tests"])) if res["tests"] else None
     return res

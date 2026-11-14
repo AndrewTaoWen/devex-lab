@@ -246,3 +246,109 @@ def summary(db):
                 static_arrows=n("SELECT COUNT(*) FROM arrows WHERE source = 'static'"),
                 effective_arrows=n("SELECT COUNT(*) FROM effective_arrows"),
                 tests=n("SELECT COUNT(*) FROM tests"), call_rows=n("SELECT COUNT(*) FROM test_calls"))
+
+
+# ---------- impact ----------
+
+STEP = 0.9          # confidence kept per arrow followed backwards
+STATIC_WEIGHT = 0.5  # an arrow read only from source counts half
+GUESS_WEIGHT = 0.8   # and a call linked only by a unique method name counts a little less again
+CUTOFF = 0.3         # stop walking once confidence drops below this
+WALK_KINDS = ("calls", "calls_by_name", "inherits")
+
+
+def is_public(key):
+    """A function a package user could call: no _private segment in its path or name, not nested, not module code."""
+    path, _, q = key.partition(":")
+    if not q or q.startswith("<") or "<locals>" in q:
+        return False
+    parts = [p for p in path[:-3].split("/") if p != "__init__"] + q.split(".")
+    return not any(p.startswith("_") and not (p.startswith("__") and p.endswith("__")) for p in parts)
+
+
+def expand(db, key):
+    """A changed function and the code objects nested in it (genexprs, lambdas, inner defs), which the tracer
+    reports under their own keys. A module-level change expands to everything in the file."""
+    path, _, q = key.partition(":")
+    if q in ("<module>", "<module level>", "<new file>"):
+        return {k for (k,) in db.execute("SELECT key FROM dots WHERE file = ? AND kind != 'module'", (path,))} \
+            | {f"{path}:<module>"}
+    nested = {k for (k,) in db.execute("SELECT key FROM dots WHERE key LIKE ? ESCAPE '\\'",
+                                        (key.replace("_", "\\_").replace("%", "\\%") + ".<locals>.%",))}
+    return {key} | nested
+
+
+def impact(db, changed, level="function", cutoff=CUTOFF, step=STEP, static_weight=STATIC_WEIGHT,
+           guess_weight=GUESS_WEIGHT):
+    """What a change to the given keys reaches, walking effective arrows backwards with falling confidence.
+
+    Returns tests (every test that ran changed code, closest first, then tests that only ran downstream code),
+    downstream (code that may now behave differently, with confidence, the next hop towards the change and
+    whether the weakest arrow on the way was seen in tests or read from source), public (functions a package
+    user calls that are changed or downstream), untested (changed or downstream functions no test runs)."""
+    changed = {("%s:<module>" % k.split(":")[0]) if k.endswith(":<module level>") else k for k in changed}
+    up = {}
+    for src, dst, kind, source in db.execute(
+            "SELECT src, dst, kind, source FROM effective_arrows WHERE kind IN (%s)" % ",".join("?" * len(WALK_KINDS)),
+            WALK_KINDS):
+        w = step if source == "runtime" else step * static_weight * (guess_weight if kind == "calls_by_name" else 1)
+        up.setdefault(dst, []).append((src, w, source))
+    seeds = {}
+    for k in changed:
+        for x in expand(db, k):
+            # a module-level change (a constant, say) reaches the file's functions without an arrow: count it
+            # as one static step
+            seeds[x] = 1.0 if x == k or not k.endswith(":<module>") else step * static_weight
+    score = dict(seeds)
+    via, kind_of = {}, {k: "changed" for k in seeds}
+    frontier = sorted(seeds, key=lambda k: -seeds[k])
+    while frontier:  # best-first: a dot's score is its strongest path to a change
+        k = frontier.pop(0)
+        for src, w, source in up.get(k, ()):
+            s = score[k] * w
+            if s >= cutoff and s > score.get(src, 0):
+                score[src], via[src] = s, k
+                kind_of[src] = "static" if source == "static" or kind_of.get(k) == "static" else "runtime"
+                frontier.append(src)
+        frontier.sort(key=lambda k: -score[k])
+    direct = set(seeds)
+    downstream = {k: s for k, s in score.items() if k not in direct and not k.startswith("<")}
+    # tests: those that ran changed code are certain (the trace says so); then those that ran downstream code
+    ran = {}
+    for test, fn in db.execute("SELECT test, function FROM covers"):
+        if fn in direct:
+            ran.setdefault(test, set()).add(fn)
+    depth = {}
+    if ran:
+        for test, fn, d in db.execute("SELECT test, function, MIN(depth) FROM test_calls GROUP BY test, function"):
+            if fn in direct and test in ran:
+                depth[test] = min(depth.get(test, d), d)
+    tests = [dict(test=t, reason="runs changed code", depth=depth.get(t), confidence=1.0)
+             for t in sorted(ran, key=lambda t: (depth.get(t) is None, depth.get(t) or 0, t))]
+    maybe = {}
+    for test, fn in db.execute("SELECT test, function FROM covers"):
+        if test not in ran and fn in downstream:
+            maybe[test] = max(maybe.get(test, 0), downstream[fn])
+    tests += [dict(test=t, reason="runs code that depends on it", depth=None, confidence=round(s, 3))
+              for t, s in sorted(maybe.items(), key=lambda x: (-x[1], x[0]))]
+    traced = {k for (k,) in db.execute("SELECT DISTINCT function FROM covers")}
+    kinds = dict(db.execute("SELECT key, kind FROM dots"))
+
+    def up_to(k):
+        return rollup(db, k, level) if level != "line" else k
+
+    roll = {}
+    for k, s in downstream.items():
+        r = up_to(k)
+        if r in {up_to(c) for c in changed}:
+            continue
+        if s > roll.get(r, (0,))[0]:
+            roll[r] = (s, up_to(via[k]), kind_of[k])
+    down = [dict(key=k, confidence=round(s, 3), via=v, source=src)
+            for k, (s, v, src) in sorted(roll.items(), key=lambda x: (-x[1][0], x[0]))]
+    reach = sorted(changed | set(downstream))
+    public = sorted({up_to(k) for k in reach if kinds.get(k) == "function" and is_public(k)})
+    untested = sorted({up_to(k) for k in reach if kinds.get(k) == "function" and k not in traced
+                       and not any(x in traced for x in expand(db, k))})
+    return dict(level=level, changed=sorted({up_to(k) for k in changed}), tests=tests, downstream=down,
+                public=public, untested=untested, cutoff=cutoff)

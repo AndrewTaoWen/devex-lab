@@ -155,6 +155,15 @@ Both are places where werkzeug later fixed real bugs: float URLs for whole numbe
 - **Usually:** re-trace only the tests that run the changed files, and re-read just those files' source.
 - **Full re-trace** when what the tests run may have shifted everywhere: dependencies changed (`pyproject.toml`, `setup.py`/`.cfg`, `requirements*.txt`, lock files), test setup changed (`conftest.py`, `pytest.ini`, `tox.ini`, anything under a `fixtures/` folder), more than 20% of the package's files changed (`--max-share`), or more than 50 commits passed (`--max-commits`) since the last full trace. `--no-full` only reports that one is due.
 
+`repomap impact --graph` answers from the graph instead of the trace alone. It prints four things:
+
+- **Tests to run:** every test that ran the changed code (the same set as plain `impact`), closest first. `direct` means the test calls the changed function itself; `3 deep` means the changed function sits three calls down.
+- **Code that may now behave differently:** found by walking arrows backwards from the change. Each step keeps 90% confidence, an arrow seen only in source counts half, and a call matched by method name alone a little less again. The walk stops below 0.3 (`--cutoff`).
+- **Public functions at risk:** affected functions with no `_private` part in their name or path.
+- **No test covers:** affected code that no test runs.
+
+`--level class|module|file` rolls the result up. The MCP `impact` tool takes `graph=true` and `level`. For now the graph is opt-in, until the scorecard (codegraph PR 6) shows it does at least as well as plain `impact`.
+
 `repomap graph show` prints how stale the graph is and which functions no test runs. `repomap graph show price_of --level function` lists what uses a function and what it uses, and says whether each arrow was seen in tests or only read from source. `--level class|module|file` rolls the same arrows up. `repomap status` also says when a full re-trace is due.
 
 ## Call order and values per test

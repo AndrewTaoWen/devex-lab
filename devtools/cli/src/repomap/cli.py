@@ -6,7 +6,7 @@
         calls in order with short argument/return values in .repomap/calls.json (--steps N caps rows per
         test, default 500, 0 = off; --no-values; --repr-len N). Values come from your tests and can hold
         fixture secrets: .repomap/ is local data, don't commit it.
-  repomap impact   [TARGET ...] [--diff [REV]] [--json]
+  repomap impact   [TARGET ...] [--diff [REV]] [--graph [--level L] [--cutoff C]] [--json]
         TARGET is a function name (or part of one) or path.py:LINE. With --diff (or no target),
         uses your uncommitted changes against the recorded commit. Reads only the memory file.
         Prints the changed functions, their callers grouped by module, the tests that run them,
@@ -324,8 +324,88 @@ def compute_impact(m, targets=(), diff=None, use_diff=True, depth=2):
                 seconds=round(time.time() - t0, 2))
 
 
+def compute_graph_impact(m, targets=(), diff=None, level="function", cutoff=None):
+    """Impact from the code graph: tests (closest first), downstream code with confidence, public functions
+    at risk, and changed or affected code no test runs. Targets may name functions no test runs, too."""
+    from . import graph
+    if not graph.DB.exists():
+        sys.exit("No graph yet. Run: repomap graph update")
+    db = graph.connect()
+    t0 = time.time()
+    unmatched = []
+    if targets:
+        dots = [k for (k,) in db.execute("SELECT key FROM dots WHERE kind = 'function'")]
+        keys = set()
+        for t in targets:
+            if re.match(r"(.+\.py):(\d+)$", t):
+                keys |= resolve(m, [t], unmatched)
+                continue
+            found = [k for k in dots if k.endswith(":" + t) or k.endswith("." + t)] or [k for k in dots if t in k]
+            keys.update(found) if found else unmatched.append(t)
+        test_files, source = set(), "named targets"
+    else:
+        keys, test_files = changed_targets(m, diff)
+        source = f"changes since {(diff or m.get('commit') or 'HEAD')[:10]}"
+    res = graph.impact(db, keys, level=level, **({"cutoff": cutoff} if cutoff is not None else {}))
+    have = {t["test"] for t in res["tests"]}
+    for tf in sorted(test_files):  # an edited test file: run its tests
+        res["tests"] += [dict(test=t, reason="test file changed", depth=None, confidence=1.0)
+                         for t in sorted(m["tests_map"]) if t.startswith(tf) and t not in have]
+    meta = dict(db.execute("SELECT key, value FROM meta"))
+    stale = graph.changed_files(db, m["package"])
+    res.update(source=source, test_files=sorted(test_files), unmatched=unmatched, total_tests=len(m["tests_map"]),
+               graph_commit=meta.get("commit"), files_changed_since_graph=stale, seconds=round(time.time() - t0, 2),
+               source_only=db.execute("SELECT COUNT(*) FROM dots WHERE kind = 'function' AND traced = 0").fetchone()[0])
+    return res
+
+
+def show_graph_impact(m, res):
+    for t in res["unmatched"]:
+        print(f"  (nothing in the graph matches {t!r})")
+    print(f"Impact of {res['source']}  (graph at {(res['graph_commit'] or '?')[:10]}: {res['total_tests']} tests "
+          f"traced, {res['source_only']} function(s) seen only in source; level {res['level']})\n")
+    if not res["changed"] and not res["test_files"]:
+        print("No changes to library or test code.")
+        return
+    print("Changed")
+    for k in res["changed"]:
+        print(f"  {k}")
+    for tf in res["test_files"]:
+        print(f"  {tf}  (test file)")
+    sure = [t for t in res["tests"] if t["confidence"] == 1.0]
+    print(f"\nTests to run  ({len(sure)} of {res['total_tests']} run changed code; closest first)")
+    for t in res["tests"][:30]:
+        tag = ("direct" if t["depth"] == 1 else f"{t['depth']} deep") if t["depth"] else (
+            f"{t['confidence']:.2f}" if t["confidence"] < 1 else "runs it")
+        print(f"  {tag:>8}  {t['test']}" + ("  (depends on it)" if t["confidence"] < 1 else ""))
+    if len(res["tests"]) > 30:
+        print(f"            … {len(res['tests']) - 30} more")
+    if res["downstream"]:
+        print("\nCode that may now behave differently")
+        for d in res["downstream"][:30]:
+            note = "  seen only in source" if d["source"] == "static" else ""
+            print(f"  {d['confidence']:.2f}  {d['key']}   via {d['via']}{note}")
+    if res["public"]:
+        print("\nPublic functions at risk  (what users of the package call)")
+        print("  " + ", ".join(res["public"]))
+    if res["untested"]:
+        print("\nNo test covers")
+        for k in res["untested"]:
+            print(f"  {k}")
+    if res["files_changed_since_graph"]:
+        print(f"\n{len(res['files_changed_since_graph'])} package files changed since the graph was built; "
+              "run `repomap graph update`.")
+    sel = [t["test"] for t in sure] or [t["test"] for t in res["tests"]]
+    if sel:
+        print(f"\nRun them:\n  {m['python']} -m pytest -q " + " ".join(sel[:40]) + (" …" if len(sel) > 40 else ""))
+
+
 def impact(a):
     m = load()
+    if a.graph:
+        res = compute_graph_impact(m, a.targets if not a.diff_given else (), a.diff, a.level, a.cutoff)
+        print(json.dumps(res, indent=1)) if a.json else show_graph_impact(m, res)
+        return
     res = compute_impact(m, a.targets if not a.diff_given else (), a.diff, depth=a.depth)
     keys, test_files, tests, unknown, stale = (set(res["changed"]), res["test_files"], set(res["tests"]),
                                                res["untested"], res["files_changed_since_record"])
@@ -675,6 +755,11 @@ def main():
     i.add_argument("targets", nargs="*")
     i.add_argument("--diff", nargs="?", const=None, default=False)
     i.add_argument("--depth", type=int, default=2)
+    i.add_argument("--graph", action="store_true", help="use the code graph (.repomap/graph.db): ranked tests, "
+                   "downstream code with confidence, public functions at risk, untested code")
+    i.add_argument("--level", choices=("line", "function", "class", "module", "file"), default="function",
+                   help="with --graph: roll the result up to this level")
+    i.add_argument("--cutoff", type=float, default=None, help="with --graph: lowest confidence to report (0.3)")
     i.add_argument("--json", action="store_true")
     f = sub.add_parser("refresh")
     f.add_argument("--diff", nargs="?", const=None, default=None)

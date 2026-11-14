@@ -72,6 +72,21 @@ def test_lookups(recorded):
     assert len(top) == 1 and top[0]["calls"] == max(g["calls"] for g in gaps + top)
 
 
+def test_graph_impact(recorded, tmp_path):
+    import shutil
+    from conftest import repomap
+    repo = tmp_path / "shop"
+    shutil.copytree(recorded, repo, symlinks=True)
+    repomap(repo, "graph", "update")
+
+    async def flow(s):
+        return await call(s, "impact", targets=["price_of"], graph=True, level="module")
+    r = session(repo, flow)
+    assert r["changed"] == ["shopkit/catalog.py"]
+    assert {d["key"] for d in r["downstream"]} >= {"shopkit/cart.py", "shopkit/export.py"}
+    assert r["untested"] == ["shopkit/export.py"] and r["pytest_command"]
+
+
 def test_no_memory_is_a_readable_error(tmp_path):
     async def flow(s):
         return await call(s, "status"), await call(s, "impact")
