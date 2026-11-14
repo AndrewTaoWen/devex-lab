@@ -15,6 +15,7 @@ Two directions, one shared core. Items are in priority order within each horizon
 | Dev tools | repomap CLI: record, impact, refresh, status, serve (map + graph view) | [cli](devtools/cli/README.md) |
 | Dev tools | Accuracy on werkzeug history (85/85) and 200 injected faults (171/171) | [cli](devtools/cli/README.md) |
 | Dev tools | v0.1 package (`repomap`, `repomap-mcp`), `--json` everywhere, MCP server, Claude Code plugin with the skill | [ai-skill](devtools/ai-skill/README.md), [mcp-server](devtools/mcp-server/README.md) |
+| Dev tools | Code graph: traced calls as truth with source-read fallback, recompute rules, `impact --graph` (ranked tests, downstream code, public API, untested code), per-test call order and values, graphbench | [cli](devtools/cli/README.md#the-code-graph-on-werkzeug) |
 
 ## Next (weeks)
 
@@ -27,13 +28,14 @@ Two directions, one shared core. Items are in priority order within each horizon
 4. **GitHub Action.** On each PR: refresh the map from a cached base, run only selected tests, and post the impact graph as a comment. Fall back to the full suite when the map is stale. ([github-action](devtools/github-action/README.md))
 5. **VS Code extension.** Gutter marks for "N tests run this line", hover with value summaries, a side panel with the graph view for the current diff, and "run affected tests". ([vscode-extension](devtools/vscode-extension/README.md))
 6. **More data for the benchmark.** More runs per repo for variance, the screened repos not yet run (boltons, dateutil, humanize, packaging and others in `02-scale-up/screen/`), larger repos (click-sized) with feature tests filtered to APIs that existed at the snapshot.
-7. **Per-commit change graphs.** Record the graph view for every commit in a repo's history. That gives a timeline of how change impact spreads, and it is training data in its own right: predict the graph from the diff.
+7. **Data-flow arrows.** On werkzeug only 5% of the functions a fault really changes are its callers, the direction impact walks today. Most effects travel through values that are stored and read later in the same test. Build "result of A was later passed to B" arrows from the per-test call order and values, add them to the graph, and score with graphbench. ([cli](devtools/cli/README.md#the-code-graph-on-werkzeug))
+8. **Per-commit change graphs.** Record the graph view for every commit in a repo's history. That gives a timeline of how change impact spreads, and it is training data in its own right: predict the graph from the diff.
 
 ## Later (bigger bets)
 
-8. **Other languages.** A JS/TS tracer (V8 coverage + call edges) and Go, so both the benchmark and the tools leave Python. Picks repos where the model's cutoff leaves months of history.
-9. **Public benchmark.** Publish mutbench faults and real-history impact for all pilot repos so any test-impact tool (or model) can be scored on them.
-10. **Ecosystem ideas worth a stub when someone picks them up:**
+9. **Other languages.** A JS/TS tracer (V8 coverage + call edges) and Go, so both the benchmark and the tools leave Python. Picks repos where the model's cutoff leaves months of history.
+10. **Public benchmark.** Publish mutbench faults and real-history impact for all pilot repos so any test-impact tool (or model) can be scored on them.
+11. **Ecosystem ideas worth a stub when someone picks them up:**
     - **Future-proof review bot.** Run the improved hardening prompt against a PR's changed functions, with repomap's gaps, and comment the likely latent bugs. The benchmark's hardening agent as a reviewer.
     - **Test-pollution detector.** mutbench's last misses were order-dependent tests. repomap already sees shared state, so it can flag tests that pass only after others.
     - **Agent memory service.** Serve value summaries and call edges as long-lived memory for coding agents across sessions, refreshed incrementally.

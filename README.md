@@ -42,6 +42,7 @@ It installs with `pip`, and Claude (and other AI tools) can use it directly thro
 
 - **Finishing futurebench.** It's built, with clearer command names and its own home in `reward-bench/`. Next: decide how to weigh the parts of the score, add a simple reference AI that runs the tasks end to end, and add more projects.
 - **Shipping repomap as a package.** It installs with `pip` (`repomap` and `repomap-mcp` commands) and comes with an MCP server and a Claude Code plugin ([`devtools/ai-skill/`](devtools/ai-skill/README.md)). Next: pick a license, publish it to PyPI, then build the GitHub Action.
+- **Treating the code as a graph.** repomap now keeps a graph of which code calls which, built from what the tests actually ran, with a read-the-source guess for code no test touches. It also records the values passed between functions in each test. On werkzeug it picks the same tests as before but orders them so the first failing test shows up sooner (position 3 instead of 7). It is weaker at saying which other code a change affects: most effects travel through stored values, not calls. Next: arrows that follow values ([write-up](devtools/cli/README.md#the-code-graph-on-werkzeug)).
 - **Done, and it didn't pan out:** feeding repomap's hints ("this input was never empty in any test") to the AI. A quick check showed those hints almost never point at the bugs people found later, so we stopped before running the AI ([write-up](reward-bench/experiments/06-gaps-ab/README.md)).
 
 The full priority list is in [ROADMAP.md](ROADMAP.md).
