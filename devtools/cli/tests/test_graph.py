@@ -118,3 +118,20 @@ def test_deleted_function_leaves_the_graph(built):
     graph.update_files(db, shop / "src/shopkit", ["shopkit/export.py"])
     assert not rows(db, "SELECT 1 FROM dots WHERE key = 'shopkit/export.py:to_csv'")
     assert not rows(db, "SELECT 1 FROM arrows WHERE src = 'shopkit/export.py:to_csv'")
+
+
+def test_property_getter_and_setter_share_one_key(tmp_path):
+    """Both halves of a property have the key C.p; tests that ran either half must cover it."""
+    pkg = tmp_path / "src/pkg"
+    pkg.mkdir(parents=True)
+    (pkg / "__init__.py").write_text("")
+    (pkg / "m.py").write_text("class C:\n    @property\n    def p(self):\n        return 1\n\n"
+                              "    def other(self):\n        return 2\n\n"
+                              "    @p.setter\n    def p(self, v):\n        self.v = v\n")
+    m = {"functions": {"pkg/m.py:C.p": {"first": 2}, "pkg/m.py:C.other": {"first": 6}},
+         "tests_map": {"t::get": {"outcome": "pass", "lines": ["pkg/m.py:4"]},
+                       "t::set": {"outcome": "pass", "lines": ["pkg/m.py:11"]},
+                       "t::other": {"outcome": "pass", "lines": ["pkg/m.py:7"]}}}
+    db = graph.build(pkg, m, {}, path=tmp_path / "g.db")
+    cov = dict(rows(db, "SELECT test, function FROM covers"))
+    assert cov == {"t::get": "pkg/m.py:C.p", "t::set": "pkg/m.py:C.p", "t::other": "pkg/m.py:C.other"}

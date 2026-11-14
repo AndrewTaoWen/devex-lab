@@ -75,10 +75,19 @@ def _hash(p):
 # ---------- building ----------
 
 def put_static(db, g):
+    # one key can name several defs (a property's getter and setter, a redefinition): keep one dot whose span
+    # covers them all, so lines in any of them map to the key. Narrower dots inside the span still win.
+    merged = {}
+    for d in g["dots"]:
+        x = merged.get(d["key"])
+        if x is None:
+            merged[d["key"]] = dict(d)
+        else:
+            x["start"], x["end"] = min(x["start"], d["start"]), max(x["end"], d["end"])
     db.executemany('INSERT OR REPLACE INTO dots(key, kind, parent, file, start, "end", traced) '
                    'VALUES(?, ?, ?, ?, ?, ?, COALESCE((SELECT traced FROM dots WHERE key = ?), 0))',
                    [(d["key"], d["kind"], d["parent"], file_of(d["key"]), d["start"], d["end"], d["key"])
-                    for d in g["dots"]])
+                    for d in merged.values()])
     db.executemany("INSERT OR IGNORE INTO arrows VALUES(?, ?, ?, 'static', ?)",
                    [(a, b, k, file_of(a)) for a, b, k in g["arrows"]])
 
