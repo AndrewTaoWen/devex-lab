@@ -20,6 +20,9 @@
         changed files; then re-read changed files' source.
   repomap graph    show [KEY] [--level line|function|class|module|file] [--json]
         What the graph holds and how stale it is, or one dot's arrows in and out.
+  repomap graph    metrics [KEY] [--since "12 months ago" | --all] [--sort reach] [--json]
+        Per function: references, dependents, reach (code run underneath it), tests, runtime calls,
+        commits that changed it, and its pace (slow, ordinary or fast).
   repomap status   [--json]
         What the memory covers and which package files have changed since it was recorded.
   repomap serve    [--port 8765] [--open] [--export FILE.html]
@@ -641,6 +644,37 @@ def graph_show(args):
     return res
 
 
+METRIC_SORTS = ("reach", "references", "dependents", "tests", "calls", "changes")
+
+
+def graph_metrics(args):
+    """Per-function numbers from the graph and git (see repomap.graphmetrics)."""
+    from . import graph, graphmetrics
+    if not graph.DB.exists():
+        sys.exit("No graph yet. Run: repomap graph update")
+    res = graphmetrics.metrics(graph.connect(), graphmetrics.load_memory(), since=None if args.all else args.since)
+    rows = res["functions"]
+    if args.key:
+        rows = [row for row in rows if row["key"] == args.key] or [row for row in rows if args.key in row["key"]]
+        if not rows:
+            sys.exit(f"No function matches {args.key!r}.")
+    rows.sort(key=lambda row: (-row[args.sort], row["key"]))
+    res["functions"] = rows
+    if args.json:
+        print(json.dumps(res, indent=1))
+        return res
+    print(f"Git window: {res['since']} ({res['commits']} commits). Slow = unchanged with {res['slow_floor']}+ "
+          f"dependents. Sorted by {args.sort}.")
+    print(f"  {'reach':>5} {'refs':>5} {'deps':>5} {'tests':>5} {'calls':>7} {'chg':>4}  {'pace':8} function")
+    for row in rows[:args.limit]:
+        mark = "" if row["tested"] else "  (no test runs it)"
+        print(f"  {row['reach']:>5} {row['references']:>5} {row['dependents']:>5} {row['tests']:>5} "
+              f"{row['calls']:>7} {row['changes']:>4}  {row['pace']:8} {row['key']}{mark}")
+    if len(rows) > args.limit:
+        print(f"  ... {len(rows) - args.limit} more (--limit N, or --json for all)")
+    return res
+
+
 # ---------- serve ----------
 
 def cell(fidx, key):
@@ -812,12 +846,16 @@ def main():
     q.add_argument("--basic", action="store_true", help="gaps: only the empty/zero/negative probes")
     q.add_argument("--json", action="store_true")
     g = sub.add_parser("graph", help="build, update or inspect the code graph in .repomap/graph.db")
-    g.add_argument("action", choices=["update", "show"])
+    g.add_argument("action", choices=["update", "show", "metrics"])
     g.add_argument("key", nargs="?", default="", help="show: a dot (function, class or file) or part of its name")
     g.add_argument("--level", choices=GRAPH_LEVELS, default="function")
     g.add_argument("--no-full", action="store_true", help="update: never run a full re-trace, only report it")
     g.add_argument("--max-share", type=float, default=0.2, help="full re-trace past this share of changed files")
     g.add_argument("--max-commits", type=int, default=50, help="full re-trace past this many commits")
+    g.add_argument("--since", default="12 months ago", help="metrics: git window, anything 'git log --since' takes")
+    g.add_argument("--all", action="store_true", help="metrics: read all git history")
+    g.add_argument("--sort", choices=METRIC_SORTS, default="reach", help="metrics: order of the table")
+    g.add_argument("--limit", type=int, default=30, help="metrics: rows shown in the table")
     g.add_argument("--json", action="store_true")
     v = sub.add_parser("serve")
     v.add_argument("--port", type=int, default=8765)
@@ -838,7 +876,7 @@ def main():
     elif a.cmd == "serve":
         serve(a)
     elif a.cmd == "graph":
-        graph_update(a) if a.action == "update" else graph_show(a)
+        {"update": graph_update, "show": graph_show, "metrics": graph_metrics}[a.action](a)
     elif a.cmd == "query":
         from . import query
         query.show(query.run(load(), a.kind, a.arg, public=a.public, limit=a.limit, basic=a.basic), a.kind, a.json)
