@@ -14,6 +14,7 @@
   --accent: #2856c7; --accent-soft: #e5ecfb;
   --chg: #c2410c; --chg-soft: #fbe6da; --l1: #b7791f; --l1-soft: #f6ead2; --l2: #d6b25e;
   --heat: #2856c7; --empty: #c7ccd5; --add: #1f7a4d;
+  --un: #c62828; --un-soft: #fbe3e3; --slow: #1b2230; --fast: #b5179e;
   --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
@@ -21,12 +22,14 @@
   --accent: #7ea2ff; --accent-soft: #1f2a45;
   --chg: #fb8b52; --chg-soft: #3b2216; --l1: #e3b552; --l1-soft: #33290f; --l2: #8f7a3f;
   --heat: #7ea2ff; --empty: #3a4250; --add: #5fcf94;
+  --un: #ff6b6b; --un-soft: #3d1c1f; --slow: #e3e7ee; --fast: #f472d0;
   color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #11151c; --panel: #181d26; --fg: #e3e7ee; --muted: #98a1b2; --line: #2a313d;
   --accent: #7ea2ff; --accent-soft: #1f2a45;
   --chg: #fb8b52; --chg-soft: #3b2216; --l1: #e3b552; --l1-soft: #33290f; --l2: #8f7a3f;
   --heat: #7ea2ff; --empty: #3a4250; --add: #5fcf94;
+  --un: #ff6b6b; --un-soft: #3d1c1f; --slow: #e3e7ee; --fast: #f472d0;
   color-scheme: dark }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(--sans); }
@@ -156,6 +159,30 @@ svg .gn.pub rect { stroke-width: 2.5; }
 svg.fade .gn { opacity: .25; }
 svg.fade .ge { stroke-opacity: .08; }
 svg.fade .gn.hl { opacity: 1; }
+/* readable graph: overview */
+.rgbar { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12.5px; margin-bottom: 8px; }
+.rgbar label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+.rgbar select { font: 12.5px var(--sans); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; }
+.rgbox { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--bg); touch-action: none; }
+.rgbox svg { display: block; width: 100%; height: auto; cursor: grab; }
+.rgbox svg:active { cursor: grabbing; }
+.rf { fill: none; stroke: var(--line); }
+.rfl { font: 500 11px var(--mono); fill: var(--muted); pointer-events: none; }
+.rfi { fill: var(--panel); stroke: var(--line); stroke-width: .6; }
+.rfil { font: 9px var(--mono); fill: var(--muted); pointer-events: none; }
+.rc { cursor: pointer; stroke: var(--panel); stroke-width: .5; }
+.rc.s0 { fill: color-mix(in srgb, var(--heat) 6%, var(--panel)); }
+.rc.s1 { fill: color-mix(in srgb, var(--heat) 22%, var(--panel)); }
+.rc.s2 { fill: color-mix(in srgb, var(--heat) 42%, var(--panel)); }
+.rc.s3 { fill: color-mix(in srgb, var(--heat) 66%, var(--panel)); }
+.rc.s4 { fill: var(--heat); }
+.show-un .rc.un { fill: var(--un-soft); stroke: var(--un); stroke-width: 1; stroke-dasharray: 2 1.5; }
+.show-pace .rc.fast { stroke: var(--fast); stroke-width: 1.6; }
+.show-pace .rc.slow { stroke: var(--slow); stroke-width: 1.6; }
+.rc:hover, .rc.sel { stroke: var(--fg); stroke-width: 2; stroke-dasharray: none; }
+.rl circle { fill: var(--fg); stroke: var(--panel); }
+.rl text { font-family: var(--mono); font-weight: 600; fill: var(--fg); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; pointer-events: none; }
+.hide-lm .rl { display: none; }
 svg.fade .ge.hl { stroke-opacity: .95; }
 @media (prefers-reduced-motion: no-preference) { svg .gn, svg .ge { transition: opacity .12s, stroke-opacity .12s; } }
 @media (prefers-reduced-motion: no-preference) { .cell { transition: background-color .15s, opacity .15s; } }
@@ -181,10 +208,12 @@ svg.fade .ge.hl { stroke-opacity: .95; }
     <section class="map" id="map">
       <div class="viewbar">
         <span class="depth" role="group" aria-label="View"><button data-view="map">Map</button><button data-view="graph">Graph</button></span>
+        <span class="depth" id="gsub" role="group" aria-label="Graph view" hidden><button data-gview="overview">Overview</button><button data-gview="change">Change</button></span>
         <div class="legend" id="legend"></div>
       </div>
       <div id="pkgs"></div>
       <div id="graph" class="gwrap" hidden></div>
+      <div id="rg" hidden><div class="rgbar" id="rgbar"></div><div class="rgbox" id="rgbox"></div></div>
     </section>
     <aside>
       <div class="card" id="examples-card" hidden></div>
@@ -196,13 +225,14 @@ svg.fade .ge.hl { stroke-opacity: .95; }
 <div class="tip" id="tip" hidden></div>
 <script id="embedded" type="application/json"></script>
 <script id="examples" type="application/json"></script>
+<script src="/static/d3.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[c]);
 let D, F = [], up = [], down = [], byKey = new Map(), live = true, ekind = new Map(), pub = new Set();
 const S = {targets: new Set(), testFiles: [], unknown: [], source: null, depth: 2, sel: null, stale: [], view: null};
-let savedView = null;
-try { savedView = localStorage.getItem("repomap.view"); } catch {}
+let savedView = null, savedGview = null;
+try { savedView = localStorage.getItem("repomap.view"); savedGview = localStorage.getItem("repomap.gview"); } catch {}
 const PROBES = {str: ["empty"], bytes: ["empty"], list: ["empty"], tuple: ["empty"], dict: ["empty"], int: ["zero", "negative"], float: ["zero", "negative"]};
 
 const file = k => k.split(":")[0];
@@ -241,6 +271,7 @@ async function boot() {
   else if (changes) applyChanges(changes);
   else if (live) await loadMine(true);
   S.view = savedView === "map" || savedView === "graph" ? savedView : (S.targets.size || S.testFiles.length ? "graph" : "map");
+  S.gview = GVIEWS.includes(savedGview) ? savedGview : (S.targets.size || S.testFiles.length ? "change" : "overview");
   render();
 }
 
@@ -339,11 +370,14 @@ function render() {
     m.classList.toggle("warm", on && !hotFiles.has(fl) && warmFiles.has(fl));
     m.classList.toggle("dim", on && !hotFiles.has(fl) && !warmFiles.has(fl));
   }
-  const graph = S.view === "graph";
-  $("#pkgs").hidden = graph; $("#graph").hidden = !graph;
+  const graph = S.view === "graph", readableView = graph && S.gview !== "change";
+  $("#pkgs").hidden = graph; $("#graph").hidden = !graph || readableView; $("#rg").hidden = !readableView;
+  $("#gsub").hidden = !graph;
   for (const b of document.querySelectorAll("[data-view]")) b.classList.toggle("on", b.dataset.view === S.view);
-  if (graph) drawGraph(r, on, state);
-  $("#legend").innerHTML = graph
+  for (const b of document.querySelectorAll("[data-gview]")) b.classList.toggle("on", b.dataset.gview === S.gview);
+  if (graph && !readableView) drawGraph(r, on, state);
+  if (readableView) drawReadable();
+  $("#legend").innerHTML = readableView ? readableLegend() : graph
     ? (on ? `<span><i style="background:var(--accent)"></i>test files that run the change</span><span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers</span>${D.graph ? `<span><i style="border:1.5px dashed var(--l1);background:none"></i>seen only in source (no test runs it)</span><span><i style="border:2.5px solid var(--l1);background:none"></i>public: package users call it</span><span>Numbers: how sure the graph is that the change reaches it</span>` : ""}<span>Arrows point from a function to its callers. Hover to trace, click to inspect, shift-click to add or remove</span>` : "")
     : on
     ? `<span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers${S.depth > 2 ? " and up" : ""}</span><span><i style="background:var(--empty)"></i>not reached</span><span>Shift-click a cell to add or remove it from the change</span>`
@@ -496,6 +530,7 @@ document.addEventListener("click", async e => {
   else if (t.dataset.ex !== undefined) { useExample(+t.dataset.ex); render(); }
   else if (t.dataset.depth) { S.depth = +t.dataset.depth; render(); }
   else if (t.dataset.view) { S.view = t.dataset.view; try { localStorage.setItem("repomap.view", S.view); } catch {} render(); }
+  else if (t.dataset.gview) { S.gview = t.dataset.gview; try { localStorage.setItem("repomap.gview", S.gview); } catch {} render(); }
   else if (t.id === "toggle") toggleTarget(S.sel);
   else if (t.id === "clear") { S.targets.clear(); S.testFiles = []; S.unknown = []; S.source = null; S.picked = false; S.sel = null; render(); }
   else if (t.id === "mine") { if (live) { await loadMine(false); render(); } else { applyChanges(JSON.parse($("#embedded").textContent).changes); render(); } }
@@ -682,6 +717,127 @@ $("#graph").addEventListener("keydown", e => {
   if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); select(G.nodes[+g.dataset.n].fn); }
 });
 $("#graph").addEventListener("focusin", e => { const g = e.target.closest(".gn"); if (g) graphTrace(+g.dataset.n); });
+
+// ---------- readable graph: folder-tree layout, one cell per function, numbers from 'repomap graph metrics' ----------
+const GVIEWS = ["overview", "change"];
+const SHADES = {references: "references", tests: "tests that run it", calls: "runtime calls"};
+const WINDOWS = [["12 months ago", "last 12 months"], ["24 months ago", "last 24 months"], ["5 years ago", "last 5 years"], ["all", "all history"]];
+const R = {data: null, asked: null, since: "12 months ago", shade: "references", lm: true, un: true, pace: false, svg: null, zoom: 1};
+try { const saved = JSON.parse(localStorage.getItem("repomap.readable") || "{}"); for (const k of ["since", "shade", "lm", "un", "pace"]) if (k in saved) R[k] = saved[k]; } catch {}
+const saveR = () => { try { localStorage.setItem("repomap.readable", JSON.stringify({since: R.since, shade: R.shade, lm: R.lm, un: R.un, pace: R.pace})); } catch {} };
+const pageKey = k => k.endsWith(":<module>") ? k.slice(0, -9) + ":<module level>" : k;
+const num = (u, field) => u.n[R.data.fields.indexOf(field)];
+
+async function loadReadable() {
+  if (!live) { R.data = D.readable || null; R.asked = R.since; return; }
+  const asked = R.since;
+  R.asked = asked; R.loading = true;
+  try {
+    const res = await (await fetch("/api/readable?since=" + encodeURIComponent(asked))).json();
+    if (R.asked !== asked) return;
+    R.data = res && !res.error ? res : null; R.error = res && res.error;
+  } catch (e) { R.error = String(e); }
+  R.loading = false; R.svg = null; render();
+}
+
+function drawReadable() {
+  const box = $("#rgbox");
+  if (typeof d3 === "undefined") { box.innerHTML = `<p class="note" style="padding:10px">The graph library did not load.</p>`; return; }
+  if (R.asked !== R.since && !(R.loading && R.asked === R.since)) { loadReadable(); }
+  if (!R.data) {
+    $("#rgbar").innerHTML = "";
+    box.innerHTML = `<p class="note" style="padding:10px">${R.loading || R.asked === null ? "Reading the code graph and git history…" : R.error ? `<span class="err">${esc(R.error)}</span>` : "No code graph yet. Run <code>repomap graph update</code>, then reload."}</p>`;
+    return;
+  }
+  if (!R.svg) buildReadable();
+  styleReadable();
+}
+
+function buildReadable() {
+  const X = R.data, box = $("#rgbox");
+  box.innerHTML = "";
+  const svg = d3.select(box).append("svg").attr("viewBox", `0 0 ${X.W} ${X.H}`).attr("role", "img")
+    .attr("aria-label", "Every function, laid out by folder and file");
+  const view = svg.append("g");
+  view.append("g").selectAll("rect").data(X.folders).join("rect").attr("class", "rf")
+    .attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.w).attr("height", d => d.h).attr("rx", 5);
+  view.append("g").selectAll("text").data(X.folders.filter(d => d.w > 50)).join("text").attr("class", "rfl")
+    .attr("x", d => d.x + 6).attr("y", d => d.y + 13).text(d => d.name);
+  view.append("g").selectAll("rect").data(X.files).join("rect").attr("class", "rfi")
+    .attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.w).attr("height", d => d.h).attr("rx", 2);
+  view.append("g").selectAll("text").data(X.files.filter(d => d.w > 36)).join("text").attr("class", "rfil")
+    .attr("x", d => d.x + 3).attr("y", d => d.y + 9.5).text(d => d.name.split("/").pop().slice(0, Math.floor(d.w / 5.6)));
+  const units = Object.entries(X.units).map(([k, u]) => ({k, u, i: byKey.get(pageKey(k))}));
+  R.cells = view.append("g").selectAll("rect").data(units).join("rect").attr("class", "rc")
+    .attr("x", d => d.u.xy[0] + .3).attr("y", d => d.u.xy[1] + .3)
+    .attr("width", d => Math.max(d.u.xy[2] - .6, .5)).attr("height", d => Math.max(d.u.xy[3] - .6, .5))
+    .attr("data-i", d => d.i ?? null).attr("tabindex", d => d.i === undefined ? null : 0)
+    .attr("aria-label", d => d.k)
+    .on("mouseenter", (e, d) => readableTip(e, d)).on("mousemove", moveTip).on("mouseleave", () => { $("#tip").hidden = true; })
+    .on("click", (e, d) => { if (d.i === undefined) return; if (e.shiftKey || e.metaKey || e.ctrlKey) toggleTarget(d.i); else select(d.i); })
+    .on("keydown", (e, d) => { if (d.i !== undefined && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); select(d.i); } });
+  const marks = X.landmarks.map(k => ({k, u: X.units[k]})).filter(d => d.u);
+  R.marks = view.append("g").attr("class", "rlg").selectAll("g").data(marks).join("g").attr("class", "rl");
+  R.marks.append("circle").attr("cx", d => d.u.xy[0] + d.u.xy[2] / 2).attr("cy", d => d.u.xy[1] + d.u.xy[3] / 2);
+  R.marks.append("text").attr("x", d => d.u.xy[0] + d.u.xy[2] / 2).attr("y", d => d.u.xy[1] + d.u.xy[3] / 2)
+    .text(d => short(d.k).split(".").slice(-2).join("."));
+  const zoomed = k => {
+    R.zoom = k;
+    R.marks.select("circle").attr("r", 3.2 / k).attr("stroke-width", 1 / k);
+    R.marks.select("text").attr("font-size", 11 / k).attr("dx", 5 / k).attr("dy", -5 / k).attr("stroke-width", 3 / k);
+  };
+  svg.call(d3.zoom().scaleExtent([1, 16]).translateExtent([[0, 0], [X.W, X.H]])
+    .on("zoom", e => { view.attr("transform", e.transform); zoomed(e.transform.k); }));
+  zoomed(1);
+  R.svg = svg;
+}
+
+function styleReadable() {
+  const X = R.data, svg = R.svg.node();
+  svg.classList.toggle("show-un", R.un); svg.classList.toggle("show-pace", R.pace); svg.classList.toggle("hide-lm", !R.lm);
+  const values = Object.values(X.units).map(u => num(u, R.shade)).filter(v => v > 0);
+  const bins = d3.scaleQuantile().domain(values.length ? values : [1]).range([1, 2, 3, 4]);
+  R.cells.attr("class", d => {
+    const v = num(d.u, R.shade), pace = num(d.u, "pace");
+    return `rc s${v > 0 ? bins(v) : 0}${num(d.u, "tested") ? "" : " un"}${pace !== "ordinary" ? " " + pace : ""}${d.i !== undefined && d.i === S.sel ? " sel" : ""}`;
+  });
+  $("#rgbar").innerHTML = `<label>Shade by <select id="rgshade">${Object.entries(SHADES).map(([k, label]) => `<option value="${k}"${k === R.shade ? " selected" : ""}>${label}</option>`).join("")}</select></label>
+    <label><input type="checkbox" id="rglm"${R.lm ? " checked" : ""}> Landmarks</label>
+    <label><input type="checkbox" id="rgun"${R.un ? " checked" : ""}> Untested code</label>
+    <label><input type="checkbox" id="rgpace"${R.pace ? " checked" : ""}> Fast and slow parts</label>
+    <label>History ${live ? `<select id="rgsince">${WINDOWS.map(([k, label]) => `<option value="${k}"${k === R.since ? " selected" : ""}>${label}</option>`).join("")}</select>` : `<span class="note">${esc(X.since)}</span>`}</label>
+    <span class="note">${X.commits} commit${X.commits === 1 ? "" : "s"} in this window${R.loading ? " · loading…" : ""}</span>`;
+}
+
+function readableLegend() {
+  if (!R.data) return "";
+  return `<span><i style="background:var(--heat)"></i>darker = more ${esc(SHADES[R.shade])}</span>` +
+    (R.un ? `<span><i style="background:var(--un-soft);border:1px dashed var(--un)"></i>no test runs it</span>` : "") +
+    (R.pace ? `<span><i style="border:2px solid var(--fast)"></i>changed often</span><span><i style="border:2px solid var(--slow)"></i>slow: ${R.data.slow_floor}+ dependents, unchanged</span>` : "") +
+    (R.lm ? `<span><i style="background:var(--fg);border-radius:50%"></i>landmark: most code runs under it</span>` : "") +
+    `<span>Scroll to zoom, drag to pan, click a cell to inspect it</span>`;
+}
+
+function readableTip(e, d) {
+  const tip = $("#tip"), f = R.data.fields;
+  tip.style.whiteSpace = "pre";
+  tip.textContent = `${d.k}\n` + ["references", "tests", "calls", "reach", "dependents", "changes"].map(k => `${k.padEnd(11)}${d.u.n[f.indexOf(k)]}`).join("\n") +
+    `\npace       ${num(d.u, "pace")}${num(d.u, "tested") ? "" : "\nno test runs it"}`;
+  tip.hidden = false; moveTip(e);
+}
+function moveTip(e) {
+  const tip = $("#tip");
+  tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px";
+}
+$("#rgbar").addEventListener("change", e => {
+  const t = e.target;
+  if (t.id === "rgshade") R.shade = t.value;
+  else if (t.id === "rglm") R.lm = t.checked;
+  else if (t.id === "rgun") R.un = t.checked;
+  else if (t.id === "rgpace") R.pace = t.checked;
+  else if (t.id === "rgsince") R.since = t.value;
+  saveR(); render();
+});
 
 boot();
 </script>
