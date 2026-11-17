@@ -19,12 +19,15 @@ def make_pkg(tmp_path, files):
 
 
 def test_module_names():
+    """File paths turn into Python module names, and a package's __init__.py is named after its folder."""
     assert module_name("pkg/sub/mod.py") == "pkg.sub.mod"
     assert module_name("pkg/__init__.py") == "pkg"
     assert module_name("pkg/sub/__init__.py") == "pkg.sub"
 
 
 def test_shopkit_calls_through_imports():
+    """When one function calls another that it imported from a different file, the parser draws an
+    arrow between them."""
     g = extract(SHOPKIT / "src/shopkit")
     calls = arrows(g, "calls")
     assert ("shopkit/checkout.py:total", "shopkit/tax.py:tax_for") in calls
@@ -34,12 +37,15 @@ def test_shopkit_calls_through_imports():
 
 
 def test_shopkit_untested_code_gets_its_callee_by_name():
-    # to_csv is the function no test runs: the static graph is the only place its dependency shows up
+    """to_csv calls price_of on an object whose type the parser can't see. Only one function in the package is named
+    price_of, so the parser links them as a guess. No test runs to_csv, so this guess is the only arrow it has."""
     g = extract(SHOPKIT / "src/shopkit")
     assert ("shopkit/export.py:to_csv", "shopkit/catalog.py:Catalog.price_of") in arrows(g, "calls_by_name")
 
 
 def test_shopkit_imports_and_no_noise():
+    """Imports between files become arrows. Calls to Python built-ins, string methods and other libraries are left out
+    and not reported as unknown, so the graph only holds the package's own code."""
     g = extract(SHOPKIT / "src/shopkit")
     assert ("shopkit/checkout.py", "shopkit/money.py") in arrows(g, "imports")
     assert ("shopkit/tax.py", "shopkit/money.py") in arrows(g, "imports")
@@ -48,6 +54,8 @@ def test_shopkit_imports_and_no_noise():
 
 
 def test_dots_have_kinds_parents_and_spans():
+    """Each module, class and function gets a dot that knows what kind it is, what it sits inside, and which lines it
+    covers."""
     g = extract(SHOPKIT / "src/shopkit")
     d = {x["key"]: x for x in g["dots"]}
     assert d["shopkit/cart.py"]["kind"] == "module"
@@ -59,7 +67,8 @@ def test_dots_have_kinds_parents_and_spans():
 
 
 def test_keys_match_the_tracer(recorded):
-    """Every function the tracer saw has a static dot with the same key, so the two layers merge directly."""
+    """Every function the tests ran has a dot with exactly the same name here, so the read-from-source graph and the
+    seen-in-tests graph join up without any renaming."""
     memory = json.loads((recorded / ".repomap/memory.json").read_text())
     static = {x["key"] for x in extract(recorded / "src/shopkit")["dots"]}
     traced = set(memory["functions"])
@@ -67,7 +76,8 @@ def test_keys_match_the_tracer(recorded):
 
 
 def test_finds_every_call_the_tracer_saw(recorded):
-    """On shopkit, the static arrows cover all traced calls between package functions (including `in`)."""
+    """Every call the tests really made between shopkit functions is also found by reading the source, including
+    the hidden call that 'x in obj' makes."""
     memory = json.loads((recorded / ".repomap/memory.json").read_text())
     traced = {tuple(e) for e in memory["edges"] if e[0].startswith("shopkit/")}
     assert len(traced) >= 10
@@ -75,6 +85,8 @@ def test_finds_every_call_the_tracer_saw(recorded):
 
 
 def test_self_super_and_inheritance(tmp_path):
+    """Calls through self, super() and a parent class are followed to the right method, and creating an object
+    points at the __init__ that really runs, even when it comes from the parent class."""
     root = make_pkg(tmp_path, {
         "__init__.py": "",
         "base.py": """
@@ -111,6 +123,8 @@ def test_self_super_and_inheritance(tmp_path):
 
 
 def test_reexports_module_aliases_and_nested_functions(tmp_path):
+    """Calls are still found when a function is imported through the package's __init__, through a module imported
+    under another name, or defined inside another function."""
     root = make_pkg(tmp_path, {
         "__init__.py": "from .core import run\n",
         "core.py": """
@@ -141,6 +155,8 @@ def test_reexports_module_aliases_and_nested_functions(tmp_path):
 
 
 def test_ambiguous_names_stay_unresolved(tmp_path):
+    """When two classes both have a close method and the parser can't tell which one is meant, it draws no arrow.
+    It keeps the name in a separate list so a later step can decide, and it does the same for names it can't find."""
     root = make_pkg(tmp_path, {
         "__init__.py": "",
         "a.py": "class A:\n    def close(self):\n        pass\n",
@@ -152,6 +168,8 @@ def test_ambiguous_names_stay_unresolved(tmp_path):
 
 
 def test_module_level_code_and_syntax_errors(tmp_path):
+    """Code that runs when a file is imported gets its own dot, so its calls are kept. A file with a syntax error is
+    reported and skipped, and the rest of the package is still read."""
     root = make_pkg(tmp_path, {
         "__init__.py": "",
         "conf.py": "def load():\n    return {}\n\nSETTINGS = load()\n",
@@ -163,6 +181,8 @@ def test_module_level_code_and_syntax_errors(tmp_path):
 
 
 def test_only_some_files(tmp_path):
+    """Asking for one file returns only that file's dots and arrows, which is what lets the
+    graph update one file at a time."""
     g = extract(SHOPKIT / "src/shopkit", files={"shopkit/tax.py"})
     assert {a for a, _, _ in g["arrows"]} == {"shopkit/tax.py", "shopkit/tax.py:tax_for"}
     assert {x["key"].split(":")[0] for x in g["dots"]} == {"shopkit/tax.py"}
