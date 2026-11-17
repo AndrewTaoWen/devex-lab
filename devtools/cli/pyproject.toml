@@ -36,4 +36,4 @@ version = { attr = "repomap.__version__" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-repomap = ["ui.html", "_plugin/*.py"]
+repomap = ["ui.html", "_plugin/*.py", "static/*"]

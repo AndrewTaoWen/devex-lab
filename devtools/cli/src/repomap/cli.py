@@ -41,7 +41,7 @@ import argparse, ast, hashlib, json, os, re, subprocess, sys, tempfile, time
 from collections import defaultdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 HERE = Path(__file__).resolve().parent
 PLUGIN = HERE / "_plugin"  # only the pytest plugin goes on the traced interpreter's path
@@ -777,8 +777,20 @@ def ui_graph(fidx):
                 step=graph.STEP, static=graph.STATIC_WEIGHT, guess=graph.GUESS_WEIGHT, cutoff=graph.CUTOFF)
 
 
+def ui_readable(since="12 months ago"):
+    """The readable Graph tab's layout and numbers (repomap.readable), or None without a code graph."""
+    from . import graph, graphmetrics, readable
+    if not graph.DB.exists():
+        return None
+    return readable.payload(graph.connect(), graphmetrics.load_memory(), since=since)
+
+
+D3_TAG = '<script src="/static/d3.min.js"></script>'
+
+
 def page_with(data, changes):
     page = (HERE / "ui.html").read_text()
+    page = page.replace(D3_TAG, "<script>" + (HERE / "static/d3.min.js").read_text() + "</script>")
     blob = json.dumps({"data": data, "changes": changes}, separators=(",", ":")).replace("</", "<\\/")
     return page.replace('<script id="embedded" type="application/json"></script>',
                         f'<script id="embedded" type="application/json">{blob}</script>')
@@ -788,7 +800,9 @@ def serve(a):
     if a.export:
         m = load()
         res = compute_impact(m)
-        Path(a.export).write_text(page_with(ui_data(m), res if res["changed"] or res["test_files"] else None))
+        data = ui_data(m)
+        data["readable"] = ui_readable()
+        Path(a.export).write_text(page_with(data, res if res["changed"] or res["test_files"] else None))
         print(f"Wrote {a.export} ({Path(a.export).stat().st_size // 1024} KB)")
         return
     cache = {}
@@ -808,6 +822,12 @@ def serve(a):
                     body, kind = (HERE / "ui.html").read_bytes(), "text/html; charset=utf-8"
                 elif path == "/api/data":
                     body, kind = current()["data"], "application/json"
+                elif path == "/static/d3.min.js":
+                    body, kind = (HERE / "static/d3.min.js").read_bytes(), "text/javascript; charset=utf-8"
+                elif path == "/api/readable":
+                    since = parse_qs(urlparse(self.path).query).get("since", ["12 months ago"])[0]
+                    body = json.dumps(ui_readable(None if since == "all" else since)).encode()
+                    kind = "application/json"
                 elif path == "/api/changes":
                     body, kind = json.dumps(compute_impact(current()["m"])).encode(), "application/json"
                 else:
