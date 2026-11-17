@@ -77,6 +77,8 @@ def fns(calls, test):
 
 
 def test_nesting_and_parents(tmp_path):
+    """When middle calls leaf, the recorded order shows middle first, then leaf one level deeper with middle as
+    its caller, plus the argument and return value."""
     calls = make(tmp_path)
     assert fns(calls, "test_middle") == [(1, None, "middle"), (2, 0, "leaf")]
     row = calls["tests/test_demo.py::test_middle"]["rows"][1]
@@ -84,6 +86,8 @@ def test_nesting_and_parents(tmp_path):
 
 
 def test_exception_pops_the_stack(tmp_path):
+    """When boom raises and safe catches it, the next call safe makes is recorded as safe's call, not boom's.
+    The row for boom notes that it raised ValueError."""
     calls = make(tmp_path)
     # boom raises; the leaf call after the except must hang off safe again, not off boom
     assert fns(calls, "test_safe") == [(1, None, "safe"), (2, 0, "boom"), (3, 1, "leaf"), (2, 0, "leaf")]
@@ -91,6 +95,8 @@ def test_exception_pops_the_stack(tmp_path):
 
 
 def test_generator_resumes_its_own_row(tmp_path):
+    """A generator gets one row however many times it pauses and resumes, and the calls it makes each time hang
+    off that one row."""
     calls = make(tmp_path)
     rows = fns(calls, "test_gen")
     gen_seq = [i for i, r in enumerate(rows) if r[2] == "gen"]
@@ -100,6 +106,8 @@ def test_generator_resumes_its_own_row(tmp_path):
 
 
 def test_cap_and_truncated(tmp_path):
+    """With a cap of 5 rows, a test that makes 11 calls keeps 5 rows, still counts all 11, and is marked as cut
+    short. A test under the cap is not marked."""
     calls = make(tmp_path, "--steps", "5")
     c = calls["tests/test_demo.py::test_loop"]
     assert len(c["rows"]) == 5 and c["steps"] == 11 and c["truncated"] is True
@@ -107,6 +115,8 @@ def test_cap_and_truncated(tmp_path):
 
 
 def test_no_values_and_repr_length(tmp_path):
+    """With --no-values no arguments or return values are stored. With --repr-len 20, long values are shortened
+    to at most 20 characters."""
     calls = make(tmp_path, "--no-values")
     assert all(r[4] is None and r[5] is None for c in calls.values() for r in c["rows"])
     calls = make(tmp_path / "b", "--repr-len", "20")
@@ -115,10 +125,13 @@ def test_no_values_and_repr_length(tmp_path):
 
 
 def test_steps_zero_turns_call_order_off(tmp_path):
+    """--steps 0 turns call-order recording off completely."""
     assert make(tmp_path, "--steps", "0") == {}
 
 
 def test_refresh_keeps_call_order_current(tmp_path):
+    """After a function is edited, refresh re-records the call order of the tests that ran it, and keeps the
+    rows of the tests it didn't need to re-run."""
     make(tmp_path)
     d = tmp_path / "demo"
     p = d / "src/demo/core.py"
