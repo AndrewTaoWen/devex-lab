@@ -324,80 +324,83 @@ def compute_impact(m, targets=(), diff=None, use_diff=True, depth=2):
                 seconds=round(time.time() - t0, 2))
 
 
-def compute_graph_impact(m, targets=(), diff=None, level="function", cutoff=None):
+def compute_graph_impact(memory, targets=(), diff=None, level="function", cutoff=None):
     """Impact from the code graph: tests (closest first), downstream code with confidence, public functions
     at risk, and changed or affected code no test runs. Targets may name functions no test runs, too."""
     from . import graph
     if not graph.DB.exists():
         sys.exit("No graph yet. Run: repomap graph update")
     db = graph.connect()
-    t0 = time.time()
+    started = time.time()
     unmatched = []
     if targets:
-        dots = [k for (k,) in db.execute("SELECT key FROM dots WHERE kind = 'function'")]
+        dots = [key for (key,) in db.execute("SELECT key FROM dots WHERE kind = 'function'")]
         keys = set()
-        for t in targets:
-            if re.match(r"(.+\.py):(\d+)$", t):
-                keys |= resolve(m, [t], unmatched)
+        for target in targets:
+            if re.match(r"(.+\.py):(\d+)$", target):
+                keys |= resolve(memory, [target], unmatched)
                 continue
-            found = [k for k in dots if k.endswith(":" + t) or k.endswith("." + t)] or [k for k in dots if t in k]
-            keys.update(found) if found else unmatched.append(t)
+            found = [key for key in dots if key.endswith(":" + target) or key.endswith("." + target)] or \
+                [key for key in dots if target in key]
+            keys.update(found) if found else unmatched.append(target)
         test_files, source = set(), "named targets"
     else:
-        keys, test_files = changed_targets(m, diff)
-        source = f"changes since {(diff or m.get('commit') or 'HEAD')[:10]}"
+        keys, test_files = changed_targets(memory, diff)
+        source = f"changes since {(diff or memory.get('commit') or 'HEAD')[:10]}"
     res = graph.impact(db, keys, level=level, **({"cutoff": cutoff} if cutoff is not None else {}))
-    have = {t["test"] for t in res["tests"]}
-    for tf in sorted(test_files):  # an edited test file: run its tests
-        res["tests"] += [dict(test=t, reason="test file changed", depth=None, confidence=1.0)
-                         for t in sorted(m["tests_map"]) if t.startswith(tf) and t not in have]
+    have = {test["test"] for test in res["tests"]}
+    for test_file in sorted(test_files):  # an edited test file: run its tests
+        res["tests"] += [dict(test=test, reason="test file changed", depth=None, confidence=1.0)
+                         for test in sorted(memory["tests_map"]) if test.startswith(test_file) and test not in have]
     meta = dict(db.execute("SELECT key, value FROM meta"))
-    stale = graph.changed_files(db, m["package"])
-    res.update(source=source, test_files=sorted(test_files), unmatched=unmatched, total_tests=len(m["tests_map"]),
-               graph_commit=meta.get("commit"), files_changed_since_graph=stale, seconds=round(time.time() - t0, 2),
-               source_only=db.execute("SELECT COUNT(*) FROM dots WHERE kind = 'function' AND traced = 0").fetchone()[0])
+    stale = graph.changed_files(db, memory["package"])
+    source_only = db.execute("SELECT COUNT(*) FROM dots WHERE kind = 'function' AND traced = 0").fetchone()[0]
+    res.update(source=source, test_files=sorted(test_files), unmatched=unmatched,
+               total_tests=len(memory["tests_map"]), graph_commit=meta.get("commit"), files_changed_since_graph=stale,
+               seconds=round(time.time() - started, 2), source_only=source_only)
     return res
 
 
-def show_graph_impact(m, res):
-    for t in res["unmatched"]:
-        print(f"  (nothing in the graph matches {t!r})")
+def show_graph_impact(memory, res):
+    for target in res["unmatched"]:
+        print(f"  (nothing in the graph matches {target!r})")
     print(f"Impact of {res['source']}  (graph at {(res['graph_commit'] or '?')[:10]}: {res['total_tests']} tests "
           f"traced, {res['source_only']} function(s) seen only in source; level {res['level']})\n")
     if not res["changed"] and not res["test_files"]:
         print("No changes to library or test code.")
         return
     print("Changed")
-    for k in res["changed"]:
-        print(f"  {k}")
-    for tf in res["test_files"]:
-        print(f"  {tf}  (test file)")
-    sure = [t for t in res["tests"] if t["confidence"] == 1.0]
+    for key in res["changed"]:
+        print(f"  {key}")
+    for test_file in res["test_files"]:
+        print(f"  {test_file}  (test file)")
+    sure = [test for test in res["tests"] if test["confidence"] == 1.0]
     print(f"\nTests to run  ({len(sure)} of {res['total_tests']} run changed code; closest first)")
-    for t in res["tests"][:30]:
-        tag = ("direct" if t["depth"] == 1 else f"{t['depth']} deep") if t["depth"] else (
-            f"{t['confidence']:.2f}" if t["confidence"] < 1 else "runs it")
-        print(f"  {tag:>8}  {t['test']}" + ("  (depends on it)" if t["confidence"] < 1 else ""))
+    for test in res["tests"][:30]:
+        tag = ("direct" if test["depth"] == 1 else f"{test['depth']} deep") if test["depth"] else (
+            f"{test['confidence']:.2f}" if test["confidence"] < 1 else "runs it")
+        print(f"  {tag:>8}  {test['test']}" + ("  (depends on it)" if test["confidence"] < 1 else ""))
     if len(res["tests"]) > 30:
         print(f"            … {len(res['tests']) - 30} more")
     if res["downstream"]:
         print("\nCode that may now behave differently")
-        for d in res["downstream"][:30]:
-            note = "  seen only in source" if d["source"] == "static" else ""
-            print(f"  {d['confidence']:.2f}  {d['key']}   via {d['via']}{note}")
+        for dot in res["downstream"][:30]:
+            note = "  seen only in source" if dot["source"] == "static" else ""
+            print(f"  {dot['confidence']:.2f}  {dot['key']}   via {dot['via']}{note}")
     if res["public"]:
         print("\nPublic functions at risk  (what users of the package call)")
         print("  " + ", ".join(res["public"]))
     if res["untested"]:
         print("\nNo test covers")
-        for k in res["untested"]:
-            print(f"  {k}")
+        for key in res["untested"]:
+            print(f"  {key}")
     if res["files_changed_since_graph"]:
         print(f"\n{len(res['files_changed_since_graph'])} package files changed since the graph was built; "
-              "run `repomap graph update`.")
-    sel = [t["test"] for t in sure] or [t["test"] for t in res["tests"]]
-    if sel:
-        print(f"\nRun them:\n  {m['python']} -m pytest -q " + " ".join(sel[:40]) + (" …" if len(sel) > 40 else ""))
+              "run 'repomap graph update'.")
+    selected = [test["test"] for test in sure] or [test["test"] for test in res["tests"]]
+    if selected:
+        more = " …" if len(selected) > 40 else ""
+        print(f"\nRun them:\n  {memory['python']} -m pytest -q " + " ".join(selected[:40]) + more)
 
 
 def impact(a):
@@ -483,7 +486,7 @@ def refresh(a):
             m["tests_map"].pop(t, None)
     m["tests_map"].update(raw["tests"])
     calls = load_calls()
-    calls = {t: v for t, v in calls.items() if t in m["tests_map"] and t not in raw["tests"]}
+    calls = {test: run for test, run in calls.items() if test in m["tests_map"] and test not in raw["tests"]}
     calls.update(raw.get("calls", {}))
     save_calls(calls)
     touched = {m["prefix"] + f for f in files}
@@ -507,18 +510,18 @@ def refresh(a):
 def status(a):
     m = load()
     stale = sorted(f for f, h in m["hashes"].items() if file_hash(f) != h)
-    p = recompute_plan(m)
+    plan = recompute_plan(m)
     res = dict(tests=len(m["tests_map"]), functions=len(m["functions"]), edges=len(m["edges"]),
                package=m["package"], commit=m.get("commit"), recorded=m.get("recorded"), changed_files=stale,
-               full_retrace_due=p["full"], full_retrace_reasons=p["reasons"])
+               full_retrace_due=plan["full"], full_retrace_reasons=plan["reasons"])
     if getattr(a, "json", False):
         print(json.dumps(res, indent=1))
     elif not getattr(a, "quiet", False):
         print(f"Memory: {res['tests']} tests, {res['functions']} functions, recorded at "
               f"snapshot {(res['commit'] or '?')[:10]} (refs/repomap/memory)")
         print(f"Library files changed since: {len(stale)}" + ("".join(f"\n  {f}" for f in stale)))
-        if p["full"]:
-            print("Full re-trace due: " + "; ".join(p["reasons"]) + " (run `repomap graph update`)")
+        if plan["full"]:
+            print("Full re-trace due: " + "; ".join(plan["reasons"]) + " (run 'repomap graph update')")
     return res
 
 
@@ -527,86 +530,87 @@ def status(a):
 GRAPH_LEVELS = ("line", "function", "class", "module", "file")
 
 
-def since_full(m):
+def since_full(memory):
     """(files changed since the last full trace, commits since it) - what the recompute rules look at."""
-    base = m.get("full_commit") or m.get("commit")
+    base = memory.get("full_commit") or memory.get("commit")
     if not base:
         return [], None
     now = worktree_snapshot(keep=False) or "HEAD"
-    files = [f for f in git("diff", "--name-only", "--no-renames", base, now, check=False).splitlines() if f]
-    n = git("rev-list", "--count", f"{base}..HEAD", check=False).strip()
-    return files, int(n) if n.isdigit() else None
+    files = [file for file in git("diff", "--name-only", "--no-renames", base, now, check=False).splitlines() if file]
+    count = git("rev-list", "--count", f"{base}..HEAD", check=False).strip()
+    return files, int(count) if count.isdigit() else None
 
 
-def recompute_plan(m, a=None):
+def recompute_plan(memory, args=None):
     from . import recompute
-    files, commits = since_full(m)
-    return recompute.plan(files, m["package"], len(package_files(m)), commits,
-                          max_share=getattr(a, "max_share", recompute.MAX_SHARE),
-                          max_commits=getattr(a, "max_commits", recompute.MAX_COMMITS))
+    files, commits = since_full(memory)
+    return recompute.plan(files, memory["package"], len(package_files(memory)), commits,
+                          max_share=getattr(args, "max_share", recompute.MAX_SHARE),
+                          max_commits=getattr(args, "max_commits", recompute.MAX_COMMITS))
 
 
-def graph_update(a):
+def graph_update(args):
     """Bring memory and graph up to date: a full re-trace if a recompute rule fires, else a refresh of the
     changed files' tests; then re-read changed files' source into graph.db (or build it if missing)."""
     from . import graph
-    m = load()
-    p = recompute_plan(m, a)
-    stale = sorted(f for f, h in m["hashes"].items() if file_hash(f) != h) or \
-        [f for f in package_files(m) if f not in m["hashes"]]
+    memory = load()
+    plan = recompute_plan(memory, args)
+    stale = sorted(file for file, recorded_hash in memory["hashes"].items() if file_hash(file) != recorded_hash) or \
+        [file for file in package_files(memory) if file not in memory["hashes"]]
     did = "nothing to re-trace"
-    if p["full"] and not a.no_full:
-        opts = m.get("trace_opts", {})
-        record(argparse.Namespace(package=m["package"], tests=m["tests"], python=m["python"], quiet=True,
+    if plan["full"] and not args.no_full:
+        opts = memory.get("trace_opts", {})
+        record(argparse.Namespace(package=memory["package"], tests=memory["tests"], python=memory["python"], quiet=True,
                                   steps=opts.get("steps", 500), no_values=not opts.get("values", True),
                                   repr_len=opts.get("repr_len", 80)))
-        did = "full re-trace (" + "; ".join(p["reasons"]) + ")"
+        did = "full re-trace (" + "; ".join(plan["reasons"]) + ")"
     elif stale:
-        r = refresh(argparse.Namespace(diff=None, by_file=False, quiet=True))
-        did = f"re-traced {r['retraced']} tests touching {len(stale)} changed files"
-    m = load()
+        refreshed = refresh(argparse.Namespace(diff=None, by_file=False, quiet=True))
+        did = f"re-traced {refreshed['retraced']} tests touching {len(stale)} changed files"
+    memory = load()
     calls = load_calls()
     if graph.DB.exists():
         db = graph.connect()
-        changed = graph.changed_files(db, m["package"])
-        graph.update_files(db, m["package"], changed, m, calls)
+        changed = graph.changed_files(db, memory["package"])
+        graph.update_files(db, memory["package"], changed, memory, calls)
         read = f"re-read {len(changed)} changed files"
     else:
-        db = graph.build(m["package"], m, calls)
+        db = graph.build(memory["package"], memory, calls)
         changed, read = None, "built from scratch"
     with db:
-        graph.set_meta(db, commit=m.get("commit") or "", built=str(time.time()))
-    res = dict(retrace=did, source=read, full_due=p["full"] and a.no_full, reasons=p["reasons"],
+        graph.set_meta(db, commit=memory.get("commit") or "", built=str(time.time()))
+    res = dict(retrace=did, source=read, full_due=plan["full"] and args.no_full, reasons=plan["reasons"],
                graph=graph.summary(db), db=str(graph.DB))
-    if a.json:
+    if args.json:
         print(json.dumps(res, indent=1))
     else:
         print(f"Tests: {did}. Source: {read}.")
         if res["full_due"]:
-            print("A full re-trace is due (" + "; ".join(p["reasons"]) + "); run `repomap graph update` without "
-                  "--no-full or `repomap record`.")
-        s = res["graph"]
-        print(f"Graph: {s['dots']} dots ({s['traced']} run by tests), {s['effective_arrows']} arrows in use "
-              f"({s['runtime_arrows']} seen in tests, {s['static_arrows']} read from source) -> {graph.DB}")
+            print("A full re-trace is due (" + "; ".join(plan["reasons"]) + "); run 'repomap graph update' without "
+                  "--no-full or 'repomap record'.")
+        stats = res["graph"]
+        print(f"Graph: {stats['dots']} dots ({stats['traced']} run by tests), "
+              f"{stats['effective_arrows']} arrows in use "
+              f"({stats['runtime_arrows']} seen in tests, {stats['static_arrows']} read from source) -> {graph.DB}")
     return res
 
 
-def graph_show(a):
+def graph_show(args):
     """Without KEY: what the graph holds and how stale it is. With KEY: that dot's arrows in and out."""
     from . import graph
     if not graph.DB.exists():
         sys.exit("No graph yet. Run: repomap graph update")
     db = graph.connect()
-    m = load()
-    if not a.key:
-        p = recompute_plan(m, a)
+    memory = load()
+    if not args.key:
+        plan = recompute_plan(memory, args)
         meta = dict(db.execute("SELECT key, value FROM meta"))
-        source_only = [k for (k,) in db.execute("SELECT key FROM dots WHERE kind = 'function' AND traced = 0 "
-                                                 "ORDER BY key")]
+        source_only = [key for (key,) in db.execute("SELECT key FROM dots WHERE kind = 'function' AND traced = 0 "
+                                                     "ORDER BY key")]
         res = dict(graph.summary(db), commit=meta.get("commit"), built=float(meta.get("built") or 0),
-                   changed_since_built=graph.changed_files(db, m["package"]), full_due=p["full"],
-                   reasons=p["reasons"], source_only=source_only)
-        if a.json:
+                   changed_since_built=graph.changed_files(db, memory["package"]), full_due=plan["full"],
+                   reasons=plan["reasons"], source_only=source_only)
+        if args.json:
             print(json.dumps(res, indent=1))
             return res
         age = time.time() - res["built"]
@@ -615,24 +619,25 @@ def graph_show(a):
         print(f"Files changed since built: {len(res['changed_since_built'])}"
               + "".join(f"\n  {f}" for f in res["changed_since_built"]))
         print(f"Functions no test runs (static arrows only): {len(source_only)}"
-              + "".join(f"\n  {k}" for k in source_only[:20]) + ("\n  ..." if len(source_only) > 20 else ""))
-        print("Full re-trace due: " + ("; ".join(p["reasons"]) if p["full"] else "no"))
+              + "".join(f"\n  {key}" for key in source_only[:20]) + ("\n  ..." if len(source_only) > 20 else ""))
+        print("Full re-trace due: " + ("; ".join(plan["reasons"]) if plan["full"] else "no"))
         return res
-    arrows = graph.arrows(db, level=a.level)
-    nodes = {x for s, d, *_ in arrows for x in (s, d)}
-    matches = sorted(n for n in nodes if n == a.key) or sorted(n for n in nodes if a.key in n)
+    arrows = graph.arrows(db, level=args.level)
+    nodes = {dot for src, dst, *_ in arrows for dot in (src, dst)}
+    matches = sorted(dot for dot in nodes if dot == args.key) or sorted(dot for dot in nodes if args.key in dot)
     if not matches:
-        sys.exit(f"No dot matches {a.key!r} at level {a.level}.")
-    res = {k: dict(callers=sorted({(s, kind, src) for s, d, kind, src in arrows if d == k}),
-                   callees=sorted({(d, kind, src) for s, d, kind, src in arrows if s == k})) for k in matches[:10]}
-    if a.json:
+        sys.exit(f"No dot matches {args.key!r} at level {args.level}.")
+    res = {key: dict(callers=sorted({(src, kind, source) for src, dst, kind, source in arrows if dst == key}),
+                     callees=sorted({(dst, kind, source) for src, dst, kind, source in arrows if src == key}))
+           for key in matches[:10]}
+    if args.json:
         print(json.dumps(res, indent=1))
         return res
-    for k, v in res.items():
-        print(k)
-        for label, rows in (("used by", v["callers"]), ("uses", v["callees"])):
-            for other, kind, src in rows:
-                print(f"  {label:8} {other}  ({kind}, {src})")
+    for key, neighbours in res.items():
+        print(key)
+        for label, rows in (("used by", neighbours["callers"]), ("uses", neighbours["callees"])):
+            for other, kind, source in rows:
+                print(f"  {label:8} {other}  ({kind}, {source})")
     return res
 
 

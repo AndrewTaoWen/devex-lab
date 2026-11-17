@@ -2,7 +2,7 @@
 question is how many.
 
 Every update (cheap):   re-read the source of changed files, and re-trace only the tests that run them
-                        (`repomap refresh`).
+                        ('repomap refresh').
 Full re-trace (slow):   when what the tests run could have shifted everywhere, not just in the changed files:
   - dependencies changed (pyproject.toml, setup.py/cfg, requirements*.txt, lock files)
   - test setup changed (any conftest.py, pytest.ini, tox.ini, files under a fixtures/ directory)
@@ -23,13 +23,14 @@ TEST_SETUP_FILES = ("conftest.py", "pytest.ini", "tox.ini")
 
 
 def is_dependency_file(path):
-    p = PurePosixPath(path)
-    return any(fnmatch(p.name, pat) or fnmatch(path, pat) or fnmatch(path, f"*/{pat}") for pat in DEPENDENCY_FILES)
+    name = PurePosixPath(path).name
+    return any(fnmatch(name, pattern) or fnmatch(path, pattern) or fnmatch(path, f"*/{pattern}")
+               for pattern in DEPENDENCY_FILES)
 
 
 def is_test_setup_file(path):
-    p = PurePosixPath(path)
-    return p.name in TEST_SETUP_FILES or "fixtures" in p.parts[:-1]
+    parts = PurePosixPath(path).parts
+    return parts[-1] in TEST_SETUP_FILES or "fixtures" in parts[:-1]
 
 
 def plan(changed, package, n_package_files, commits_since_full, max_share=MAX_SHARE, max_commits=MAX_COMMITS):
@@ -40,18 +41,19 @@ def plan(changed, package, n_package_files, commits_since_full, max_share=MAX_SH
     Returns {"full": bool, "reasons": [str], "package_files": [paths], "share": float, "commits": int}.
     """
     prefix = package.rstrip("/") + "/"
-    pkg = sorted(f for f in changed if f.startswith(prefix) and f.endswith(".py"))
-    deps = sorted(f for f in changed if is_dependency_file(f))
-    setup = sorted(f for f in changed if is_test_setup_file(f))
-    share = len(pkg) / max(n_package_files, 1)
+    package_changed = sorted(path for path in changed if path.startswith(prefix) and path.endswith(".py"))
+    dependencies = sorted(path for path in changed if is_dependency_file(path))
+    setup = sorted(path for path in changed if is_test_setup_file(path))
+    share = len(package_changed) / max(n_package_files, 1)
     reasons = []
-    if deps:
-        reasons.append(f"dependencies changed: {', '.join(deps)}")
+    if dependencies:
+        reasons.append(f"dependencies changed: {', '.join(dependencies)}")
     if setup:
         reasons.append(f"test setup changed: {', '.join(setup)}")
     if share > max_share:
-        reasons.append(f"{len(pkg)} of {n_package_files} package files changed ({share:.0%} > {max_share:.0%})")
+        reasons.append(f"{len(package_changed)} of {n_package_files} package files changed "
+                       f"({share:.0%} > {max_share:.0%})")
     if commits_since_full is not None and commits_since_full > max_commits:
         reasons.append(f"{commits_since_full} commits since the last full trace (> {max_commits})")
-    return dict(full=bool(reasons), reasons=reasons, package_files=pkg, share=round(share, 3),
+    return dict(full=bool(reasons), reasons=reasons, package_files=package_changed, share=round(share, 3),
                 commits=commits_since_full)
