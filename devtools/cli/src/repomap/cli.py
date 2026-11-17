@@ -14,6 +14,12 @@
   repomap refresh  [--diff [REV]] [--json]
         Re-trace only the tests that run code in the changed files (plus changed test files) and
         merge them into the memory, so the next lookup is current without a full re-record.
+  repomap graph    update [--no-full] [--max-share 0.2] [--max-commits 50] [--json]
+        Bring the memory and the code graph (.repomap/graph.db) up to date: a full re-trace when
+        dependencies or test setup changed or the map is too old, else re-trace only the tests that run
+        changed files; then re-read changed files' source.
+  repomap graph    show [KEY] [--level line|function|class|module|file] [--json]
+        What the graph holds and how stale it is, or one dot's arrows in and out.
   repomap status   [--json]
         What the memory covers and which package files have changed since it was recorded.
   repomap serve    [--port 8765] [--open] [--export FILE.html]
@@ -172,6 +178,7 @@ def record(a):
         raw = trace(m, [a.tests], Path(td) / "map.json")
     m.update(prefix=str(Path(m["package"]).parent) + "/", tests_map=raw["tests"], functions=raw["functions"],
              edges=raw["edges"], hashes={f: file_hash(f) for f in package_files(m)}, recorded=time.time())
+    m.update(full_commit=m["commit"], full_recorded=m["recorded"])  # the graph's recompute rules count from here
     save(m)
     save_calls(raw.get("calls", {}))
     res = dict(tests=len(raw["tests"]), functions=len(raw["functions"]), edges=len(raw["edges"]),
@@ -420,14 +427,134 @@ def refresh(a):
 def status(a):
     m = load()
     stale = sorted(f for f, h in m["hashes"].items() if file_hash(f) != h)
+    plan = recompute_plan(m)
     res = dict(tests=len(m["tests_map"]), functions=len(m["functions"]), edges=len(m["edges"]),
-               package=m["package"], commit=m.get("commit"), recorded=m.get("recorded"), changed_files=stale)
+               package=m["package"], commit=m.get("commit"), recorded=m.get("recorded"), changed_files=stale,
+               full_retrace_due=plan["full"], full_retrace_reasons=plan["reasons"])
     if getattr(a, "json", False):
         print(json.dumps(res, indent=1))
     elif not getattr(a, "quiet", False):
         print(f"Memory: {res['tests']} tests, {res['functions']} functions, recorded at "
               f"snapshot {(res['commit'] or '?')[:10]} (refs/repomap/memory)")
         print(f"Library files changed since: {len(stale)}" + ("".join(f"\n  {f}" for f in stale)))
+        if plan["full"]:
+            print("Full re-trace due: " + "; ".join(plan["reasons"]) + " (run 'repomap graph update')")
+    return res
+
+
+# ---------- graph ----------
+
+GRAPH_LEVELS = ("line", "function", "class", "module", "file")
+
+
+def since_full(memory):
+    """(files changed since the last full trace, commits since it) - what the recompute rules look at."""
+    base = memory.get("full_commit") or memory.get("commit")
+    if not base:
+        return [], None
+    now = worktree_snapshot(keep=False) or "HEAD"
+    files = [file for file in git("diff", "--name-only", "--no-renames", base, now, check=False).splitlines() if file]
+    count = git("rev-list", "--count", f"{base}..HEAD", check=False).strip()
+    return files, int(count) if count.isdigit() else None
+
+
+def recompute_plan(memory, args=None):
+    from . import recompute
+    files, commits = since_full(memory)
+    return recompute.plan(files, memory["package"], len(package_files(memory)), commits,
+                          max_share=getattr(args, "max_share", recompute.MAX_SHARE),
+                          max_commits=getattr(args, "max_commits", recompute.MAX_COMMITS))
+
+
+def graph_update(args):
+    """Bring memory and graph up to date: a full re-trace if a recompute rule fires, else a refresh of the
+    changed files' tests; then re-read changed files' source into graph.db (or build it if missing)."""
+    from . import graph
+    memory = load()
+    plan = recompute_plan(memory, args)
+    stale = sorted(file for file, recorded_hash in memory["hashes"].items() if file_hash(file) != recorded_hash) or \
+        [file for file in package_files(memory) if file not in memory["hashes"]]
+    did = "nothing to re-trace"
+    if plan["full"] and not args.no_full:
+        opts = memory.get("trace_opts", {})
+        record(argparse.Namespace(package=memory["package"], tests=memory["tests"], python=memory["python"], quiet=True,
+                                  steps=opts.get("steps", 500), no_values=not opts.get("values", True),
+                                  repr_len=opts.get("repr_len", 80)))
+        did = "full re-trace (" + "; ".join(plan["reasons"]) + ")"
+    elif stale:
+        refreshed = refresh(argparse.Namespace(diff=None, by_file=False, quiet=True))
+        did = f"re-traced {refreshed['retraced']} tests touching {len(stale)} changed files"
+    memory = load()
+    calls = load_calls()
+    if graph.DB.exists():
+        db = graph.connect()
+        changed = graph.changed_files(db, memory["package"])
+        graph.update_files(db, memory["package"], changed, memory, calls)
+        read = f"re-read {len(changed)} changed files"
+    else:
+        db = graph.build(memory["package"], memory, calls)
+        changed, read = None, "built from scratch"
+    with db:
+        graph.set_meta(db, commit=memory.get("commit") or "", built=str(time.time()))
+    res = dict(retrace=did, source=read, full_due=plan["full"] and args.no_full, reasons=plan["reasons"],
+               graph=graph.summary(db), db=str(graph.DB))
+    if args.json:
+        print(json.dumps(res, indent=1))
+    else:
+        print(f"Tests: {did}. Source: {read}.")
+        if res["full_due"]:
+            print("A full re-trace is due (" + "; ".join(plan["reasons"]) + "); run 'repomap graph update' without "
+                  "--no-full or 'repomap record'.")
+        stats = res["graph"]
+        print(f"Graph: {stats['dots']} dots ({stats['traced']} run by tests), "
+              f"{stats['effective_arrows']} arrows in use "
+              f"({stats['runtime_arrows']} seen in tests, {stats['static_arrows']} read from source) -> {graph.DB}")
+    return res
+
+
+def graph_show(args):
+    """Without KEY: what the graph holds and how stale it is. With KEY: that dot's arrows in and out."""
+    from . import graph
+    if not graph.DB.exists():
+        sys.exit("No graph yet. Run: repomap graph update")
+    db = graph.connect()
+    memory = load()
+    if not args.key:
+        plan = recompute_plan(memory, args)
+        meta = dict(db.execute("SELECT key, value FROM meta"))
+        source_only = [key for (key,) in db.execute("SELECT key FROM dots WHERE kind = 'function' AND traced = 0 "
+                                                     "ORDER BY key")]
+        res = dict(graph.summary(db), commit=meta.get("commit"), built=float(meta.get("built") or 0),
+                   changed_since_built=graph.changed_files(db, memory["package"]), full_due=plan["full"],
+                   reasons=plan["reasons"], source_only=source_only)
+        if args.json:
+            print(json.dumps(res, indent=1))
+            return res
+        age = time.time() - res["built"]
+        print(f"Graph at snapshot {(res['commit'] or '?')[:10]}, built {age / 3600:.1f}h ago: {res['dots']} dots, "
+              f"{res['effective_arrows']} arrows in use, {res['call_rows']} call-order rows for {res['tests']} tests")
+        print(f"Files changed since built: {len(res['changed_since_built'])}"
+              + "".join(f"\n  {f}" for f in res["changed_since_built"]))
+        print(f"Functions no test runs (static arrows only): {len(source_only)}"
+              + "".join(f"\n  {key}" for key in source_only[:20]) + ("\n  ..." if len(source_only) > 20 else ""))
+        print("Full re-trace due: " + ("; ".join(plan["reasons"]) if plan["full"] else "no"))
+        return res
+    arrows = graph.arrows(db, level=args.level)
+    nodes = {dot for src, dst, *_ in arrows for dot in (src, dst)}
+    matches = sorted(dot for dot in nodes if dot == args.key) or sorted(dot for dot in nodes if args.key in dot)
+    if not matches:
+        sys.exit(f"No dot matches {args.key!r} at level {args.level}.")
+    res = {key: dict(callers=sorted({(src, kind, source) for src, dst, kind, source in arrows if dst == key}),
+                     callees=sorted({(dst, kind, source) for src, dst, kind, source in arrows if src == key}))
+           for key in matches[:10]}
+    if args.json:
+        print(json.dumps(res, indent=1))
+        return res
+    for key, neighbours in res.items():
+        print(key)
+        for label, rows in (("used by", neighbours["callers"]), ("uses", neighbours["callees"])):
+            for other, kind, source in rows:
+                print(f"  {label:8} {other}  ({kind}, {source})")
     return res
 
 
@@ -563,6 +690,14 @@ def main():
     q.add_argument("--limit", type=int, default=None, help="gaps: keep the N most-called functions")
     q.add_argument("--basic", action="store_true", help="gaps: only the empty/zero/negative probes")
     q.add_argument("--json", action="store_true")
+    g = sub.add_parser("graph", help="build, update or inspect the code graph in .repomap/graph.db")
+    g.add_argument("action", choices=["update", "show"])
+    g.add_argument("key", nargs="?", default="", help="show: a dot (function, class or file) or part of its name")
+    g.add_argument("--level", choices=GRAPH_LEVELS, default="function")
+    g.add_argument("--no-full", action="store_true", help="update: never run a full re-trace, only report it")
+    g.add_argument("--max-share", type=float, default=0.2, help="full re-trace past this share of changed files")
+    g.add_argument("--max-commits", type=int, default=50, help="full re-trace past this many commits")
+    g.add_argument("--json", action="store_true")
     v = sub.add_parser("serve")
     v.add_argument("--port", type=int, default=8765)
     v.add_argument("--host", default="127.0.0.1")
@@ -581,6 +716,8 @@ def main():
         refresh(a)
     elif a.cmd == "serve":
         serve(a)
+    elif a.cmd == "graph":
+        graph_update(a) if a.action == "update" else graph_show(a)
     elif a.cmd == "query":
         from . import query
         query.show(query.run(load(), a.kind, a.arg, public=a.public, limit=a.limit, basic=a.basic), a.kind, a.json)
