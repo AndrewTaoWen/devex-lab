@@ -1,8 +1,9 @@
 """What the readable Graph tab draws: a stable folder-tree layout with one cell per function, and each cell's
 numbers, landmark flag and coupling group.
 
-Positions come from the folder tree alone (folders, then files, then functions in source order), so a cell stays
-put while the code inside it changes. Only adding or removing functions moves things.
+There are two layouts. Folders (the default): positions come from the folder tree alone (folders, then files, then functions in source order), so a cell stays
+put while the code inside it changes. Only adding or removing functions moves things. Coupling: one box per
+coupling group (repomap.coupling), for seeing which code works together across folders.
 """
 from . import coupling, graph, graphmetrics, landmarks
 
@@ -96,6 +97,29 @@ def layout(keys, order):
     return cells, folders, files, W, H
 
 
+def group_layout(groups, order):
+    """The coupling layout: each group a box (biggest first), its functions in a grid ordered by file and line."""
+    by_name = {f"{group['id']:04d}": group for group in groups}
+    tree_ = {name: sorted(group["members"], key=lambda key: (graph.file_of(key), order.get(key, 0), key))
+             for name, group in by_name.items()}
+    H = height(sum(len(members) for members in tree_.values()))
+    cells, boxes = {}, []
+    spots = squarify([(len(members) + 2, name) for name, members in tree_.items()], 0, 0, W, H)
+    for name, (x, y, w, h) in spots.items():
+        x, y, w, h = x + 1, y + 1, w - 2, h - 2
+        group = by_name[name]
+        boxes.append(dict(id=group["id"], name=group["name"], size=group["size"], x=x, y=y, w=w, h=h))
+        members = tree_[name]
+        ix, iy, iw, ih = x + PAD, y + FOLDER_HEAD, w - 2 * PAD, h - FOLDER_HEAD - PAD
+        cols = max(1, round((len(members) * max(iw, 1) / max(ih, 1)) ** 0.5))
+        rows = -(-len(members) // cols)
+        cw, ch = iw / cols, ih / rows
+        for i, key in enumerate(members):
+            r, c = divmod(i, cols)
+            cells[key] = [round(ix + c * cw, 2), round(iy + r * ch, 2), round(cw, 2), round(ch, 2)]
+    return cells, boxes, H
+
+
 def payload(db, memory, since=graphmetrics.DEFAULT_SINCE, cwd="."):
     """Everything the readable views need, keyed by graph key (the page maps keys to its own cells)."""
     res = graphmetrics.metrics(db, memory, since=since, cwd=cwd)
@@ -105,10 +129,11 @@ def payload(db, memory, since=graphmetrics.DEFAULT_SINCE, cwd="."):
     cells, folders, files, width, tall = layout([row["key"] for row in rows], order)
     picked = landmarks.pick(rows, landmarks.load_config())
     groups, group_of = coupling.groups(db, rows)
+    gcells, gboxes, gtall = group_layout(groups, order)
     fields = ("references", "tests", "calls", "reach", "dependents", "changes", "pace", "tested")
-    return dict(W=width, H=tall, since=res["since"], commits=res["commits"], slow_floor=res["slow_floor"],
+    return dict(W=width, H=tall, GH=gtall, group_boxes=gboxes, since=res["since"], commits=res["commits"], slow_floor=res["slow_floor"],
                 fields=list(fields), folders=folders, files=files,
-                units={row["key"]: dict(xy=cells[row["key"]], n=[row[field] for field in fields],
+                units={row["key"]: dict(xy=cells[row["key"]], gxy=gcells[row["key"]], n=[row[field] for field in fields],
                                         group=group_of.get(row["key"])) for row in rows},
                 landmarks=[row["key"] for row in picked], groups=[dict(id=g["id"], name=g["name"], size=g["size"])
                                                                    for g in groups])

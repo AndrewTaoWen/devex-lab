@@ -180,9 +180,21 @@ svg.fade .gn.hl { opacity: 1; }
 .show-pace .rc.fast { stroke: var(--fast); stroke-width: 1.6; }
 .show-pace .rc.slow { stroke: var(--slow); stroke-width: 1.6; }
 .rc:hover, .rc.sel { stroke: var(--fg); stroke-width: 2; stroke-dasharray: none; }
+.rl { pointer-events: none; }
 .rl circle { fill: var(--fg); stroke: var(--panel); }
 .rl text { font-family: var(--mono); font-weight: 600; fill: var(--fg); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; pointer-events: none; }
 .hide-lm .rl { display: none; }
+.rlk { fill: none; stroke: var(--muted); stroke-opacity: .35; pointer-events: none; }
+.rlk.src { stroke-dasharray: 4 3; }
+.rlinks.hovering .rlk { stroke-opacity: .08; }
+.rlinks.hovering .rlk.hl { stroke: var(--fg); stroke-opacity: .9; }
+.rlk.in { stroke: var(--accent); stroke-opacity: .85; }
+.rlk.out { stroke: var(--l1); stroke-opacity: .85; }
+.nbmode .rc { opacity: .22; }
+.nbmode .rc.me, .nbmode .rc.in, .nbmode .rc.out { opacity: 1; }
+.nbmode .rc.me { fill: var(--fg); }
+.nbmode .rc.in { fill: var(--accent); }
+.nbmode .rc.out { fill: var(--l1); }
 svg.fade .ge.hl { stroke-opacity: .95; }
 @media (prefers-reduced-motion: no-preference) { svg .gn, svg .ge { transition: opacity .12s, stroke-opacity .12s; } }
 @media (prefers-reduced-motion: no-preference) { .cell { transition: background-color .15s, opacity .15s; } }
@@ -208,7 +220,7 @@ svg.fade .ge.hl { stroke-opacity: .95; }
     <section class="map" id="map">
       <div class="viewbar">
         <span class="depth" role="group" aria-label="View"><button data-view="map">Map</button><button data-view="graph">Graph</button></span>
-        <span class="depth" id="gsub" role="group" aria-label="Graph view" hidden><button data-gview="overview">Overview</button><button data-gview="change">Change</button></span>
+        <span class="depth" id="gsub" role="group" aria-label="Graph view" hidden><button data-gview="overview">Overview</button><button data-gview="neighborhood">Neighborhood</button><button data-gview="change">Change</button></span>
         <div class="legend" id="legend"></div>
       </div>
       <div id="pkgs"></div>
@@ -718,15 +730,21 @@ $("#graph").addEventListener("keydown", e => {
 });
 $("#graph").addEventListener("focusin", e => { const g = e.target.closest(".gn"); if (g) graphTrace(+g.dataset.n); });
 
-// ---------- readable graph: folder-tree layout, one cell per function, numbers from 'repomap graph metrics' ----------
-const GVIEWS = ["overview", "change"];
+// ---------- readable graph: one cell per function, laid out by folder (or by coupling group) ----------
+// Overview: numbers from 'repomap graph metrics'. Neighborhood: one function, who calls it and what it calls.
+const GVIEWS = ["overview", "neighborhood", "change"];
 const SHADES = {references: "references", tests: "tests that run it", calls: "runtime calls"};
 const WINDOWS = [["12 months ago", "last 12 months"], ["24 months ago", "last 24 months"], ["5 years ago", "last 5 years"], ["all", "all history"]];
-const R = {data: null, asked: null, since: "12 months ago", shade: "references", lm: true, un: true, pace: false, svg: null, zoom: 1};
-try { const saved = JSON.parse(localStorage.getItem("repomap.readable") || "{}"); for (const k of ["since", "shade", "lm", "un", "pace"]) if (k in saved) R[k] = saved[k]; } catch {}
-const saveR = () => { try { localStorage.setItem("repomap.readable", JSON.stringify({since: R.since, shade: R.shade, lm: R.lm, un: R.un, pace: R.pace})); } catch {} };
+const R = {data: null, asked: null, since: "12 months ago", shade: "references", lm: true, un: true, pace: false, links: false,
+           layout: "folders", svg: null, zoom: 1, drawnLayout: null};
+const SAVED = ["since", "shade", "lm", "un", "pace", "links", "layout"];
+try { const saved = JSON.parse(localStorage.getItem("repomap.readable") || "{}"); for (const k of SAVED) if (k in saved) R[k] = saved[k]; } catch {}
+const saveR = () => { try { localStorage.setItem("repomap.readable", JSON.stringify(Object.fromEntries(SAVED.map(k => [k, R[k]])))); } catch {} };
 const pageKey = k => k.endsWith(":<module>") ? k.slice(0, -9) + ":<module level>" : k;
 const num = (u, field) => u.n[R.data.fields.indexOf(field)];
+const pos = d => R.layout === "coupling" ? d.u.gxy : d.u.xy;
+const mid = d => { const [x, y, w, h] = pos(d); return [x + w / 2, y + h / 2]; };
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 async function loadReadable() {
   if (!live) { R.data = D.readable || null; R.asked = R.since; return; }
@@ -743,7 +761,7 @@ async function loadReadable() {
 function drawReadable() {
   const box = $("#rgbox");
   if (typeof d3 === "undefined") { box.innerHTML = `<p class="note" style="padding:10px">The graph library did not load.</p>`; return; }
-  if (R.asked !== R.since && !(R.loading && R.asked === R.since)) { loadReadable(); }
+  if (R.asked !== R.since) loadReadable();
   if (!R.data) {
     $("#rgbar").innerHTML = "";
     box.innerHTML = `<p class="note" style="padding:10px">${R.loading || R.asked === null ? "Reading the code graph and git history…" : R.error ? `<span class="err">${esc(R.error)}</span>` : "No code graph yet. Run <code>repomap graph update</code>, then reload."}</p>`;
@@ -759,62 +777,120 @@ function buildReadable() {
   const svg = d3.select(box).append("svg").attr("viewBox", `0 0 ${X.W} ${X.H}`).attr("role", "img")
     .attr("aria-label", "Every function, laid out by folder and file");
   const view = svg.append("g");
-  view.append("g").selectAll("rect").data(X.folders).join("rect").attr("class", "rf")
+  R.folderLayer = view.append("g");
+  R.folderLayer.append("g").selectAll("rect").data(X.folders).join("rect").attr("class", "rf")
     .attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.w).attr("height", d => d.h).attr("rx", 5);
-  view.append("g").selectAll("text").data(X.folders.filter(d => d.w > 50)).join("text").attr("class", "rfl")
+  R.folderLayer.append("g").selectAll("text").data(X.folders.filter(d => d.w > 50)).join("text").attr("class", "rfl")
     .attr("x", d => d.x + 6).attr("y", d => d.y + 13).text(d => d.name);
-  view.append("g").selectAll("rect").data(X.files).join("rect").attr("class", "rfi")
+  R.folderLayer.append("g").selectAll("rect").data(X.files).join("rect").attr("class", "rfi")
     .attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.w).attr("height", d => d.h).attr("rx", 2);
-  view.append("g").selectAll("text").data(X.files.filter(d => d.w > 36)).join("text").attr("class", "rfil")
+  R.folderLayer.append("g").selectAll("text").data(X.files.filter(d => d.w > 36)).join("text").attr("class", "rfil")
     .attr("x", d => d.x + 3).attr("y", d => d.y + 9.5).text(d => d.name.split("/").pop().slice(0, Math.floor(d.w / 5.6)));
+  R.groupLayer = view.append("g");
+  R.groupLayer.append("g").selectAll("rect").data(X.group_boxes).join("rect").attr("class", "rf")
+    .attr("x", d => d.x).attr("y", d => d.y).attr("width", d => d.w).attr("height", d => d.h).attr("rx", 5);
+  R.groupLayer.append("g").selectAll("text").data(X.group_boxes.filter(d => d.w > 50)).join("text").attr("class", "rfl")
+    .attr("x", d => d.x + 6).attr("y", d => d.y + 13).text(d => (d.name.includes(":") ? `${d.size} around ${short(d.name).split(".").slice(-2).join(".")}` : `${d.name.split("/").pop()}: no calls`).slice(0, Math.floor(d.w / 6.6)));
   const units = Object.entries(X.units).map(([k, u]) => ({k, u, i: byKey.get(pageKey(k))}));
+  R.byIndex = new Map(units.filter(d => d.i !== undefined).map(d => [d.i, d]));
+  // calls between units, from the page's own arrows (seen in tests, plus source-only ones when the graph exists)
+  R.edges = [];
+  for (const [i, d] of R.byIndex) for (const j of new Set(down[i])) { const o = R.byIndex.get(j); if (o && o !== d) R.edges.push([d, o, ekind.has(i + ">" + j)]); }
+  R.linkLayer = view.append("g").attr("class", "rlinks");
   R.cells = view.append("g").selectAll("rect").data(units).join("rect").attr("class", "rc")
-    .attr("x", d => d.u.xy[0] + .3).attr("y", d => d.u.xy[1] + .3)
-    .attr("width", d => Math.max(d.u.xy[2] - .6, .5)).attr("height", d => Math.max(d.u.xy[3] - .6, .5))
     .attr("data-i", d => d.i ?? null).attr("tabindex", d => d.i === undefined ? null : 0)
     .attr("aria-label", d => d.k)
-    .on("mouseenter", (e, d) => readableTip(e, d)).on("mousemove", moveTip).on("mouseleave", () => { $("#tip").hidden = true; })
+    .on("mouseenter", (e, d) => { readableTip(e, d); hoverLinks(d); }).on("mousemove", moveTip)
+    .on("mouseleave", () => { $("#tip").hidden = true; hoverLinks(null); })
     .on("click", (e, d) => { if (d.i === undefined) return; if (e.shiftKey || e.metaKey || e.ctrlKey) toggleTarget(d.i); else select(d.i); })
     .on("keydown", (e, d) => { if (d.i !== undefined && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); select(d.i); } });
   const marks = X.landmarks.map(k => ({k, u: X.units[k]})).filter(d => d.u);
   R.marks = view.append("g").attr("class", "rlg").selectAll("g").data(marks).join("g").attr("class", "rl");
-  R.marks.append("circle").attr("cx", d => d.u.xy[0] + d.u.xy[2] / 2).attr("cy", d => d.u.xy[1] + d.u.xy[3] / 2);
-  R.marks.append("text").attr("x", d => d.u.xy[0] + d.u.xy[2] / 2).attr("y", d => d.u.xy[1] + d.u.xy[3] / 2)
-    .text(d => short(d.k).split(".").slice(-2).join("."));
+  R.marks.append("circle");
+  R.marks.append("text").text(d => short(d.k).split(".").slice(-2).join("."));
   const zoomed = k => {
     R.zoom = k;
     R.marks.select("circle").attr("r", 3.2 / k).attr("stroke-width", 1 / k);
     R.marks.select("text").attr("font-size", 11 / k).attr("dx", 5 / k).attr("dy", -5 / k).attr("stroke-width", 3 / k);
+    R.linkLayer.attr("stroke-width", 1.1 / Math.sqrt(k));
   };
-  svg.call(d3.zoom().scaleExtent([1, 16]).translateExtent([[0, 0], [X.W, X.H]])
-    .on("zoom", e => { view.attr("transform", e.transform); zoomed(e.transform.k); }));
+  R.zoomer = d3.zoom().scaleExtent([1, 16]).on("zoom", e => { view.attr("transform", e.transform); zoomed(e.transform.k); });
+  svg.call(R.zoomer);
   zoomed(1);
-  R.svg = svg;
+  R.svg = svg; R.drawnLayout = null;
+}
+
+function curve(a, b) {
+  const [x1, y1] = mid(a), [x2, y2] = mid(b), bend = .18;
+  return `M${x1},${y1} Q${(x1 + x2) / 2 - (y2 - y1) * bend},${(y1 + y2) / 2 + (x2 - x1) * bend} ${x2},${y2}`;
+}
+
+function placeCells(animate) {
+  const X = R.data, coupling = R.layout === "coupling", H = coupling ? X.GH : X.H;
+  R.svg.attr("viewBox", `0 0 ${X.W} ${H}`).attr("aria-label", coupling ? "Every function, grouped by which code calls which" : "Every function, laid out by folder and file");
+  R.zoomer.translateExtent([[0, 0], [X.W, H]]);
+  R.folderLayer.attr("display", coupling ? "none" : null);
+  R.groupLayer.attr("display", coupling ? null : "none");
+  const cells = animate && !reduceMotion ? R.cells.transition().duration(600) : R.cells;
+  cells.attr("x", d => pos(d)[0] + .3).attr("y", d => pos(d)[1] + .3)
+    .attr("width", d => Math.max(pos(d)[2] - .6, .5)).attr("height", d => Math.max(pos(d)[3] - .6, .5));
+  const marks = animate && !reduceMotion ? R.marks.transition().duration(600) : R.marks;
+  marks.attr("transform", d => `translate(${mid(d).join(",")})`);
+  R.drawnLayout = R.layout;
+}
+
+function drawLinks() {
+  const nb = S.gview === "neighborhood" && R.byIndex.has(S.sel);
+  let rows = [];
+  if (nb) {
+    const me = R.byIndex.get(S.sel);
+    rows = R.edges.filter(([a, b]) => a === me || b === me).map(([a, b, src]) => ({a, b, src, cls: b === me ? "in" : "out"}));
+  } else if (R.links) rows = R.edges.map(([a, b, src]) => ({a, b, src, cls: "all"}));
+  R.linkLayer.selectAll("path").data(rows).join("path").attr("class", d => `rlk ${d.cls}${d.src ? " src" : ""}`).attr("d", d => curve(d.a, d.b));
+}
+function hoverLinks(d) {
+  if (!R.links || S.gview === "neighborhood") return;
+  R.linkLayer.selectAll("path").classed("hl", e => d && (e.a === d || e.b === d));
+  R.linkLayer.classed("hovering", !!d);
 }
 
 function styleReadable() {
-  const X = R.data, svg = R.svg.node();
-  svg.classList.toggle("show-un", R.un); svg.classList.toggle("show-pace", R.pace); svg.classList.toggle("hide-lm", !R.lm);
+  const X = R.data, svg = R.svg.node(), nbView = S.gview === "neighborhood";
+  if (R.drawnLayout !== R.layout) placeCells(R.drawnLayout !== null);
+  svg.classList.toggle("show-un", R.un); svg.classList.toggle("show-pace", R.pace && !nbView); svg.classList.toggle("hide-lm", !R.lm);
+  const me = nbView ? R.byIndex.get(S.sel) : null;
+  const ins = new Set(), outs = new Set();
+  if (me) for (const [a, b] of R.edges) { if (b === me) ins.add(a); if (a === me) outs.add(b); }
+  svg.classList.toggle("nbmode", !!me);
   const values = Object.values(X.units).map(u => num(u, R.shade)).filter(v => v > 0);
   const bins = d3.scaleQuantile().domain(values.length ? values : [1]).range([1, 2, 3, 4]);
   R.cells.attr("class", d => {
     const v = num(d.u, R.shade), pace = num(d.u, "pace");
-    return `rc s${v > 0 ? bins(v) : 0}${num(d.u, "tested") ? "" : " un"}${pace !== "ordinary" ? " " + pace : ""}${d.i !== undefined && d.i === S.sel ? " sel" : ""}`;
+    const nb = d === me ? " me" : ins.has(d) ? " in" : outs.has(d) ? " out" : "";
+    return `rc s${v > 0 ? bins(v) : 0}${num(d.u, "tested") ? "" : " un"}${pace !== "ordinary" ? " " + pace : ""}${nb}${d.i !== undefined && d.i === S.sel ? " sel" : ""}`;
   });
-  $("#rgbar").innerHTML = `<label>Shade by <select id="rgshade">${Object.entries(SHADES).map(([k, label]) => `<option value="${k}"${k === R.shade ? " selected" : ""}>${label}</option>`).join("")}</select></label>
+  drawLinks();
+  const historySel = live ? `<select id="rgsince">${WINDOWS.map(([k, label]) => `<option value="${k}"${k === R.since ? " selected" : ""}>${label}</option>`).join("")}</select>` : `<span class="note">${esc(X.since)}</span>`;
+  $("#rgbar").innerHTML = `<label>Layout <select id="rglayout"><option value="folders"${R.layout === "folders" ? " selected" : ""}>Folders</option><option value="coupling"${R.layout === "coupling" ? " selected" : ""}>Coupling groups</option></select></label>
+    ${nbView ? "" : `<label>Shade by <select id="rgshade">${Object.entries(SHADES).map(([k, label]) => `<option value="${k}"${k === R.shade ? " selected" : ""}>${label}</option>`).join("")}</select></label>`}
     <label><input type="checkbox" id="rglm"${R.lm ? " checked" : ""}> Landmarks</label>
     <label><input type="checkbox" id="rgun"${R.un ? " checked" : ""}> Untested code</label>
+    ${nbView ? "" : `<label><input type="checkbox" id="rglinks"${R.links ? " checked" : ""}> Calls between functions</label>
     <label><input type="checkbox" id="rgpace"${R.pace ? " checked" : ""}> Fast and slow parts</label>
-    <label>History ${live ? `<select id="rgsince">${WINDOWS.map(([k, label]) => `<option value="${k}"${k === R.since ? " selected" : ""}>${label}</option>`).join("")}</select>` : `<span class="note">${esc(X.since)}</span>`}</label>
-    <span class="note">${X.commits} commit${X.commits === 1 ? "" : "s"} in this window${R.loading ? " · loading…" : ""}</span>`;
+    <label>History ${historySel}</label>
+    <span class="note">${X.commits} commit${X.commits === 1 ? "" : "s"} in this window${R.loading ? " · loading…" : ""}</span>`}
+    ${nbView ? `<span class="note">${me ? `${ins.size} call it · it calls ${outs.size}` : "Click a function to see who calls it and what it calls."}</span>` : ""}`;
 }
 
 function readableLegend() {
   if (!R.data) return "";
+  if (S.gview === "neighborhood") return `<span><i style="background:var(--fg)"></i>picked function</span><span><i style="background:var(--accent)"></i>calls it</span><span><i style="background:var(--l1)"></i>it calls</span><span><i style="border-top:2px dashed var(--muted);height:0;border-radius:0"></i>seen only in source</span>` +
+    (R.un ? `<span><i style="background:var(--un-soft);border:1px dashed var(--un)"></i>no test runs it</span>` : "") + `<span>The panel on the right shows the values it saw</span>`;
   return `<span><i style="background:var(--heat)"></i>darker = more ${esc(SHADES[R.shade])}</span>` +
     (R.un ? `<span><i style="background:var(--un-soft);border:1px dashed var(--un)"></i>no test runs it</span>` : "") +
     (R.pace ? `<span><i style="border:2px solid var(--fast)"></i>changed often</span><span><i style="border:2px solid var(--slow)"></i>slow: ${R.data.slow_floor}+ dependents, unchanged</span>` : "") +
     (R.lm ? `<span><i style="background:var(--fg);border-radius:50%"></i>landmark: most code runs under it</span>` : "") +
+    (R.links ? `<span><i style="border-top:1.5px solid var(--muted);height:0;border-radius:0"></i>a call (hover a cell to pick out its calls)</span>` : "") +
     `<span>Scroll to zoom, drag to pan, click a cell to inspect it</span>`;
 }
 
@@ -835,6 +911,8 @@ $("#rgbar").addEventListener("change", e => {
   else if (t.id === "rglm") R.lm = t.checked;
   else if (t.id === "rgun") R.un = t.checked;
   else if (t.id === "rgpace") R.pace = t.checked;
+  else if (t.id === "rglinks") R.links = t.checked;
+  else if (t.id === "rglayout") R.layout = t.value;
   else if (t.id === "rgsince") R.since = t.value;
   saveR(); render();
 });
