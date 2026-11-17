@@ -73,18 +73,20 @@ def test_lookups(recorded):
 
 
 def test_graph_impact(recorded, tmp_path):
+    """Through the MCP server, an AI tool can ask for graph impact at module level and gets back the affected modules,
+    the untested ones, and a command to run the tests."""
     import shutil
     from conftest import repomap
     repo = tmp_path / "shop"
     shutil.copytree(recorded, repo, symlinks=True)
     repomap(repo, "graph", "update")
 
-    async def flow(s):
-        return await call(s, "impact", targets=["price_of"], graph=True, level="module")
-    r = session(repo, flow)
-    assert r["changed"] == ["shopkit/catalog.py"]
-    assert {d["key"] for d in r["downstream"]} >= {"shopkit/cart.py", "shopkit/export.py"}
-    assert r["untested"] == ["shopkit/export.py"] and r["pytest_command"]
+    async def flow(server):
+        return await call(server, "impact", targets=["price_of"], graph=True, level="module")
+    result = session(repo, flow)
+    assert result["changed"] == ["shopkit/catalog.py"]
+    assert {dot["key"] for dot in result["downstream"]} >= {"shopkit/cart.py", "shopkit/export.py"}
+    assert result["untested"] == ["shopkit/export.py"] and result["pytest_command"]
 
 
 def test_no_memory_is_a_readable_error(tmp_path):

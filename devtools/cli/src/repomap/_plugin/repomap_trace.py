@@ -47,20 +47,21 @@ _repr = reprlib.Repr(maxlevel=2, maxstring=REPR_LEN, maxother=REPR_LEN, maxlist=
                      maxset=6, maxfrozenset=6, maxdeque=6, maxarray=6, maxlong=40)
 
 
-def tname(v):
-    t = type(v)
-    return t.__qualname__ if t.__module__ == "builtins" else f"{t.__module__}.{t.__qualname__}"
+def type_name(value):
+    """'int' for builtins, 'module.Qual' for everything else."""
+    cls = type(value)
+    return cls.__qualname__ if cls.__module__ == "builtins" else f"{cls.__module__}.{cls.__qualname__}"
 
 
-def short(v):
+def short(value):
     """{"type", "repr"} of a value, cut to REPR_LEN characters; a repr that fails is recorded as such."""
     try:
-        r = _repr.repr(v)
-    except Exception as e:
-        r = f"<repr failed: {type(e).__name__}>"
-    if len(r) > REPR_LEN:
-        r = r[:REPR_LEN - 1] + "…"
-    return {"type": tname(v), "repr": r}
+        text = _repr.repr(value)
+    except Exception as error:
+        text = f"<repr failed: {type(error).__name__}>"
+    if len(text) > REPR_LEN:
+        text = text[:REPR_LEN - 1] + "…"
+    return {"type": type_name(value), "repr": text}
 
 
 def summary():
@@ -183,26 +184,27 @@ class Recorder:
     # ---- call order ----
 
     def push(self, code, frame, names):
+        """Enter a package function: add its call-order row (while under the cap) and put it on the stack."""
         seq = None
         if self.steps < STEPS:
             seq = len(self.rows)
-            parent = next((s for _, s in reversed(self.stack) if s is not None), None)
+            parent = next((row_seq for _, row_seq in reversed(self.stack) if row_seq is not None), None)
             args = None
             if VALUES:
                 args = {}
-                for n in names:
-                    v = frame.f_locals.get(n)
-                    args[n] = {"type": tname(v), "repr": None} if n in ("self", "cls") else short(v)
+                for name in names:
+                    value = frame.f_locals.get(name)
+                    args[name] = {"type": type_name(value), "repr": None} if name in ("self", "cls") else short(value)
             self.rows.append([seq, len(self.stack) + 1, parent, self.key(code), args, None, None])
         self.steps += 1
         self.stack.append([code, seq])
 
     def pop(self, code, value=None, exc=None, keep=False):
         """Leave the innermost frame running code. Frames above it that never reported an exit are dropped."""
-        for i in range(len(self.stack) - 1, -1, -1):
-            if self.stack[i][0] is code:
-                seq = self.stack[i][1]
-                del self.stack[i:]
+        for depth in range(len(self.stack) - 1, -1, -1):
+            if self.stack[depth][0] is code:
+                seq = self.stack[depth][1]
+                del self.stack[depth:]
                 if seq is not None:
                     row = self.rows[seq]
                     if exc is not None:
