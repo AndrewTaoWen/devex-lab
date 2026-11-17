@@ -4,7 +4,7 @@ Each unit is a function or a module's top-level code. Nested code (genexprs, lam
 function that holds it, as on the map page.
 
   references   distinct places that refer to it directly: functions that call it (seen in tests or read from
-               source) and tests that call it themselves
+               source) and tests that call it themselves (references_from_tests counts those tests alone)
   dependents   distinct functions that reach it through any chain of calls: what may break when it changes
   reach        distinct functions that run underneath it in the recorded tests (the call order in test_calls).
                Pipelines reach far, helpers reach little. Code no test runs falls back to the source arrows.
@@ -140,8 +140,10 @@ def metrics(db, memory=None, since=DEFAULT_SINCE, cwd="."):
                                CALL_KINDS):
         if ":" in src and unit(src) != unit(dst):
             references[unit(dst)].add(unit(src))
+    from_tests = defaultdict(set)
     for test, function in db.execute("SELECT DISTINCT test, function FROM test_calls WHERE parent_seq IS NULL"):
         references[unit(function)].add(test)
+        from_tests[unit(function)].add(test)
     tests = defaultdict(set)
     for test, function in db.execute("SELECT test, function FROM covers"):
         tests[unit(function)].add(test)
@@ -155,6 +157,7 @@ def metrics(db, memory=None, since=DEFAULT_SINCE, cwd="."):
         kind, traced = kinds[key]
         downstream = reach.get(key, set()) if traced else closure(key, callees)
         rows.append(dict(key=key, kind=kind, tested=traced, references=len(references[key]),
+                         references_from_tests=len(from_tests[key]),
                          dependents=len(closure(key, callers)), reach=len(downstream),
                          reach_from="tests" if traced else "source", tests=len(tests[key]), calls=calls[key],
                          changes=len(changes.get(key, ()))))

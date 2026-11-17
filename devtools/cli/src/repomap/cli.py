@@ -23,6 +23,8 @@
   repomap graph    metrics [KEY] [--since "12 months ago" | --all] [--sort reach] [--json]
         Per function: references, dependents, reach (code run underneath it), tests, runtime calls,
         commits that changed it, and its pace (slow, ordinary or fast).
+  repomap graph    landmarks [--json]     the functions to keep labelled (ranked by reach; .repomap/landmarks.toml)
+  repomap graph    groups [--json]        functions grouped by how much they call each other
   repomap status   [--json]
         What the memory covers and which package files have changed since it was recorded.
   repomap serve    [--port 8765] [--open] [--export FILE.html]
@@ -675,6 +677,37 @@ def graph_metrics(args):
     return res
 
 
+def graph_landmarks(args):
+    from . import graph, graphmetrics, landmarks
+    if not graph.DB.exists():
+        sys.exit("No graph yet. Run: repomap graph update")
+    rows = graphmetrics.metrics(graph.connect(), graphmetrics.load_memory())["functions"]
+    res = landmarks.pick(rows, landmarks.load_config())
+    if args.json:
+        print(json.dumps(res, indent=1))
+        return res
+    print(f"Landmarks (by reach, entry points x{landmarks.ENTRY_BOOST}; override in {landmarks.CONFIG}):")
+    for row in res:
+        print(f"  {row['reach']:>5} reach  {row['why']:7} {row['key']}")
+    return res
+
+
+def graph_groups(args):
+    from . import coupling, graph, graphmetrics
+    if not graph.DB.exists():
+        sys.exit("No graph yet. Run: repomap graph update")
+    db = graph.connect()
+    res, _ = coupling.groups(db, graphmetrics.metrics(db, graphmetrics.load_memory())["functions"])
+    if args.json:
+        print(json.dumps(res, indent=1))
+        return res
+    for group in res:
+        print(f"{group['size']:>4}  around {group['name']}")
+        for key in group["members"][:args.limit]:
+            print(f"        {key}")
+    return res
+
+
 # ---------- serve ----------
 
 def cell(fidx, key):
@@ -846,7 +879,7 @@ def main():
     q.add_argument("--basic", action="store_true", help="gaps: only the empty/zero/negative probes")
     q.add_argument("--json", action="store_true")
     g = sub.add_parser("graph", help="build, update or inspect the code graph in .repomap/graph.db")
-    g.add_argument("action", choices=["update", "show", "metrics"])
+    g.add_argument("action", choices=["update", "show", "metrics", "landmarks", "groups"])
     g.add_argument("key", nargs="?", default="", help="show: a dot (function, class or file) or part of its name")
     g.add_argument("--level", choices=GRAPH_LEVELS, default="function")
     g.add_argument("--no-full", action="store_true", help="update: never run a full re-trace, only report it")
@@ -876,7 +909,8 @@ def main():
     elif a.cmd == "serve":
         serve(a)
     elif a.cmd == "graph":
-        {"update": graph_update, "show": graph_show, "metrics": graph_metrics}[a.action](a)
+        {"update": graph_update, "show": graph_show, "metrics": graph_metrics, "landmarks": graph_landmarks,
+         "groups": graph_groups}[a.action](a)
     elif a.cmd == "query":
         from . import query
         query.show(query.run(load(), a.kind, a.arg, public=a.public, limit=a.limit, basic=a.basic), a.kind, a.json)
