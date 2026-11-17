@@ -90,12 +90,48 @@ def test_export_inlines_the_library_and_the_numbers(shop, tmp_path):
     assert '"units":' in html and '"landmarks":' in html
 
 
-@pytest.mark.skipif(not shutil.which("node"), reason="needs node with playwright")
-def test_page_draws_the_overview_without_errors(server):
-    """In a headless browser, the Graph tab's overview draws one cell per function and logs no errors."""
-    res = subprocess.run(["node", str(PAGE_CHECK), server, "overview"], capture_output=True, text=True, timeout=120)
+def page_check(url, *args):
+    if not shutil.which("node"):
+        pytest.skip("needs node with playwright")
+    res = subprocess.run(["node", str(PAGE_CHECK), url, *args], capture_output=True, text=True, timeout=120)
     if "Cannot find module 'playwright'" in res.stderr:
         pytest.skip("playwright is not installed")
     assert res.returncode == 0, res.stderr
     report = json.loads(res.stdout)
-    assert report["errors"] == [] and report["cells"] == 24 and report["landmarks"] >= 1
+    assert report["errors"] == []
+    return report
+
+
+def test_page_draws_the_overview_without_errors(server):
+    """In a headless browser, the Graph tab's overview draws one cell per function and logs no errors."""
+    report = page_check(server, "overview")
+    assert report["cells"] == 24 and report["landmarks"] >= 1
+
+
+def test_coupling_groups_have_their_own_layout(shop):
+    """Every function also has a place in the coupling layout, inside the box of its group, and the boxes cover
+    every group."""
+    repomap(shop, "graph", "update")
+    data = payload(shop)
+    boxes = {box["id"]: box for box in data["group_boxes"]}
+    assert len(boxes) == len(data["groups"])
+    for unit in data["units"].values():
+        x, y, w, h = unit["gxy"]
+        box = boxes[unit["group"]]
+        assert box["x"] <= x and box["y"] <= y and x + w <= box["x"] + box["w"] + .01 and y + h <= box["y"] + box["h"] + .01
+
+
+def test_neighborhood_lights_callers_and_callees(server):
+    """Clicking Cart.subtotal in the Neighborhood view lights total, which calls it, and Catalog.price_of, which it
+    calls through its genexpr. One link is drawn for each."""
+    report = page_check(server, "neighborhood", "shopkit/cart.py:Cart.subtotal")
+    assert report["callers"] == ["shopkit/checkout.py:total"]
+    assert report["callees"] == ["shopkit/catalog.py:Catalog.price_of"]
+    assert report["links"] == 2
+
+
+def test_switching_to_the_coupling_layout_moves_cells(server):
+    """The layout switch moves cells to their coupling-group places, and every cell is still drawn."""
+    report = page_check(server, "coupling")
+    assert len(report["coupling"]) == len(report["folders"]) == 24
+    assert report["coupling"] != report["folders"]
