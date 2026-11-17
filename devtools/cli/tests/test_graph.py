@@ -19,6 +19,8 @@ def rows(db, sql, *args):
 
 
 def test_both_layers_are_stored(built):
+    """Building the graph keeps both kinds of arrows, the ones the tests were seen making and the ones read from
+    the source, along with every traced function and all 18 tests."""
     _, db, m, _ = built
     s = graph.summary(db)
     assert s["traced"] == len(m["functions"])
@@ -27,19 +29,23 @@ def test_both_layers_are_stored(built):
 
 
 def test_runtime_is_truth_static_is_fallback(built):
+    """For a function the tests ran, only the calls the tests really made count. For a function no test ran
+    (to_csv), the arrows read from the source are used instead. Imports always count, because tests can't
+    observe them."""
     _, db, _, _ = built
-    eff = {(a, b, src) for a, b, _, src in graph.arrows(db, level="line")}
+    effective = {(a, b, src) for a, b, _, src in graph.arrows(db, level="line")}
     # total ran in tests: its calls come from the runtime layer only
-    assert ("shopkit/checkout.py:total", "shopkit/tax.py:tax_for", "runtime") in eff
-    assert not any(a == "shopkit/checkout.py:total" and src == "static" for a, _, src in eff)
+    assert ("shopkit/checkout.py:total", "shopkit/tax.py:tax_for", "runtime") in effective
+    assert not any(a == "shopkit/checkout.py:total" and src == "static" for a, _, src in effective)
     # to_csv never ran: its static arrow is used
-    assert ("shopkit/export.py:to_csv", "shopkit/catalog.py:Catalog.price_of", "static") in eff
+    assert ("shopkit/export.py:to_csv", "shopkit/catalog.py:Catalog.price_of", "static") in effective
     # imports have no runtime twin, so they always count
-    assert ("shopkit/checkout.py", "shopkit/money.py", "static") in eff
+    assert ("shopkit/checkout.py", "shopkit/money.py", "static") in effective
 
 
 def test_static_call_from_traced_function_is_dropped(built, tmp_path):
-    """A call the tests never took from a function they did run is not an effective arrow (runtime wins)."""
+    """If a function the tests ran has a call in its source that the tests never took, that call is stored but
+    not used, because what the tests saw wins."""
     shop, db, m, calls = built
     p = shop / "src/shopkit/tax.py"
     p.write_text(p.read_text() + "\n\ndef never():\n    return 1\n")
@@ -49,11 +55,13 @@ def test_static_call_from_traced_function_is_dropped(built, tmp_path):
     static_only = rows(db, "SELECT 1 FROM arrows WHERE src = 'shopkit/tax.py:tax_for' AND dst = "
                            "'shopkit/tax.py:never' AND source = 'static'")
     assert static_only
-    eff = {(a, b) for a, b, *_ in graph.arrows(db, level="line")}
-    assert ("shopkit/tax.py:tax_for", "shopkit/tax.py:never") not in eff
+    effective = {(a, b) for a, b, *_ in graph.arrows(db, level="line")}
+    assert ("shopkit/tax.py:tax_for", "shopkit/tax.py:never") not in effective
 
 
 def test_covers_maps_lines_to_functions(built):
+    """The lines a test ran are turned into the functions it ran: the rounding test touches round_cents and
+    nothing in checkout."""
     _, db, _, _ = built
     funcs = {f for (f,) in rows(db, "SELECT function FROM covers WHERE test = "
                                     "'tests/test_money.py::test_round_half_up'")}
@@ -62,6 +70,8 @@ def test_covers_maps_lines_to_functions(built):
 
 
 def test_call_order_and_values(built):
+    """For one test, the graph returns its calls in order, with who called whom, how deep each call was, and the
+    arguments and return values. For self, only the type is kept."""
     _, db, _, _ = built
     steps = graph.test_calls(db, "tests/test_checkout.py::test_receipt")
     by_fn = {s["function"]: s for s in steps}
@@ -78,6 +88,7 @@ def test_call_order_and_values(built):
 
 
 def test_raised_exception_is_recorded(built):
+    """When a function ends with an exception, the graph records which exception it was and no return value."""
     _, db, _, _ = built
     steps = graph.test_calls(db, "tests/test_catalog.py::test_unknown_product")
     price = [s for s in steps if s["function"] == "shopkit/catalog.py:Catalog.price_of"][-1]
@@ -85,6 +96,8 @@ def test_raised_exception_is_recorded(built):
 
 
 def test_rollups(built):
+    """The same graph can be viewed at different zoom levels: a generator expression rolls up into its function,
+    a method into its class, and everything into its file. Arrows are merged to match."""
     _, db, _, _ = built
     assert graph.rollup(db, "shopkit/cart.py:Cart.subtotal.<locals>.<genexpr>", "function") == \
         "shopkit/cart.py:Cart.subtotal"
@@ -97,6 +110,8 @@ def test_rollups(built):
 
 
 def test_per_file_update_equals_full_rebuild(built, tmp_path):
+    """Updating only the file that changed gives exactly the same graph as rebuilding everything, and afterwards
+    nothing is reported as changed."""
     shop, db, m, calls = built
     p = shop / "src/shopkit/export.py"
     p.write_text(p.read_text() + "\n\ndef to_tsv(cart):\n    return to_csv(cart).replace(',', '\\t')\n")
@@ -112,6 +127,7 @@ def test_per_file_update_equals_full_rebuild(built, tmp_path):
 
 
 def test_deleted_function_leaves_the_graph(built):
+    """When a function is deleted from the source, its dot and its arrows disappear on the next update."""
     shop, db, _, _ = built
     p = shop / "src/shopkit/export.py"
     p.write_text("")
@@ -121,7 +137,8 @@ def test_deleted_function_leaves_the_graph(built):
 
 
 def test_property_getter_and_setter_share_one_key(tmp_path):
-    """Both halves of a property have the key C.p; tests that ran either half must cover it."""
+    """A property's getter and setter share one name (C.p). Tests that run either half must both be counted as
+    covering C.p, and a neighbouring method must not be mixed in."""
     pkg = tmp_path / "src/pkg"
     pkg.mkdir(parents=True)
     (pkg / "__init__.py").write_text("")

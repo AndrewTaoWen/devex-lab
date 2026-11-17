@@ -396,7 +396,7 @@ def refresh(a):
             m["tests_map"].pop(t, None)
     m["tests_map"].update(raw["tests"])
     calls = load_calls()
-    calls = {t: v for t, v in calls.items() if t in m["tests_map"] and t not in raw["tests"]}
+    calls = {test: run for test, run in calls.items() if test in m["tests_map"] and test not in raw["tests"]}
     calls.update(raw.get("calls", {}))
     save_calls(calls)
     touched = {m["prefix"] + f for f in files}
