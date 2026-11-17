@@ -785,6 +785,31 @@ def ui_readable(since="12 months ago"):
     return readable.payload(graph.connect(), graphmetrics.load_memory(), since=since)
 
 
+REPLAY_EMBED_ROWS = 20000  # an exported page carries every test's call order up to this many rows in total
+
+
+def ui_replay(test=None):
+    """Test replay: without test, the tests that have a recorded call order ([test, steps, truncated]); with one,
+    its calls in order (repomap.graph.test_calls) and whether the recording was cut short."""
+    from . import graph
+    if not graph.DB.exists():
+        return None
+    db = graph.connect()
+    if test is None:
+        return [[name, steps, bool(cut)] for name, steps, cut in
+                db.execute("SELECT test, steps, truncated FROM test_runs WHERE steps > 0 ORDER BY test")]
+    run = db.execute("SELECT steps, truncated FROM test_runs WHERE test = ?", (test,)).fetchone()
+    return dict(test=test, steps=run[0] if run else 0, truncated=bool(run and run[1]), rows=graph.test_calls(db, test))
+
+
+def ui_replay_all():
+    """Every test's replay for an exported page, or None when that would make the page too big."""
+    tests = ui_replay()
+    if tests is None or sum(steps for _, steps, _ in tests) > REPLAY_EMBED_ROWS:
+        return None
+    return {name: ui_replay(name) for name, _, _ in tests}
+
+
 D3_TAG = '<script src="/static/d3.min.js"></script>'
 
 
@@ -802,6 +827,7 @@ def serve(a):
         res = compute_impact(m)
         data = ui_data(m)
         data["readable"] = ui_readable()
+        data["replay"] = ui_replay_all()
         Path(a.export).write_text(page_with(data, res if res["changed"] or res["test_files"] else None))
         print(f"Wrote {a.export} ({Path(a.export).stat().st_size // 1024} KB)")
         return
@@ -828,6 +854,9 @@ def serve(a):
                     since = parse_qs(urlparse(self.path).query).get("since", ["12 months ago"])[0]
                     body = json.dumps(ui_readable(None if since == "all" else since)).encode()
                     kind = "application/json"
+                elif path == "/api/replay":
+                    test = parse_qs(urlparse(self.path).query).get("test", [None])[0]
+                    body, kind = json.dumps(ui_replay(test)).encode(), "application/json"
                 elif path == "/api/changes":
                     body, kind = json.dumps(compute_impact(current()["m"])).encode(), "application/json"
                 else:
