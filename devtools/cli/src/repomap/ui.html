@@ -195,6 +195,26 @@ svg.fade .gn.hl { opacity: 1; }
 .nbmode .rc.me { fill: var(--fg); }
 .nbmode .rc.in { fill: var(--accent); }
 .nbmode .rc.out { fill: var(--l1); }
+.rpmode .rc { opacity: .18; }
+.rpmode .rc.run { opacity: .8; fill: var(--empty); }
+.rpmode .rc.vis { opacity: 1; fill: color-mix(in srgb, var(--accent) 55%, var(--panel)); }
+.rpmode .rc.cur { opacity: 1; fill: var(--chg); stroke: var(--fg); stroke-width: 1.5; }
+.rlk.trail { stroke: var(--accent); stroke-opacity: .6; }
+.rlk.now { stroke: var(--chg); stroke-opacity: 1; stroke-width: 2.2; }
+#rp { margin-top: 10px; display: grid; gap: 8px; }
+.rpstep { font-size: 12.5px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-height: 3.2em; }
+.rpstep .call { font: 12px var(--mono); overflow-wrap: anywhere; }
+.rpstep .call b { color: var(--chg); font-weight: 600; }
+.rpstep .val { color: var(--accent); }
+.rpbox { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+#rptree { display: block; width: 100%; min-width: 560px; height: auto; }
+.rpb { cursor: pointer; fill: color-mix(in srgb, var(--accent) 18%, var(--panel)); stroke: var(--panel); }
+.rpb.vis { fill: color-mix(in srgb, var(--accent) 55%, var(--panel)); }
+.rpb.cur { fill: var(--chg); }
+.rpb:hover { stroke: var(--fg); }
+.rpt { font: 10px var(--mono); fill: var(--fg); pointer-events: none; }
+.rpaxis { font: 10.5px var(--sans); fill: var(--muted); }
+.rgbar input[list] { font: 12px var(--mono); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; width: min(420px, 100%); }
 svg.fade .ge.hl { stroke-opacity: .95; }
 @media (prefers-reduced-motion: no-preference) { svg .gn, svg .ge { transition: opacity .12s, stroke-opacity .12s; } }
 @media (prefers-reduced-motion: no-preference) { .cell { transition: background-color .15s, opacity .15s; } }
@@ -220,12 +240,13 @@ svg.fade .ge.hl { stroke-opacity: .95; }
     <section class="map" id="map">
       <div class="viewbar">
         <span class="depth" role="group" aria-label="View"><button data-view="map">Map</button><button data-view="graph">Graph</button></span>
-        <span class="depth" id="gsub" role="group" aria-label="Graph view" hidden><button data-gview="overview">Overview</button><button data-gview="neighborhood">Neighborhood</button><button data-gview="change">Change</button></span>
+        <span class="depth" id="gsub" role="group" aria-label="Graph view" hidden><button data-gview="overview">Overview</button><button data-gview="neighborhood">Neighborhood</button><button data-gview="replay">Test replay</button><button data-gview="change">Change</button></span>
         <div class="legend" id="legend"></div>
       </div>
       <div id="pkgs"></div>
       <div id="graph" class="gwrap" hidden></div>
-      <div id="rg" hidden><div class="rgbar" id="rgbar"></div><div class="rgbox" id="rgbox"></div></div>
+      <div id="rg" hidden><div class="rgbar" id="rgbar"></div><div class="rgbox" id="rgbox"></div>
+        <div id="rp" hidden><div class="rpstep" id="rpstep"></div><div class="rpbox"><svg id="rptree" role="img" aria-label="The test's calls as a tree: time runs left to right, each row is called by the row above"></svg></div></div></div>
     </section>
     <aside>
       <div class="card" id="examples-card" hidden></div>
@@ -732,7 +753,7 @@ $("#graph").addEventListener("focusin", e => { const g = e.target.closest(".gn")
 
 // ---------- readable graph: one cell per function, laid out by folder (or by coupling group) ----------
 // Overview: numbers from 'repomap graph metrics'. Neighborhood: one function, who calls it and what it calls.
-const GVIEWS = ["overview", "neighborhood", "change"];
+const GVIEWS = ["overview", "neighborhood", "replay", "change"];
 const SHADES = {references: "references", tests: "tests that run it", calls: "runtime calls"};
 const WINDOWS = [["12 months ago", "last 12 months"], ["24 months ago", "last 24 months"], ["5 years ago", "last 5 years"], ["all", "all history"]];
 const R = {data: null, asked: null, since: "12 months ago", shade: "references", lm: true, un: true, pace: false, links: false,
@@ -858,6 +879,8 @@ function styleReadable() {
   const X = R.data, svg = R.svg.node(), nbView = S.gview === "neighborhood";
   if (R.drawnLayout !== R.layout) placeCells(R.drawnLayout !== null);
   svg.classList.toggle("show-un", R.un); svg.classList.toggle("show-pace", R.pace && !nbView); svg.classList.toggle("hide-lm", !R.lm);
+  if (S.gview === "replay") return styleReplay();
+  svg.classList.remove("rpmode"); $("#rp").hidden = true;
   const me = nbView ? R.byIndex.get(S.sel) : null;
   const ins = new Set(), outs = new Set();
   if (me) for (const [a, b] of R.edges) { if (b === me) ins.add(a); if (a === me) outs.add(b); }
@@ -884,6 +907,7 @@ function styleReadable() {
 
 function readableLegend() {
   if (!R.data) return "";
+  if (S.gview === "replay") return `<span><i style="background:var(--chg)"></i>this step</span><span><i style="background:color-mix(in srgb, var(--accent) 55%, var(--panel))"></i>already called</span><span><i style="background:var(--empty)"></i>called later in this test</span><span>Lines follow each call from caller to callee. Click a bar in the tree to jump to that call</span>`;
   if (S.gview === "neighborhood") return `<span><i style="background:var(--fg)"></i>picked function</span><span><i style="background:var(--accent)"></i>calls it</span><span><i style="background:var(--l1)"></i>it calls</span><span><i style="border-top:2px dashed var(--muted);height:0;border-radius:0"></i>seen only in source</span>` +
     (R.un ? `<span><i style="background:var(--un-soft);border:1px dashed var(--un)"></i>no test runs it</span>` : "") + `<span>The panel on the right shows the values it saw</span>`;
   return `<span><i style="background:var(--heat)"></i>darker = more ${esc(SHADES[R.shade])}</span>` +
@@ -914,7 +938,107 @@ $("#rgbar").addEventListener("change", e => {
   else if (t.id === "rglinks") R.links = t.checked;
   else if (t.id === "rglayout") R.layout = t.value;
   else if (t.id === "rgsince") R.since = t.value;
+  else if (t.id === "rptest") { if (RP.tests && RP.tests.some(([name]) => name === t.value)) { stopPlay(); loadRun(t.value); } return; }
   saveR(); render();
+});
+
+// ---------- test replay: one test's calls in the order they ran, with the values that passed between them ----------
+const RP = {tests: null, test: null, run: null, step: 0, timer: null};
+const unitOf = k => pageKey(k.includes(".<locals>.") ? k.split(".<locals>.")[0] : k);
+const shortCall = k => short(unitOf(k)).split(".").slice(-2).join(".");
+const showVal = v => v ? (v.repr === null || v.repr === undefined ? `<${v.type}>` : v.repr) : "";
+
+async function loadTests() {
+  if (RP.tests) return;
+  RP.tests = live ? (await (await fetch("/api/replay")).json()) || [] :
+    Object.values(D.replay || {}).map(run => [run.test, run.steps, run.truncated]);
+  if (!RP.test && RP.tests.length) {  // start with the test that runs the most code
+    const best = [...RP.tests].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0][0];
+    await loadRun(best, true);
+  }
+  render();
+}
+async function loadRun(test, quiet) {
+  RP.test = test; RP.step = 0;
+  RP.run = live ? await (await fetch("/api/replay?test=" + encodeURIComponent(test))).json() : (D.replay || {})[test];
+  if (!quiet) render();
+}
+
+function styleReplay() {
+  const svg = R.svg.node();
+  svg.classList.remove("nbmode"); svg.classList.add("rpmode"); $("#rp").hidden = false;
+  if (!RP.tests) { loadTests(); $("#rgbar").innerHTML = `<span class="note">Loading the recorded tests…</span>`; return; }
+  if (!RP.tests.length) {
+    $("#rgbar").innerHTML = `<span class="note">${live || D.replay !== null ? "No call order was recorded. Run <code>repomap record</code> (with --steps above 0), then <code>repomap graph update</code>." : "This page was exported without test replays (too many recorded calls). Use <code>repomap serve</code> to replay tests."}</span>`;
+    $("#rpstep").innerHTML = ""; d3.select("#rptree").selectAll("*").remove(); return;
+  }
+  const rows = RP.run ? RP.run.rows : [], step = Math.min(RP.step, Math.max(rows.length - 1, 0));
+  const byUnit = k => R.byIndex.get(byKey.get(unitOf(k)));
+  const ran = new Set(rows.map(r => byUnit(r.function)).filter(Boolean));
+  const seen = new Set(rows.slice(0, step).map(r => byUnit(r.function)).filter(Boolean));
+  const now = rows.length ? byUnit(rows[step].function) : null;
+  R.cells.attr("class", d => `rc s0${d === now ? " cur" : seen.has(d) ? " vis" : ran.has(d) ? " run" : ""}${num(d.u, "tested") ? "" : " un"}`);
+  // the calls made so far, from caller to callee; the current one stands out
+  const links = [];
+  rows.slice(0, step + 1).forEach((r, k) => {
+    if (r.parent_seq === null || r.parent_seq === undefined) return;
+    const a = byUnit(rows[r.parent_seq].function), b = byUnit(r.function);
+    if (a && b && a !== b) links.push({a, b, cls: k === step ? "now" : "trail"});
+  });
+  R.linkLayer.selectAll("path").data(links).join("path").attr("class", d => `rlk ${d.cls}`).attr("d", d => curve(d.a, d.b));
+  const truncated = RP.run && RP.run.truncated;
+  $("#rgbar").innerHTML = `<label>Test <input id="rptest" list="rptests" value="${esc(RP.test || "")}" aria-label="Test to replay"></label>
+    <datalist id="rptests">${RP.tests.map(([name]) => `<option value="${esc(name)}">`).join("")}</datalist>
+    <span class="row"><button id="rpback" aria-label="Previous call">Back</button><button id="rpplay" class="primary">${RP.timer ? "Pause" : "Play"}</button><button id="rpnext" aria-label="Next call">Next</button></span>
+    <span class="note">call ${rows.length ? step + 1 : 0} of ${rows.length}${truncated ? " · recording stopped here (the cap on steps per test)" : ""}</span>`;
+  if (!rows.length) { $("#rpstep").innerHTML = `<span class="note">This test called nothing in the package.</span>`; d3.select("#rptree").selectAll("*").remove(); return; }
+  const r = rows[step], caller = r.parent_seq === null || r.parent_seq === undefined ? "the test" : shortCall(rows[r.parent_seq].function);
+  const args = Object.entries(r.args || {}).map(([name, v]) => `${esc(name)}=<span class="val">${esc(showVal(v))}</span>`).join(", ");
+  $("#rpstep").innerHTML = `<div class="call">${esc(caller)} → <b>${esc(shortCall(r.function))}</b>(${args})</div>
+    <div class="call">${r.raised ? `raised <span class="val">${esc(r.raised)}</span>` : `returned <span class="val">${esc(showVal(r.ret))}</span>`}</div>
+    <div class="note mono">${esc(r.function)}</div>`;
+  drawTree(rows, step);
+}
+
+function drawTree(rows, step) {
+  const kids = rows.map(() => []), roots = [];
+  rows.forEach((r, k) => (r.parent_seq === null || r.parent_seq === undefined ? roots : kids[r.parent_seq]).push(k));
+  const leaves = rows.map(() => 0);
+  for (let k = rows.length - 1; k >= 0; k--) leaves[k] = kids[k].length ? kids[k].reduce((s, c) => s + leaves[c], 0) : 1;
+  const depth = rows.map(r => r.depth), maxD = Math.max(1, ...depth), total = roots.reduce((s, k) => s + leaves[k], 0) || 1;
+  const W = 1000, RH = 20, top = 16, H = top + maxD * RH + 4, x0 = [];
+  let cur = 0;
+  for (const k of roots) { x0[k] = cur; cur += leaves[k]; }
+  rows.forEach((r, k) => { let c = x0[k]; for (const ch of kids[k]) { x0[ch] = c; c += leaves[ch]; } });
+  const sx = W / total, tree = d3.select("#rptree").attr("viewBox", `0 0 ${W} ${H}`);
+  tree.selectAll(".rpaxis").data([0]).join("text").attr("class", "rpaxis").attr("x", 0).attr("y", 11).text("time runs left to right · each row is called by the row above");
+  const g = tree.selectAll("g.bars").data([0]).join("g").attr("class", "bars");
+  const bars = g.selectAll("g.bar").data(rows.map((r, k) => ({r, k}))).join(enter => {
+    const e = enter.append("g").attr("class", "bar");
+    e.append("rect").attr("class", "rpb").on("click", (ev, d) => { stopPlay(); RP.step = d.k; render(); });
+    e.append("text").attr("class", "rpt");
+    e.append("title");
+    return e;
+  });
+  bars.select("rect").attr("x", d => x0[d.k] * sx).attr("y", d => top + (depth[d.k] - 1) * RH).attr("width", d => Math.max(leaves[d.k] * sx - 1, 1)).attr("height", RH - 2)
+    .attr("class", d => `rpb${d.k === step ? " cur" : d.k < step ? " vis" : ""}`);
+  bars.select("text").attr("x", d => x0[d.k] * sx + 3).attr("y", d => top + (depth[d.k] - 1) * RH + 13)
+    .text(d => { const w = leaves[d.k] * sx; return w > 34 ? shortCall(d.r.function).slice(0, Math.floor((w - 6) / 6)) : ""; });
+  bars.select("title").text(d => `${d.k + 1}. ${d.r.function}`);
+}
+
+function stopPlay() { if (RP.timer) { clearInterval(RP.timer); RP.timer = null; } }
+function stepBy(n) { const rows = RP.run ? RP.run.rows : []; RP.step = Math.max(0, Math.min(rows.length - 1, RP.step + n)); render(); }
+$("#rgbar").addEventListener("click", e => {
+  const id = e.target.id;
+  if (id === "rpback") { stopPlay(); stepBy(-1); }
+  else if (id === "rpnext") { stopPlay(); stepBy(1); }
+  else if (id === "rpplay") {
+    if (RP.timer) { stopPlay(); render(); return; }
+    if (RP.run && RP.step >= RP.run.rows.length - 1) RP.step = 0;
+    RP.timer = setInterval(() => { if (!RP.run || RP.step >= RP.run.rows.length - 1 || S.gview !== "replay") { stopPlay(); render(); } else stepBy(1); }, 650);
+    render();
+  }
 });
 
 boot();
