@@ -224,7 +224,9 @@ async function boot() {
   up = F.map(() => []); down = F.map(() => []);
   for (const [a, b] of D.edges) { up[b].push(a); down[a].push(b); }
   // with the code graph: arrows read only from source fill in code no test runs (drawn dashed, counted lower)
-  if (D.graph) for (const [a, b, kind] of D.graph.sedges) { up[b].push(a); down[a].push(b); ekind.set(a + ">" + b, kind); }
+  if (D.graph) for (const [src, dst, kind] of D.graph.sedges) {
+    up[dst].push(src); down[src].push(dst); ekind.set(src + ">" + dst, kind);
+  }
   pub = new Set(D.graph ? D.graph.public : []);
   S.stale = D.stale || [];
   $("#title").innerHTML = `Repo map <span>· ${esc(D.name)}</span>`;
@@ -289,11 +291,11 @@ function drawMap() {
   });
 }
 
-// confidence kept along an arrow followed backwards, as `impact --graph` scores it
-function weight(a, b) {
-  const g = D.graph, k = ekind.get(a + ">" + b);
-  if (!g) return 1;
-  return !k ? g.step : g.step * g.static * (k === "calls_by_name" ? g.guess : 1);
+// confidence kept along an arrow followed backwards, as 'impact --graph' scores it
+function weight(caller, callee) {
+  const graph = D.graph, kind = ekind.get(caller + ">" + callee);
+  if (!graph) return 1;
+  return !kind ? graph.step : graph.step * graph.static * (kind === "calls_by_name" ? graph.guess : 1);
 }
 function compute() {
   const targets = [...S.targets];
@@ -302,10 +304,10 @@ function compute() {
   for (let d = 0; d < S.depth && frontier.length; d++) {
     const nxt = [];
     for (const i of frontier) for (const c of up[i]) {
-      const s = conf.get(i) * weight(c, i);
-      if (D.graph && s < D.graph.cutoff) continue;
+      const strength = conf.get(i) * weight(c, i);
+      if (D.graph && strength < D.graph.cutoff) continue;
       if (!seen.has(c)) { seen.add(c); nxt.push(c); }
-      if (s > (conf.get(c) || 0)) conf.set(c, s);
+      if (strength > (conf.get(c) || 0)) conf.set(c, strength);
     }
     if (!nxt.length) break;
     layers.push(nxt); frontier = nxt;
