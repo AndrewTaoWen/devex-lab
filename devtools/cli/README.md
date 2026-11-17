@@ -72,7 +72,8 @@ The memory remembers the exact tree it traced (as a git commit under `refs/repom
 
 - **Map.** Every module is a box and every function a cell, shaded by how many tests run it. Hollow cells are functions no test runs.
 - **Impact.** The page opens on your uncommitted changes (the same diff `impact` uses). Changed functions turn orange, direct callers amber and callers of callers a lighter amber. The panel lists the callers by module, the tests that run the change, and a copyable pytest command. Shift-click any cell, or search for a function or `path.py:LINE`, to add it to the change and see what it would reach. A 1 to 4 control sets how far up the callers go.
-- **Graph.** The Graph tab draws the same change as a node-and-arrow graph: the changed functions in the middle, the test files that run them on the left (thicker links for more tests), and their callers level by level on the right, with arrows pointing from a function to its callers. Hovering a node traces everything it connects to, clicking inspects it and shift-click adds or removes it from the change. Wide columns are capped at 24 nodes plus a "+N more" node. On the shopkit examples, test files also show how many of their tests really broke.
+- **Graph.** The Graph tab has four views, described in [Readable graph views](#readable-graph-views) below: Overview, Neighborhood, Test replay, and Change.
+- **Change** (in the Graph tab) draws the same change as a node-and-arrow graph: the changed functions in the middle, the test files that run them on the left (thicker links for more tests), and their callers level by level on the right, with arrows pointing from a function to its callers. Hovering a node traces everything it connects to, clicking inspects it and shift-click adds or removes it from the change. Wide columns are capped at 24 nodes plus a "+N more" node. On the shopkit examples, test files also show how many of their tests really broke.
 - **Function.** Clicking a cell shows its callers and callees, its tests, and the argument and return values the suite actually passed, with gaps such as "never empty".
 
 The page reloads the memory when it changes, so a `refresh` in another terminal shows up on the next diff. `serve --export map.html` writes the same page as one self-contained file with the current changes baked in. [Werkzeug Repo Map](https://claude.ai/artifact/RVd9ak5h1iP4Zhkck5CoPc) is such an export, with a one-line edit to `Range.range_for_length` as the uncommitted change.
@@ -193,6 +194,45 @@ The code graph (`repomap graph update`, `repomap impact --graph`) was built on w
 - So the caller list is a fair "who could break" list for a reviewer, but it is not where most of a bug's effects travel. Most of them go through data: the bad value is stored, returned in an object, and read later.
 - The per-test call order and values (`calls.json`) already show where each value goes next. Data-flow arrows built from them ("this function's result was later passed to that one") are the natural next step, and they are the "values travelling between parts" view the readable-graphs work wants to show.
 
+## Readable graph views
+
+A graph of who calls whom is correct but hard for a person to read. These views borrow what makes a city learnable: one relationship per picture, places that stay put, fast and slow layers, landmarks, and different ways of moving around. The proposal and the decisions behind them are in [Readable Code Graphs](https://claude.ai/artifact/BVT2bQ8wNkyhnU8KksTMNy). They need the code graph (`repomap graph update`) and are drawn with d3, which ships inside the package so the page works offline.
+
+In `repomap serve`, open **Graph**:
+
+- **Overview.** Every function is a cell, laid out by folder and file. The layout depends only on which functions exist, so a cell stays in place while its code changes. Shade the cells by references, by the tests that run them, or by runtime calls. Layers you can turn on: **landmarks** (labelled at every zoom), **untested code** (red and dashed), **calls between functions**, and **fast and slow parts** (changed often, or many dependents and unchanged). **History** sets the git window: the last 12 months by default, longer, or all of it. Switch **Layout** to **Coupling groups** to regroup the cells by which code calls which, across folders. Scroll to zoom and drag to pan.
+- **Neighborhood.** Click a function to light the functions that call it and the ones it calls, with a line for each call. The panel shows the values it really saw.
+- **Test replay.** Pick a test and press Play (or Next) to step through its calls in the order they ran. The map lights each call and draws a line from caller to callee. A box shows the arguments passed and the value returned, or the exception raised. A call tree below shows the whole run, with time left to right and depth downward. Click a bar to jump to that call. A test cut off by the `--steps` cap says so.
+- **Change.** The change graph described above.
+
+The same numbers are available on the command line:
+
+```
+repomap graph metrics [KEY] [--since "24 months ago" | --all] [--sort reach|references|dependents|tests|calls|changes] [--json]
+repomap graph landmarks [--json]
+repomap graph groups [--json]
+```
+
+- **references:** distinct functions that call it, plus tests that call it directly.
+- **dependents:** functions that reach it through any chain of calls.
+- **reach:** distinct functions that run underneath it in the recorded tests. This is how landmarks are ranked, so pipelines (a request dispatcher, `receipt` in shopkit) beat helpers that everything calls (`round_cents`). Functions that tests or package users call directly get a 1.5x boost. Code no test runs falls back to the arrows read from source.
+- **tests**, **calls:** tests that run it, and how often the traced suite called it.
+- **changes:** commits in the git window that edited its lines, matched by function name at each commit, so it survives line shifts.
+- **pace:** `fast` if changed 2+ times in the window. `slow` if unchanged and its dependents are in the top quarter (at least 3). `ordinary` otherwise.
+
+Landmarks can be overridden in `.repomap/landmarks.toml`:
+
+```toml
+count  = 8                          # default: 1 per 100 functions, between 5 and 10
+pin    = ["werkzeug/routing/map.py:MapAdapter.match"]   # always first, in this order
+add    = ["werkzeug/serving.py:run_simple"]             # always included, ranked with the rest
+remove = ["werkzeug/_internal.py:_wsgi_encoding_dance"] # never a landmark
+```
+
+Coupling groups come from greedy modularity merging (Clauset, Newman and Moore) over the call arrows. It is deterministic, and functions with no calls in or out stay grouped with their file.
+
+Whether these views actually help a newcomer is the [five-question check](werkzeug/readable-check.md): five werkzeug questions answered with the views and with plain code search.
+
 ## Call order and values per test
 
 `record` also saves every package call each test made, in order, to `.repomap/calls.json`. Each row has the function, how deep it was nested, which call made it, a short `repr` of its arguments and return value, and the exception that left it, if any. This lets a test be replayed step by step, from its input to the final result. The code graph (`src/repomap/graph.py`, `.repomap/graph.db`) loads these rows into `test_calls` and `test_runs`.
@@ -209,11 +249,16 @@ The code graph (`repomap graph update`, `repomap impact --graph`) was built on w
   - `static.py`: dots and arrows read from source (calls, imports, subclasses), the code graph's fallback layer.
   - `recompute.py`: when an update re-traces only changed files' tests and when it re-traces everything.
   - `graph.py`: the code graph in `.repomap/graph.db`: traced arrows as truth, static arrows for untested code, roll-ups, per-test call order.
+  - `graphmetrics.py`: per-function references, dependents, reach, tests, calls, git changes and pace (`repomap graph metrics`).
+  - `landmarks.py`, `coupling.py`: landmarks ranked by reach with the `.repomap/landmarks.toml` override, and coupling groups.
+  - `readable.py`: the readable Graph views' layouts (folders, and coupling groups) and per-cell numbers.
+  - `static/d3.min.js`: d3 7.9.0 (ISC licence, `static/d3-LICENSE.txt`), bundled so the page works offline. Exported pages inline it.
   - `mcp_server.py`: `repomap-mcp`.
   - `ui.html`: the page `serve` shows.
   - `_plugin/repomap_trace.py`: the pytest plugin (`-p repomap_trace`, with `REPOMAP_ROOT`, `REPOMAP_OUT` and optional `REPOMAP_EDGES=1`). Only this directory goes on the traced interpreter's path.
 - `repomap.py`, `query.py`: run the package from the checkout without installing it.
-- `tests/`: CLI `--json` and MCP server tests on the shopkit example (`python -m pytest devtools/cli/tests`).
+- `tests/`: CLI, graph, page and MCP server tests on the shopkit example (`python -m pytest devtools/cli/tests`). `tests/page_check.js` drives the page in a headless browser and is skipped when node and Playwright aren't installed.
+- `werkzeug/readable-check.md`: the five-question check for the readable views.
 - `mutbench.py`: the mutation benchmark; `werkzeug/mutbench.json` and `werkzeug/mutbench-score.txt`: its faults, broken tests and scores.
 - `graphbench.py`: scorecard for `impact --graph`: injects faults, re-traces with values to find which functions really behaved differently, and scores the graph's downstream list and test ranking against that.
 - `werkzeug/graphbench.json`, `werkzeug/graphbench-score.txt`: the 40 faults with the functions that really behaved differently, and the code graph's scores.
@@ -226,5 +271,6 @@ The code graph (`repomap graph update`, `repomap impact --graph`) was built on w
 ## Next
 
 - **A/B on hardening.** Give agents `query.py` (the gaps and value summaries) on the held-out repos and score them with future tests, as in [`reward-bench/experiments/04-ab-test/`](../../reward-bench/experiments/04-ab-test/README.md).
-- **Pieces by clustering.** Group functions that the same tests run together, instead of grouping by module, and check whether later upstream commits stay inside one cluster.
+- **Pieces by clustering.** Coupling groups now cluster by calls. Still to check: whether later upstream commits stay inside one group, and whether "changes together" groups (from git) would fit better.
+- **More readable views.** These are planned as later stacks: the path between two functions, a change shown on the readable layout, a reading order for a first week, and views for reviewers and agents.
 - **Patch impact for agents.** Show an agent's own patch in the viewer before it commits, so a reviewer sees what it reaches.
