@@ -12,7 +12,7 @@ Arrow kinds:
   imports        module -> module, for imports inside the package
   inherits       class -> base class, for bases inside the package
 Bare names that bind to nothing known, and method names defined more than once in the package, go to
-`unresolved` so a later step can decide. Method calls whose name the package never defines (str.join, other
+'unresolved' so a later step can decide. Method calls whose name the package never defines (str.join, other
 libraries) are dropped.
 
 Usage: python -m repomap.static src/pkg   (prints JSON)
@@ -22,6 +22,7 @@ from pathlib import Path
 
 MODULE_LEVEL = "<module>"  # the tracer's key for module-level code (code.co_qualname)
 BUILTINS = set(dir(builtins))
+FUNCTION_NODES = (ast.FunctionDef, ast.AsyncFunctionDef)
 
 
 def module_name(rel):
@@ -39,196 +40,203 @@ class Module:
         self.defs = {}      # top-level name -> qualname (function or class)
         self.classes = {}   # class qualname -> {"methods": {name: qualname}, "bases": [ast expr], "node": node}
         self.imports = {}   # local name -> ("module", modname) or ("name", modname, attr)
-        for n in tree.body:
-            self._top(n)
+        for statement in tree.body:
+            self._top(statement)
 
-    def _top(self, n):
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            self.defs[n.name] = n.name
-        elif isinstance(n, ast.ClassDef):
-            self.defs[n.name] = n.name
-            self._class(n, n.name)
-        elif isinstance(n, ast.Import):
-            for a in n.names:
-                if a.asname:
-                    self.imports[a.asname] = ("module", a.name)
-                else:  # `import a.b` binds `a`
-                    top = a.name.split(".")[0]
+    def _top(self, statement):
+        if isinstance(statement, FUNCTION_NODES):
+            self.defs[statement.name] = statement.name
+        elif isinstance(statement, ast.ClassDef):
+            self.defs[statement.name] = statement.name
+            self._class(statement, statement.name)
+        elif isinstance(statement, ast.Import):
+            for alias in statement.names:
+                if alias.asname:
+                    self.imports[alias.asname] = ("module", alias.name)
+                else:  # 'import a.b' binds 'a'
+                    top = alias.name.split(".")[0]
                     self.imports[top] = ("module", top)
-        elif isinstance(n, ast.ImportFrom):
-            base = self.resolve_from(n)
-            for a in n.names:
-                if a.name != "*":
-                    self.imports[a.asname or a.name] = ("name", base, a.name)
-        elif isinstance(n, (ast.If, ast.Try)):  # `if TYPE_CHECKING:` / `try: import x` blocks still bind names
-            for c in ast.iter_child_nodes(n):
-                if isinstance(c, ast.stmt):
-                    self._top(c)
+        elif isinstance(statement, ast.ImportFrom):
+            source = self.resolve_from(statement)
+            for alias in statement.names:
+                if alias.name != "*":
+                    self.imports[alias.asname or alias.name] = ("name", source, alias.name)
+        elif isinstance(statement, (ast.If, ast.Try)):  # 'if TYPE_CHECKING:' / 'try: import x' blocks bind names
+            for child in ast.iter_child_nodes(statement):
+                if isinstance(child, ast.stmt):
+                    self._top(child)
 
-    def _class(self, n, q):
-        info = self.classes[q] = {"methods": {}, "bases": n.bases, "node": n}
-        for c in n.body:
-            if isinstance(c, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                info["methods"][c.name] = f"{q}.{c.name}"
-            elif isinstance(c, ast.ClassDef):
-                self._class(c, f"{q}.{c.name}")
+    def _class(self, class_node, qualname):
+        info = self.classes[qualname] = {"methods": {}, "bases": class_node.bases, "node": class_node}
+        for member in class_node.body:
+            if isinstance(member, FUNCTION_NODES):
+                info["methods"][member.name] = f"{qualname}.{member.name}"
+            elif isinstance(member, ast.ClassDef):
+                self._class(member, f"{qualname}.{member.name}")
 
-    def resolve_from(self, n):
-        if not n.level:
-            return n.module or ""
+    def resolve_from(self, import_node):
+        """The absolute module name a 'from ... import' reads from, resolving leading dots."""
+        if not import_node.level:
+            return import_node.module or ""
         parts = self.name.split(".")
         if not self.is_pkg:
             parts = parts[:-1]
-        parts = parts[:len(parts) - (n.level - 1)] if n.level > 1 else parts
-        return ".".join(parts + ([n.module] if n.module else []))
+        if import_node.level > 1:
+            parts = parts[:len(parts) - (import_node.level - 1)]
+        return ".".join(parts + ([import_node.module] if import_node.module else []))
 
 
 class Package:
-    """All modules of one package, parsed once, with cross-module name resolution."""
+    """All modules of one package, parsed once, with cross-module name resolution.
+
+    A binding is what a name means: ('def', module, qualname) for a function or class, ('module', modname) for a
+    module, or None when it is not part of the package.
+    """
 
     def __init__(self, root):
         root = Path(root).resolve()
         self.base = root.parent
         self.modules = {}   # modname -> Module
         self.errors = []
-        for p in sorted(root.rglob("*.py")):
-            if "__pycache__" in p.parts:
+        for path in sorted(root.rglob("*.py")):
+            if "__pycache__" in path.parts:
                 continue
-            rel = p.relative_to(self.base).as_posix()
+            rel = path.relative_to(self.base).as_posix()
             try:
-                tree = ast.parse(p.read_text(encoding="utf-8", errors="replace"), filename=rel)
+                tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"), filename=rel)
             except SyntaxError as e:
                 self.errors.append(f"{rel}: {e.msg} (line {e.lineno})")
                 continue
-            m = Module(rel, tree)
-            self.modules[m.name] = m
-        # method name -> every key that defines it, for the calls_by_name guess
+            module = Module(rel, tree)
+            self.modules[module.name] = module
+        # function or method name -> every key that defines it, for the calls_by_name guess
         self.by_name = {}
-        for m in self.modules.values():
-            for name, q in m.defs.items():
-                if q not in m.classes:
-                    self.by_name.setdefault(name, set()).add(f"{m.rel}:{q}")
-            for c in m.classes.values():
-                for name, q in c["methods"].items():
-                    self.by_name.setdefault(name, set()).add(f"{m.rel}:{q}")
+        for module in self.modules.values():
+            for name, qualname in module.defs.items():
+                if qualname not in module.classes:
+                    self.by_name.setdefault(name, set()).add(f"{module.rel}:{qualname}")
+            for info in module.classes.values():
+                for name, qualname in info["methods"].items():
+                    self.by_name.setdefault(name, set()).add(f"{module.rel}:{qualname}")
 
     # name resolution ------------------------------------------------------------------------------------------
 
     def lookup(self, modname, attr, seen=None):
-        """What `modname.attr` is, following re-exports: ('def', module, qualname) | ('module', modname) | None."""
+        """The binding of 'modname.attr', following re-exports from one module to another."""
         seen = seen or set()
         if (modname, attr) in seen:
             return None
         seen.add((modname, attr))
-        m = self.modules.get(modname)
-        if m is None:
-            sub = f"{modname}.{attr}"
-            return ("module", sub) if sub in self.modules else None
-        if attr in m.defs:
-            return ("def", m, m.defs[attr])
-        if attr in m.imports:
-            return self.binding(m, attr, seen)
-        sub = f"{modname}.{attr}"
-        return ("module", sub) if sub in self.modules else None
+        module = self.modules.get(modname)
+        if module is None:
+            submodule = f"{modname}.{attr}"
+            return ("module", submodule) if submodule in self.modules else None
+        if attr in module.defs:
+            return ("def", module, module.defs[attr])
+        if attr in module.imports:
+            return self.binding(module, attr, seen)
+        submodule = f"{modname}.{attr}"
+        return ("module", submodule) if submodule in self.modules else None
 
-    def binding(self, m, name, seen=None):
-        """What a bare name means at the top level of module m."""
-        if name in m.defs:
-            return ("def", m, m.defs[name])
-        imp = m.imports.get(name)
-        if imp is None:
+    def binding(self, module, name, seen=None):
+        """The binding of a bare name at the top level of a module."""
+        if name in module.defs:
+            return ("def", module, module.defs[name])
+        imported = module.imports.get(name)
+        if imported is None:
             return None
-        if imp[0] == "module":
-            return ("module", imp[1]) if imp[1] in self.modules else None
-        return self.lookup(imp[1], imp[2], seen)
+        if imported[0] == "module":
+            return ("module", imported[1]) if imported[1] in self.modules else None
+        _, source, attr = imported
+        return self.lookup(source, attr, seen)
 
-    def class_of(self, m, expr):
+    def class_of(self, module, expr):
         """A base-class expression -> (module, class qualname) inside the package, or None."""
         if isinstance(expr, ast.Name):
-            b = self.binding(m, expr.id)
+            bound = self.binding(module, expr.id)
         elif isinstance(expr, ast.Attribute) and isinstance(expr.value, ast.Name):
-            b = self.binding(m, expr.value.id)
-            b = self.lookup(b[1], expr.attr) if b and b[0] == "module" else None
+            bound = self.binding(module, expr.value.id)
+            bound = self.lookup(bound[1], expr.attr) if bound and bound[0] == "module" else None
         else:
             return None
-        if b and b[0] == "def" and b[2] in b[1].classes:
-            return b[1], b[2]
+        if bound and bound[0] == "def" and bound[2] in bound[1].classes:
+            return bound[1], bound[2]
         return None
 
-    def method(self, m, cls, name, depth=0):
-        """Find `name` on class cls of module m or its in-package bases (method resolution, left to right)."""
+    def method(self, module, class_qualname, name, depth=0):
+        """Find 'name' on a class or its in-package bases (method resolution, left to right)."""
         if depth > 20:
             return None
-        info = m.classes.get(cls)
+        info = module.classes.get(class_qualname)
         if info is None:
             return None
         if name in info["methods"]:
-            return f"{m.rel}:{info['methods'][name]}"
-        for b in info["bases"]:
-            found = self.class_of(m, b)
-            if found:
-                k = self.method(found[0], found[1], name, depth + 1)
-                if k:
-                    return k
+            return f"{module.rel}:{info['methods'][name]}"
+        for base_expr in info["bases"]:
+            base = self.class_of(module, base_expr)
+            if base:
+                found = self.method(base[0], base[1], name, depth + 1)
+                if found:
+                    return found
         return None
 
-    def callable_key(self, b):
+    def callable_key(self, bound):
         """A binding that is called -> the key of the code that runs (a class runs its __init__)."""
-        if not b or b[0] != "def":
+        if not bound or bound[0] != "def":
             return None
-        m, q = b[1], b[2]
-        if q in m.classes:
-            return self.method(m, q, "__init__")
-        return f"{m.rel}:{q}"
+        _, module, qualname = bound
+        if qualname in module.classes:
+            return self.method(module, qualname, "__init__")
+        return f"{module.rel}:{qualname}"
 
     # extraction -----------------------------------------------------------------------------------------------
 
     def extract(self, files=None):
         """Dots and arrows for every module, or only for the given relative paths (for per-file updates)."""
         dots, arrows, unresolved = [], set(), set()
-        for m in self.modules.values():
-            if files is not None and m.rel not in files:
+        for module in self.modules.values():
+            if files is not None and module.rel not in files:
                 continue
-            Walker(self, m, dots, arrows, unresolved).run()
+            Walker(self, module, dots, arrows, unresolved).run()
         return {"dots": dots, "arrows": sorted(arrows), "unresolved": sorted(unresolved), "errors": self.errors}
 
 
 class Walker:
     """Walk one module: record its dots, and an arrow for every call, import and base class it contains."""
 
-    def __init__(self, pkg, m, dots, arrows, unresolved):
-        self.pkg, self.m, self.dots, self.arrows, self.unresolved = pkg, m, dots, arrows, unresolved
+    def __init__(self, pkg, module, dots, arrows, unresolved):
+        self.pkg, self.module, self.dots, self.arrows, self.unresolved = pkg, module, dots, arrows, unresolved
         self.inline = set()
 
-    def key(self, q):
-        return f"{self.m.rel}:{q}"
+    def key(self, qualname):
+        return f"{self.module.rel}:{qualname}"
 
     def run(self):
-        m = self.m
-        self.dots.append({"key": m.rel, "kind": "module", "parent": None, "start": 1,
-                          "end": max([getattr(n, "end_lineno", 1) or 1 for n in m.tree.body] or [1])})
-        self.dots.append({"key": self.key(MODULE_LEVEL), "kind": "module_level", "parent": m.rel, "start": 1,
+        module = self.module
+        last_line = max([getattr(s, "end_lineno", 1) or 1 for s in module.tree.body] or [1])
+        self.dots.append({"key": module.rel, "kind": "module", "parent": None, "start": 1, "end": last_line})
+        self.dots.append({"key": self.key(MODULE_LEVEL), "kind": "module_level", "parent": module.rel, "start": 1,
                           "end": 1})
-        for n in ast.walk(m.tree):
-            if isinstance(n, ast.Import):
-                for a in n.names:
-                    self.import_arrow(a.name)
-            elif isinstance(n, ast.ImportFrom):
-                base = m.resolve_from(n)
-                for a in n.names:
-                    sub = f"{base}.{a.name}"
-                    self.import_arrow(sub if sub in self.pkg.modules else base)
-        self.body(m.tree.body, prefix="", owner=self.key(MODULE_LEVEL), cls=None, parent=m.rel)
+        for node in ast.walk(module.tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    self.import_arrow(alias.name)
+            elif isinstance(node, ast.ImportFrom):
+                source = module.resolve_from(node)
+                for alias in node.names:
+                    submodule = f"{source}.{alias.name}"
+                    self.import_arrow(submodule if submodule in self.pkg.modules else source)
+        self.body(module.tree.body, prefix="", owner=self.key(MODULE_LEVEL), cls=None, parent=module.rel)
 
     def import_arrow(self, modname):
-        # `import pkg.sub.mod` depends on the deepest module that exists in the package
+        # 'import pkg.sub.mod' depends on the deepest module that exists in the package
         parts = modname.split(".")
         while parts and ".".join(parts) not in self.pkg.modules:
             parts.pop()
-        if parts and ".".join(parts) != self.m.name:
-            self.arrows.add((self.m.rel, self.pkg.modules[".".join(parts)].rel, "imports"))
+        if parts and ".".join(parts) != self.module.name:
+            self.arrows.add((self.module.rel, self.pkg.modules[".".join(parts)].rel, "imports"))
 
-    def body(self, stmts, prefix, owner, cls, parent, local=None):
+    def body(self, statements, prefix, owner, cls, parent, local=None):
         """Statements at one scope. Nested defs and classes get their own dots; other code belongs to owner.
 
         prefix is the qualname prefix for things defined here ("f.<locals>.", "C.", or "" at module level), so keys
@@ -236,98 +244,104 @@ class Walker:
         """
         local = dict(local or {})
         if prefix.endswith(".<locals>."):  # a function scope: its own nested defs are callable by bare name
-            for n in stmts:
-                if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    local[n.name] = self.key(prefix + n.name)
-        for n in stmts:
-            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                q = f"{prefix}{n.name}"
-                k = self.key(q)
-                start = min([n.lineno] + [d.lineno for d in n.decorator_list])
-                self.dots.append({"key": k, "kind": "function", "parent": parent, "start": start,
-                                  "end": n.end_lineno})
-                for d in n.decorator_list + [a for a in (n.args.defaults + n.args.kw_defaults) if a]:
-                    self.calls(d, owner, cls, prefix, parent, local)  # these run in the enclosing scope
-                self.body(n.body, f"{q}.<locals>.", k, cls, k, local)
-            elif isinstance(n, ast.ClassDef):
-                q = f"{prefix}{n.name}"
-                k = self.key(q)
-                self.dots.append({"key": k, "kind": "class", "parent": parent, "start": n.lineno,
-                                  "end": n.end_lineno})
-                for b in n.bases:
-                    found = self.pkg.class_of(self.m, b)
-                    if found:
-                        self.arrows.add((k, f"{found[0].rel}:{found[1]}", "inherits"))
-                for d in n.decorator_list + n.bases + [kw.value for kw in n.keywords]:
-                    self.calls(d, owner, cls, prefix, parent, local)
+            for statement in statements:
+                if isinstance(statement, FUNCTION_NODES):
+                    local[statement.name] = self.key(prefix + statement.name)
+        for statement in statements:
+            if isinstance(statement, FUNCTION_NODES):
+                qualname = f"{prefix}{statement.name}"
+                dot_key = self.key(qualname)
+                start = min([statement.lineno] + [dec.lineno for dec in statement.decorator_list])
+                self.dots.append({"key": dot_key, "kind": "function", "parent": parent, "start": start,
+                                  "end": statement.end_lineno})
+                args = statement.args
+                defaults = [default for default in args.defaults + args.kw_defaults if default]
+                for expr in statement.decorator_list + defaults:
+                    self.calls(expr, owner, cls, prefix, parent, local)  # these run in the enclosing scope
+                self.body(statement.body, f"{qualname}.<locals>.", dot_key, cls, dot_key, local)
+            elif isinstance(statement, ast.ClassDef):
+                qualname = f"{prefix}{statement.name}"
+                dot_key = self.key(qualname)
+                self.dots.append({"key": dot_key, "kind": "class", "parent": parent, "start": statement.lineno,
+                                  "end": statement.end_lineno})
+                for base_expr in statement.bases:
+                    base = self.pkg.class_of(self.module, base_expr)
+                    if base:
+                        self.arrows.add((dot_key, f"{base[0].rel}:{base[1]}", "inherits"))
+                keywords = [kw.value for kw in statement.keywords]
+                for expr in statement.decorator_list + statement.bases + keywords:
+                    self.calls(expr, owner, cls, prefix, parent, local)
                 # the class body runs as its own code object (key = the class), once, when the class is defined
-                self.arrows.add((owner, k, "calls"))
-                self.body(n.body, f"{q}.", k, q if q in self.m.classes else None, k, local)
+                self.arrows.add((owner, dot_key, "calls"))
+                body_cls = qualname if qualname in self.module.classes else None
+                self.body(statement.body, f"{qualname}.", dot_key, body_cls, dot_key, local)
             else:
-                self.calls(n, owner, cls, prefix, parent, local)
+                self.calls(statement, owner, cls, prefix, parent, local)
 
-    def calls(self, node, owner, cls, prefix, parent, local):
-        """Every call in node -> arrows from owner. Lambdas and generator expressions are their own code objects
+    def calls(self, root, owner, cls, prefix, parent, local):
+        """Every call under root -> arrows from owner. Lambdas and generator expressions are their own code objects
         at runtime (key "...<locals>.<genexpr>"), so they get a dot and the calls inside them start from it."""
-        stack = [node]
+        stack = [root]
         while stack:
-            n = stack.pop()
-            if isinstance(n, (ast.Lambda, ast.GeneratorExp)):
-                q = f"{prefix}{'<lambda>' if isinstance(n, ast.Lambda) else '<genexpr>'}"
-                k = self.key(q)
-                if k not in self.inline:  # several genexprs in one function share a key, as they do at runtime
-                    self.inline.add(k)
-                    self.dots.append({"key": k, "kind": "function", "parent": parent, "start": n.lineno,
-                                      "end": n.end_lineno})
-                self.arrows.add((owner, k, "calls"))
-                inner = f"{q}.<locals>."
-                if isinstance(n, ast.Lambda):
-                    for d in n.args.defaults + [a for a in n.args.kw_defaults if a]:
-                        stack.append(d)
-                    self.calls(n.body, k, cls, inner, k, local)
+            node = stack.pop()
+            if isinstance(node, (ast.Lambda, ast.GeneratorExp)):
+                qualname = f"{prefix}{'<lambda>' if isinstance(node, ast.Lambda) else '<genexpr>'}"
+                inline_key = self.key(qualname)
+                if inline_key not in self.inline:  # several genexprs in one function share a key, as at runtime
+                    self.inline.add(inline_key)
+                    self.dots.append({"key": inline_key, "kind": "function", "parent": parent,
+                                      "start": node.lineno, "end": node.end_lineno})
+                self.arrows.add((owner, inline_key, "calls"))
+                inner_prefix = f"{qualname}.<locals>."
+                if isinstance(node, ast.Lambda):
+                    stack.extend(default for default in node.args.defaults + node.args.kw_defaults if default)
+                    self.calls(node.body, inline_key, cls, inner_prefix, inline_key, local)
                 else:
                     # the first iterable is evaluated in the enclosing scope, the rest inside the generator
-                    stack.append(n.generators[0].iter)
-                    rest = [n.elt] + [x for i, g in enumerate(n.generators)
-                                      for x in ([g.iter] if i else []) + g.ifs]
-                    for x in rest:
-                        self.calls(x, k, cls, inner, k, local)
+                    stack.append(node.generators[0].iter)
+                    inside = [node.elt]
+                    for i, comp in enumerate(node.generators):
+                        inside += ([comp.iter] if i else []) + comp.ifs
+                    for expr in inside:
+                        self.calls(expr, inline_key, cls, inner_prefix, inline_key, local)
                 continue
-            if isinstance(n, ast.Call):
-                self.call(n, owner, cls, local)
-            elif isinstance(n, ast.Compare) and any(isinstance(o, (ast.In, ast.NotIn)) for o in n.ops):
-                self.guess(owner, "__contains__")  # `x in obj` runs obj.__contains__ when the package defines one
-            stack.extend(ast.iter_child_nodes(n))
+            if isinstance(node, ast.Call):
+                self.call(node, owner, cls, local)
+            elif isinstance(node, ast.Compare) and any(isinstance(op, (ast.In, ast.NotIn)) for op in node.ops):
+                self.guess(owner, "__contains__")  # 'x in obj' runs obj.__contains__ when the package defines one
+            stack.extend(ast.iter_child_nodes(node))
 
-    def call(self, n, owner, cls, local):
-        f = n.func
+    def call(self, call_node, owner, cls, local):
+        func = call_node.func
         target = None
-        if isinstance(f, ast.Name):
-            if f.id in local:
-                target = local[f.id]
+        if isinstance(func, ast.Name):
+            if func.id in local:
+                target = local[func.id]
             else:
-                target = self.pkg.callable_key(self.pkg.binding(self.m, f.id))
-            if target is None and f.id not in BUILTINS and f.id not in self.m.imports:  # imports: other libraries
-                self.unresolved.add((owner, f.id))
+                target = self.pkg.callable_key(self.pkg.binding(self.module, func.id))
+            imported = func.id in self.module.imports  # imported but not from the package: another library
+            if target is None and func.id not in BUILTINS and not imported:
+                self.unresolved.add((owner, func.id))
             if target:
                 self.arrows.add((owner, target, "calls"))
             return
-        if not isinstance(f, ast.Attribute):
+        if not isinstance(func, ast.Attribute):
             return
-        v, attr = f.value, f.attr
-        if isinstance(v, ast.Name) and v.id in ("self", "cls") and cls:
-            target = self.pkg.method(self.m, cls, attr)
-        elif isinstance(v, ast.Call) and isinstance(v.func, ast.Name) and v.func.id == "super" and cls:
-            for b in self.m.classes[cls]["bases"]:
-                found = self.pkg.class_of(self.m, b)
-                if found and (target := self.pkg.method(found[0], found[1], attr)):
+        receiver, attr = func.value, func.attr
+        if isinstance(receiver, ast.Name) and receiver.id in ("self", "cls") and cls:
+            target = self.pkg.method(self.module, cls, attr)
+        elif (isinstance(receiver, ast.Call) and isinstance(receiver.func, ast.Name)
+              and receiver.func.id == "super" and cls):
+            for base_expr in self.module.classes[cls]["bases"]:
+                base = self.pkg.class_of(self.module, base_expr)
+                if base and (target := self.pkg.method(base[0], base[1], attr)):
                     break
-        elif isinstance(v, ast.Name):
-            b = self.pkg.binding(self.m, v.id)
-            if b and b[0] == "module":
-                target = self.pkg.callable_key(self.pkg.lookup(b[1], attr))
-            elif b and b[0] == "def" and b[2] in b[1].classes:  # Class.method(...) or Class.classmethod(...)
-                target = self.pkg.method(b[1], b[2], attr)
+        elif isinstance(receiver, ast.Name):
+            bound = self.pkg.binding(self.module, receiver.id)
+            if bound and bound[0] == "module":
+                target = self.pkg.callable_key(self.pkg.lookup(bound[1], attr))
+            elif bound and bound[0] == "def" and bound[2] in bound[1].classes:  # Class.method(...)
+                target = self.pkg.method(bound[1], bound[2], attr)
         if target:
             self.arrows.add((owner, target, "calls"))
             return
