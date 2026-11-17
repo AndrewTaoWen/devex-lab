@@ -643,14 +643,14 @@ def graph_show(args):
 
 # ---------- serve ----------
 
-def cell(fidx, k):
+def cell(fidx, key):
     """A traced or graph key -> its cell on the page: module code is the module cell, and nested code objects
     (genexprs, lambdas, inner functions) roll into the function that holds them, so calls made through a
     generator expression still connect caller and callee."""
-    k = k.replace(":<module>", ":<module level>")
-    while k not in fidx and ".<locals>." in k:
-        k = k.rsplit(".<locals>.", 1)[0]
-    return fidx.get(k)
+    key = key.replace(":<module>", ":<module level>")
+    while key not in fidx and ".<locals>." in key:
+        key = key.rsplit(".<locals>.", 1)[0]
+    return fidx.get(key)
 
 
 def ui_data(m):
@@ -679,8 +679,9 @@ def ui_data(m):
     for k, f in m["functions"].items():
         if k in fidx:
             vals[fidx[k]] = {"calls": f["calls"], "args": f["args"], "returns": f["returns"], "raises": f["raises"]}
-    edges = sorted({(i, j) for a, b in m["edges"] for i, j in [(cell(fidx, a), cell(fidx, b))]
-                    if i is not None and j is not None and i != j})
+    edges = sorted({(caller_cell, callee_cell) for caller, callee in m["edges"]
+                    for caller_cell, callee_cell in [(cell(fidx, caller), cell(fidx, callee))]
+                    if caller_cell is not None and callee_cell is not None and caller_cell != callee_cell})
     stale = sorted(f for f, h in m["hashes"].items() if file_hash(f) != h)
     return dict(name=Path.cwd().name, package=m["package"], tests_dir=m["tests"], python=m["python"],
                 commit=(m.get("commit") or "")[:10], recorded=m.get("recorded"),
@@ -692,19 +693,20 @@ def ui_data(m):
 def ui_graph(fidx):
     """What the code graph adds to the page, if .repomap/graph.db exists: the source-only arrows impact uses
     (for code no test runs), which functions are public, and the confidence weights, so the page can score
-    a change the same way `impact --graph` does."""
+    a change the same way 'impact --graph' does."""
     from . import graph
     if not graph.DB.exists():
         return None
     db = graph.connect()
 
-    sedges = set()
-    for a, b, kind in db.execute("SELECT src, dst, kind FROM effective_arrows WHERE source = 'static' AND kind IN "
-                                 "('calls', 'calls_by_name', 'inherits')"):
-        i, j = cell(fidx, a), cell(fidx, b)
-        if i is not None and j is not None and i != j:
-            sedges.add((i, j, kind))
-    return dict(sedges=sorted(sedges), public=sorted(i for k, i in fidx.items() if graph.is_public(k)),
+    static_edges = set()
+    for src, dst, kind in db.execute("SELECT src, dst, kind FROM effective_arrows WHERE source = 'static' AND kind IN "
+                                     "('calls', 'calls_by_name', 'inherits')"):
+        src_cell, dst_cell = cell(fidx, src), cell(fidx, dst)
+        if src_cell is not None and dst_cell is not None and src_cell != dst_cell:
+            static_edges.add((src_cell, dst_cell, kind))
+    public = sorted(index for key, index in fidx.items() if graph.is_public(key))
+    return dict(sedges=sorted(static_edges), public=public,
                 step=graph.STEP, static=graph.STATIC_WEIGHT, guess=graph.GUESS_WEIGHT, cutoff=graph.CUTOFF)
 
 
