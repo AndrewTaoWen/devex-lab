@@ -56,7 +56,7 @@ def test_untested_code_reaches_through_source_arrows(shop):
 
 def test_git_window_counts_commits_that_edit_a_function(shop):
     """Two edits to round_cents make it changed in 3 commits (with the first one) and fast; format_price, in the
-    same file but untouched since, stays at 1. A window that starts tomorrow sees nothing, and all history
+    same file but untouched since, stays at 1. A window that starts in 2090 sees nothing, and all history
     sees every commit."""
     edit_round_cents(shop, "First")
     edit_round_cents(shop, "Second")
@@ -65,7 +65,7 @@ def test_git_window_counts_commits_that_edit_a_function(shop):
     assert res["commits"] == 3
     assert (rows["shopkit/money.py:round_cents"]["changes"], rows["shopkit/money.py:round_cents"]["pace"]) == (3, "fast")
     assert rows["shopkit/money.py:format_price"]["changes"] == 1
-    future, future_rows = numbers(shop, since="tomorrow")
+    future, future_rows = numbers(shop, since="2090-01-01")
     assert future["commits"] == 0 and not any(row["changes"] for row in future_rows.values())
     everything, _ = numbers(shop, since=None)
     assert (everything["commits"], everything["since"]) == (3, "all history")

@@ -56,11 +56,19 @@ def splice(src, node, text):
     return "".join(lines)
 
 
+def clear_pyc(path):
+    """Drop cached bytecode for a source file. A same-size edit restored within the same second keeps the old
+    mtime and size, so Python would otherwise keep running the mutant's bytecode after the file is restored."""
+    for p in (path.parent / "__pycache__").glob(f"{path.stem}.*.pyc"):
+        p.unlink(missing_ok=True)
+
+
 def failing(m, junit):
     p = subprocess.run([m["python"], "-m", "pytest", "-q", "-x" if False else "-q", "-p", "no:cacheprovider",
                         "-p", "no:randomly", "-o", "addopts=", f"--junitxml={junit}", m["tests"]],
                        capture_output=True, text=True, env={**__import__("os").environ,
-                       "PYTHONPATH": str(Path(m["package"]).parent)}, timeout=900)
+                       "PYTHONPATH": str(Path(m["package"]).parent),
+                       "PYTHONDONTWRITEBYTECODE": "1"}, timeout=900)
     try:
         root = ET.parse(junit).getroot()
     except Exception:
@@ -173,10 +181,12 @@ def main():
         t0 = time.time()
         try:
             path.write_text(splice(src, target, text))
+            clear_pyc(path)
             with tempfile.TemporaryDirectory() as td:
                 fails = failing(m, f"{td}/m.xml")
         finally:
             path.write_text(src)
+            clear_pyc(path)
         if fails is None:
             continue
         killed = fails - base
