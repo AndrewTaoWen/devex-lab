@@ -166,6 +166,33 @@ Both are places where werkzeug later fixed real bugs: float URLs for whole numbe
 
 `repomap graph show` prints how stale the graph is and which functions no test runs. `repomap graph show price_of --level function` lists what uses a function and what it uses, and says whether each arrow was seen in tests or only read from source. `--level class|module|file` rolls the same arrows up. `repomap status` also says when a full re-trace is due.
 
+## The code graph on werkzeug
+
+The code graph (`repomap graph update`, `repomap impact --graph`) was built on werkzeug at the 2026-06-01 snapshot (`1b00618`) and scored with `graphbench.py` and the existing 200 mutbench faults. Raw results: `werkzeug/graphbench.json` (40 new faults) and `werkzeug/graphbench-score.txt`.
+
+**What the graph holds.** 1,318 functions, of which tests run 1,003. The other 261 are known only from the source. 1,706 calls were seen in tests and 1,360 arrows were read from source. Reading the source takes 0.4s and building the graph 2s.
+
+**Cost of recording call order and values.** The plain suite takes 9.5s. Tracing without call order took 27.4s, with call order 28.1s, and with values as well 30.6s. `calls.json` holds 70,345 calls (17 MB). 22 of 992 tests hit the 500-calls-per-test cap.
+
+**Tests: as safe as before, and failures show up sooner.**
+
+- The graph picks the same tests as plain `impact` on all 200 mutbench faults. The one difference it first showed, a property whose getter and setter share a name, was a graph bug and is fixed.
+- On this fresh recording both select 2,096 of 2,171 broken tests and catch 170 of 171 faults. The older table above was recorded in a different setup (1,003 tests; here watchdog isn't installed, so 992 run).
+- On the 40 new faults both select 490 of 514 broken tests. All 24 misses are dev-server tests, whose code runs in a subprocess the tracer can't see.
+- Closest-first ordering helps: run in that order, the first broken test comes at position 3.1 on average, against 7.2 in alphabetical order. It comes sooner on 37 faults, later on 6, and at the same place on the other 122.
+
+**Downstream code: the caller walk is right about callers, but callers are a small part of a bug's reach.** For each of the 40 faults the whole suite was re-traced with values. Every function whose arguments, results or exceptions changed in some test was counted, after dropping what differs between two clean runs anyway (timestamps, temp paths).
+
+| Where the functions that really behaved differently sit | Functions | Listed by the graph |
+|---|---|---|
+| Callers of the changed function (the direction the graph walks) | 153 | 136 (89%) |
+| Functions it calls (it passed them bad arguments) | 147 | not walked |
+| Elsewhere: later calls in the same test that read state the fault left behind | 2,902 | not walked |
+
+- Of the 806 callers the graph listed, 670 (83%) did not behave differently. A fault often doesn't change what a caller returns: the caller ignores the bad value, catches it, or the tests never take the path where it matters.
+- So the caller list is a fair "who could break" list for a reviewer, but it is not where most of a bug's effects travel. Most of them go through data: the bad value is stored, returned in an object, and read later.
+- The per-test call order and values (`calls.json`) already show where each value goes next. Data-flow arrows built from them ("this function's result was later passed to that one") are the natural next step, and they are the "values travelling between parts" view the readable-graphs work wants to show.
+
 ## Call order and values per test
 
 `record` also saves every package call each test made, in order, to `.repomap/calls.json`. Each row has the function, how deep it was nested, which call made it, a short `repr` of its arguments and return value, and the exception that left it, if any. This lets a test be replayed step by step, from its input to the final result. The code graph (`src/repomap/graph.py`, `.repomap/graph.db`) loads these rows into `test_calls` and `test_runs`.
@@ -189,6 +216,7 @@ Both are places where werkzeug later fixed real bugs: float URLs for whole numbe
 - `tests/`: CLI `--json` and MCP server tests on the shopkit example (`python -m pytest devtools/cli/tests`).
 - `mutbench.py`: the mutation benchmark; `werkzeug/mutbench.json` and `werkzeug/mutbench-score.txt`: its faults, broken tests and scores.
 - `graphbench.py`: scorecard for `impact --graph`: injects faults, re-traces with values to find which functions really behaved differently, and scores the graph's downstream list and test ranking against that.
+- `werkzeug/graphbench.json`, `werkzeug/graphbench-score.txt`: the 40 faults with the functions that really behaved differently, and the code graph's scores.
 - `impact.py`: replays a repo's history and scores the predictors; `build_ui.py`: bundles results for the viewer.
 - `werkzeug/`:
   - `impact.json`: per-commit truth and predictions;
