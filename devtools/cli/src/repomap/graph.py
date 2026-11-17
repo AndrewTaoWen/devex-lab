@@ -272,22 +272,22 @@ WALK_KINDS = ("calls", "calls_by_name", "inherits")
 
 def is_public(key):
     """A function a package user could call: no _private segment in its path or name, not nested, not module code."""
-    path, _, q = key.partition(":")
-    if not q or q.startswith("<") or "<locals>" in q:
+    path, _, qualname = key.partition(":")
+    if not qualname or qualname.startswith("<") or "<locals>" in qualname:
         return False
-    parts = [p for p in path[:-3].split("/") if p != "__init__"] + q.split(".")
-    return not any(p.startswith("_") and not (p.startswith("__") and p.endswith("__")) for p in parts)
+    parts = [part for part in path[:-3].split("/") if part != "__init__"] + qualname.split(".")
+    return not any(part.startswith("_") and not (part.startswith("__") and part.endswith("__")) for part in parts)
 
 
 def expand(db, key):
     """A changed function and the code objects nested in it (genexprs, lambdas, inner defs), which the tracer
     reports under their own keys. A module-level change expands to everything in the file."""
-    path, _, q = key.partition(":")
-    if q in ("<module>", "<module level>", "<new file>"):
-        return {k for (k,) in db.execute("SELECT key FROM dots WHERE file = ? AND kind != 'module'", (path,))} \
+    path, _, qualname = key.partition(":")
+    if qualname in ("<module>", "<module level>", "<new file>"):
+        return {dot for (dot,) in db.execute("SELECT key FROM dots WHERE file = ? AND kind != 'module'", (path,))} \
             | {f"{path}:<module>"}
-    nested = {k for (k,) in db.execute("SELECT key FROM dots WHERE key LIKE ? ESCAPE '\\'",
-                                        (key.replace("_", "\\_").replace("%", "\\%") + ".<locals>.%",))}
+    nested = {dot for (dot,) in db.execute("SELECT key FROM dots WHERE key LIKE ? ESCAPE '\\'",
+                                           (key.replace("_", "\\_").replace("%", "\\%") + ".<locals>.%",))}
     return {key} | nested
 
 
@@ -299,69 +299,74 @@ def impact(db, changed, level="function", cutoff=CUTOFF, step=STEP, static_weigh
     downstream (code that may now behave differently, with confidence, the next hop towards the change and
     whether the weakest arrow on the way was seen in tests or read from source), public (functions a package
     user calls that are changed or downstream), untested (changed or downstream functions no test runs)."""
-    changed = {("%s:<module>" % k.split(":")[0]) if k.endswith(":<module level>") else k for k in changed}
+    changed = {("%s:<module>" % key.split(":")[0]) if key.endswith(":<module level>") else key for key in changed}
     up = {}
     for src, dst, kind, source in db.execute(
             "SELECT src, dst, kind, source FROM effective_arrows WHERE kind IN (%s)" % ",".join("?" * len(WALK_KINDS)),
             WALK_KINDS):
-        w = step if source == "runtime" else step * static_weight * (guess_weight if kind == "calls_by_name" else 1)
-        up.setdefault(dst, []).append((src, w, source))
+        if source == "runtime":
+            weight = step
+        else:
+            weight = step * static_weight * (guess_weight if kind == "calls_by_name" else 1)
+        up.setdefault(dst, []).append((src, weight, source))
     seeds = {}
-    for k in changed:
-        for x in expand(db, k):
+    for key in changed:
+        for nested in expand(db, key):
             # a module-level change (a constant, say) reaches the file's functions without an arrow: count it
             # as one static step
-            seeds[x] = 1.0 if x == k or not k.endswith(":<module>") else step * static_weight
+            seeds[nested] = 1.0 if nested == key or not key.endswith(":<module>") else step * static_weight
     score = dict(seeds)
-    via, kind_of = {}, {k: "changed" for k in seeds}
-    frontier = sorted(seeds, key=lambda k: -seeds[k])
+    via, kind_of = {}, {key: "changed" for key in seeds}
+    frontier = sorted(seeds, key=lambda key: -seeds[key])
     while frontier:  # best-first: a dot's score is its strongest path to a change
-        k = frontier.pop(0)
-        for src, w, source in up.get(k, ()):
-            s = score[k] * w
-            if s >= cutoff and s > score.get(src, 0):
-                score[src], via[src] = s, k
-                kind_of[src] = "static" if source == "static" or kind_of.get(k) == "static" else "runtime"
+        key = frontier.pop(0)
+        for src, weight, source in up.get(key, ()):
+            strength = score[key] * weight
+            if strength >= cutoff and strength > score.get(src, 0):
+                score[src], via[src] = strength, key
+                kind_of[src] = "static" if source == "static" or kind_of.get(key) == "static" else "runtime"
                 frontier.append(src)
-        frontier.sort(key=lambda k: -score[k])
+        frontier.sort(key=lambda key: -score[key])
     direct = set(seeds)
-    downstream = {k: s for k, s in score.items() if k not in direct and not k.startswith("<")}
+    downstream = {key: strength for key, strength in score.items() if key not in direct and not key.startswith("<")}
     # tests: those that ran changed code are certain (the trace says so); then those that ran downstream code
     ran = {}
-    for test, fn in db.execute("SELECT test, function FROM covers"):
-        if fn in direct:
-            ran.setdefault(test, set()).add(fn)
+    for test, function in db.execute("SELECT test, function FROM covers"):
+        if function in direct:
+            ran.setdefault(test, set()).add(function)
     depth = {}
     if ran:
-        for test, fn, d in db.execute("SELECT test, function, MIN(depth) FROM test_calls GROUP BY test, function"):
-            if fn in direct and test in ran:
-                depth[test] = min(depth.get(test, d), d)
-    tests = [dict(test=t, reason="runs changed code", depth=depth.get(t), confidence=1.0)
-             for t in sorted(ran, key=lambda t: (depth.get(t) is None, depth.get(t) or 0, t))]
+        for test, function, call_depth in db.execute("SELECT test, function, MIN(depth) FROM test_calls "
+                                                     "GROUP BY test, function"):
+            if function in direct and test in ran:
+                depth[test] = min(depth.get(test, call_depth), call_depth)
+    tests = [dict(test=test, reason="runs changed code", depth=depth.get(test), confidence=1.0)
+             for test in sorted(ran, key=lambda test: (depth.get(test) is None, depth.get(test) or 0, test))]
     maybe = {}
-    for test, fn in db.execute("SELECT test, function FROM covers"):
-        if test not in ran and fn in downstream:
-            maybe[test] = max(maybe.get(test, 0), downstream[fn])
-    tests += [dict(test=t, reason="runs code that depends on it", depth=None, confidence=round(s, 3))
-              for t, s in sorted(maybe.items(), key=lambda x: (-x[1], x[0]))]
-    traced = {k for (k,) in db.execute("SELECT DISTINCT function FROM covers")}
+    for test, function in db.execute("SELECT test, function FROM covers"):
+        if test not in ran and function in downstream:
+            maybe[test] = max(maybe.get(test, 0), downstream[function])
+    tests += [dict(test=test, reason="runs code that depends on it", depth=None, confidence=round(strength, 3))
+              for test, strength in sorted(maybe.items(), key=lambda item: (-item[1], item[0]))]
+    traced = {key for (key,) in db.execute("SELECT DISTINCT function FROM covers")}
     kinds = dict(db.execute("SELECT key, kind FROM dots"))
 
-    def up_to(k):
-        return rollup(db, k, level) if level != "line" else k
+    def zoom(key):
+        return rollup(db, key, level) if level != "line" else key
 
-    roll = {}
-    for k, s in downstream.items():
-        r = up_to(k)
-        if r in {up_to(c) for c in changed}:
+    rolled_up = {}
+    for key, strength in downstream.items():
+        rolled = zoom(key)
+        if rolled in {zoom(changed_key) for changed_key in changed}:
             continue
-        if s > roll.get(r, (0,))[0]:
-            roll[r] = (s, up_to(via[k]), kind_of[k])
-    down = [dict(key=k, confidence=round(s, 3), via=v, source=src)
-            for k, (s, v, src) in sorted(roll.items(), key=lambda x: (-x[1][0], x[0]))]
+        if strength > rolled_up.get(rolled, (0,))[0]:
+            rolled_up[rolled] = (strength, zoom(via[key]), kind_of[key])
+    down = [dict(key=key, confidence=round(strength, 3), via=next_hop, source=src)
+            for key, (strength, next_hop, src) in sorted(rolled_up.items(),
+                                                          key=lambda item: (-item[1][0], item[0]))]
     reach = sorted(changed | set(downstream))
-    public = sorted({up_to(k) for k in reach if kinds.get(k) == "function" and is_public(k)})
-    untested = sorted({up_to(k) for k in reach if kinds.get(k) == "function" and k not in traced
-                       and not any(x in traced for x in expand(db, k))})
-    return dict(level=level, changed=sorted({up_to(k) for k in changed}), tests=tests, downstream=down,
+    public = sorted({zoom(key) for key in reach if kinds.get(key) == "function" and is_public(key)})
+    untested = sorted({zoom(key) for key in reach if kinds.get(key) == "function" and key not in traced
+                       and not any(nested in traced for nested in expand(db, key))})
+    return dict(level=level, changed=sorted({zoom(key) for key in changed}), tests=tests, downstream=down,
                 public=public, untested=untested, cutoff=cutoff)
