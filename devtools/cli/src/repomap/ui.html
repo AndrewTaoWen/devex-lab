@@ -53,6 +53,8 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 button.link { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 400; text-align: left; }
 button.link:hover { text-decoration: underline; }
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) 430px; gap: 16px; align-items: start; }
+.grid.wide { grid-template-columns: minmax(0, 1fr); }
+.grid.wide aside { display: none; }
 @media (max-width: 980px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 .map { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; margin-bottom: 12px; }
@@ -216,6 +218,33 @@ svg.fade .gn.hl { opacity: 1; }
 .rpaxis { font: 10.5px var(--sans); fill: var(--muted); }
 .rgbar input[list] { font: 12px var(--mono); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; width: min(420px, 100%); }
 svg.fade .ge.hl { stroke-opacity: .95; }
+/* flow: one test's calls as boxes and arrows, with the values that moved along each arrow */
+#flow { display: grid; gap: 10px; }
+.flbox { overflow: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); max-height: 70vh; }
+.flbox svg { display: block; }
+.fln rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.4; }
+.fln text { font: 12px var(--mono); fill: var(--fg); pointer-events: none; }
+.fln .sub { font-size: 10px; fill: var(--muted); }
+.fln { cursor: pointer; }
+.fln.test rect { fill: var(--accent-soft); stroke: var(--accent); }
+.fln.future { opacity: .45; }
+.fln.cur rect { stroke: var(--chg); stroke-width: 2.6; fill: var(--chg-soft); }
+.fln.raised rect { stroke: var(--un, #c2412d); stroke-dasharray: 4 2; }
+.fle path { fill: none; stroke: var(--empty); stroke-width: 1.6; }
+.fle.done path { stroke: var(--accent); stroke-opacity: .55; }
+.fle.cur path { stroke: var(--chg); stroke-width: 2.6; stroke-opacity: 1; }
+.fle text { font: 10.5px var(--mono); fill: var(--muted); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; pointer-events: none; }
+.fle.done text.ret { fill: var(--add); }
+.fle.cur text { fill: var(--fg); font-weight: 500; }
+.fle.cur text.ret { fill: var(--add); }
+.fle.cur text.arg { fill: var(--accent); }
+.fle.cur text.err { fill: var(--chg); }
+.flsteps { position: relative; margin: 0; padding: 6px 0; list-style: none; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); max-height: 260px; overflow: auto; }
+.flsteps li { display: grid; grid-template-columns: 2.6em 1fr; gap: 6px; padding: 2px 10px; font: 12px var(--mono); cursor: pointer; white-space: nowrap; }
+.flsteps li:hover { background: var(--bg); }
+.flsteps li.on { background: var(--chg-soft); box-shadow: inset 3px 0 0 var(--chg); }
+.flsteps .i { color: var(--muted); text-align: right; }
+.flsteps .a { color: var(--accent); } .flsteps .r { color: var(--add); } .flsteps .x { color: var(--chg); }
 @media (prefers-reduced-motion: no-preference) { svg .gn, svg .ge { transition: opacity .12s, stroke-opacity .12s; } }
 @media (prefers-reduced-motion: no-preference) { .cell { transition: background-color .15s, opacity .15s; } }
 </style>
@@ -240,11 +269,13 @@ svg.fade .ge.hl { stroke-opacity: .95; }
     <section class="map" id="map">
       <div class="viewbar">
         <span class="depth" role="group" aria-label="View"><button data-view="map">Map</button><button data-view="graph">Graph</button></span>
-        <span class="depth" id="gsub" role="group" aria-label="Graph view" hidden><button data-gview="overview">Overview</button><button data-gview="neighborhood">Neighborhood</button><button data-gview="replay">Test replay</button><button data-gview="change">Change</button></span>
+        <span class="depth" id="gsub" role="group" aria-label="Graph view" hidden><button data-gview="flow">Flow</button><button data-gview="overview">Overview</button><button data-gview="neighborhood">Neighborhood</button><button data-gview="replay">Test replay</button><button data-gview="change">Change</button></span>
         <div class="legend" id="legend"></div>
       </div>
       <div id="pkgs"></div>
       <div id="graph" class="gwrap" hidden></div>
+      <div id="flow" hidden><div class="rgbar" id="flbar"></div><div class="flbox" id="flbox"></div>
+        <div class="rpstep" id="flstep"></div><ol class="flsteps" id="flsteps" aria-label="Every call, in order"></ol></div>
       <div id="rg" hidden><div class="rgbar" id="rgbar"></div><div class="rgbox" id="rgbox"></div>
         <div id="rp" hidden><div class="rpstep" id="rpstep"></div><div class="rpbox"><svg id="rptree" role="img" aria-label="The test's calls as a tree: time runs left to right, each row is called by the row above"></svg></div></div></div>
     </section>
@@ -265,7 +296,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", 
 let D, F = [], up = [], down = [], byKey = new Map(), live = true, ekind = new Map(), pub = new Set();
 const S = {targets: new Set(), testFiles: [], unknown: [], source: null, depth: 2, sel: null, stale: [], view: null};
 let savedView = null, savedGview = null;
-try { savedView = localStorage.getItem("repomap.view"); savedGview = localStorage.getItem("repomap.gview"); } catch {}
+try { savedView = localStorage.getItem("repomap.view2"); savedGview = localStorage.getItem("repomap.gview2"); } catch {}
 const PROBES = {str: ["empty"], bytes: ["empty"], list: ["empty"], tuple: ["empty"], dict: ["empty"], int: ["zero", "negative"], float: ["zero", "negative"]};
 
 const file = k => k.split(":")[0];
@@ -303,8 +334,8 @@ async function boot() {
   if (S.examples.length) { $("#examples-card").hidden = false; useExample(0); }
   else if (changes) applyChanges(changes);
   else if (live) await loadMine(true);
-  S.view = savedView === "map" || savedView === "graph" ? savedView : (S.targets.size || S.testFiles.length ? "graph" : "map");
-  S.gview = GVIEWS.includes(savedGview) ? savedGview : (S.targets.size || S.testFiles.length ? "change" : "overview");
+  S.view = savedView === "map" || savedView === "graph" ? savedView : "graph";
+  S.gview = GVIEWS.includes(savedGview) ? savedGview : (S.targets.size || S.testFiles.length ? "change" : "flow");
   render();
 }
 
@@ -403,14 +434,16 @@ function render() {
     m.classList.toggle("warm", on && !hotFiles.has(fl) && warmFiles.has(fl));
     m.classList.toggle("dim", on && !hotFiles.has(fl) && !warmFiles.has(fl));
   }
-  const graph = S.view === "graph", readableView = graph && S.gview !== "change";
-  $("#pkgs").hidden = graph; $("#graph").hidden = !graph || readableView; $("#rg").hidden = !readableView;
+  const graph = S.view === "graph", flowView = graph && S.gview === "flow", readableView = graph && !["change", "flow"].includes(S.gview);
+  $("#pkgs").hidden = graph; $("#graph").hidden = !graph || readableView || flowView; $("#rg").hidden = !readableView; $("#flow").hidden = !flowView;
+  document.querySelector(".grid").classList.toggle("wide", flowView);
   $("#gsub").hidden = !graph;
   for (const b of document.querySelectorAll("[data-view]")) b.classList.toggle("on", b.dataset.view === S.view);
   for (const b of document.querySelectorAll("[data-gview]")) b.classList.toggle("on", b.dataset.gview === S.gview);
-  if (graph && !readableView) drawGraph(r, on, state);
+  if (graph && !readableView && !flowView) drawGraph(r, on, state);
   if (readableView) drawReadable();
-  $("#legend").innerHTML = readableView ? readableLegend() : graph
+  if (flowView) drawFlow();
+  $("#legend").innerHTML = flowView ? flowLegend() : readableView ? readableLegend() : graph
     ? (on ? `<span><i style="background:var(--accent)"></i>test files that run the change</span><span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers</span>${D.graph ? `<span><i style="border:1.5px dashed var(--l1);background:none"></i>seen only in source (no test runs it)</span><span><i style="border:2.5px solid var(--l1);background:none"></i>public: package users call it</span><span>Numbers: how sure the graph is that the change reaches it</span>` : ""}<span>Arrows point from a function to its callers. Hover to trace, click to inspect, shift-click to add or remove</span>` : "")
     : on
     ? `<span><i style="background:var(--chg)"></i>changed</span><span><i style="background:var(--l1)"></i>direct callers</span><span><i style="background:var(--l2)"></i>callers of callers${S.depth > 2 ? " and up" : ""}</span><span><i style="background:var(--empty)"></i>not reached</span><span>Shift-click a cell to add or remove it from the change</span>`
@@ -562,8 +595,8 @@ document.addEventListener("click", async e => {
   else if (t.dataset.rm !== undefined) { S.targets.delete(+t.dataset.rm); render(); }
   else if (t.dataset.ex !== undefined) { useExample(+t.dataset.ex); render(); }
   else if (t.dataset.depth) { S.depth = +t.dataset.depth; render(); }
-  else if (t.dataset.view) { S.view = t.dataset.view; try { localStorage.setItem("repomap.view", S.view); } catch {} render(); }
-  else if (t.dataset.gview) { S.gview = t.dataset.gview; try { localStorage.setItem("repomap.gview", S.gview); } catch {} render(); }
+  else if (t.dataset.view) { S.view = t.dataset.view; try { localStorage.setItem("repomap.view2", S.view); } catch {} render(); }
+  else if (t.dataset.gview) { S.gview = t.dataset.gview; try { localStorage.setItem("repomap.gview2", S.gview); } catch {} render(); }
   else if (t.id === "toggle") toggleTarget(S.sel);
   else if (t.id === "clear") { S.targets.clear(); S.testFiles = []; S.unknown = []; S.source = null; S.picked = false; S.sel = null; render(); }
   else if (t.id === "mine") { if (live) { await loadMine(false); render(); } else { applyChanges(JSON.parse($("#embedded").textContent).changes); render(); } }
@@ -753,7 +786,7 @@ $("#graph").addEventListener("focusin", e => { const g = e.target.closest(".gn")
 
 // ---------- readable graph: one cell per function, laid out by folder (or by coupling group) ----------
 // Overview: numbers from 'repomap graph metrics'. Neighborhood: one function, who calls it and what it calls.
-const GVIEWS = ["overview", "neighborhood", "replay", "change"];
+const GVIEWS = ["flow", "overview", "neighborhood", "replay", "change"];
 const SHADES = {references: "references", tests: "tests that run it", calls: "runtime calls"};
 const WINDOWS = [["12 months ago", "last 12 months"], ["24 months ago", "last 24 months"], ["5 years ago", "last 5 years"], ["all", "all history"]];
 const R = {data: null, asked: null, since: "12 months ago", shade: "references", lm: true, un: true, pace: false, links: false,
@@ -949,17 +982,19 @@ const shortCall = k => short(unitOf(k)).split(".").slice(-2).join(".");
 const showVal = v => v ? (v.repr === null || v.repr === undefined ? `<${v.type}>` : v.repr) : "";
 
 async function loadTests() {
-  if (RP.tests) return;
+  if (RP.tests || RP.loadingTests) return;
+  RP.loadingTests = true;
   RP.tests = live ? (await (await fetch("/api/replay")).json()) || [] :
     Object.values(D.replay || {}).map(run => [run.test, run.steps, run.truncated]);
-  if (!RP.test && RP.tests.length) {  // start with the test that runs the most code
-    const best = [...RP.tests].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0][0];
+  if (!RP.test && RP.tests.length) {  // start with a test that runs a fair amount of code but stays readable
+    const fits = RP.tests.filter(([, steps]) => steps <= 40), pool = fits.length ? fits : RP.tests;
+    const best = [...pool].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0][0];
     await loadRun(best, true);
   }
   render();
 }
 async function loadRun(test, quiet) {
-  RP.test = test; RP.step = 0;
+  RP.test = test; RP.step = 0; FL.step = 0; FL.cache = null;
   RP.run = live ? await (await fetch("/api/replay?test=" + encodeURIComponent(test))).json() : (D.replay || {})[test];
   if (!quiet) render();
 }
@@ -1040,6 +1075,178 @@ $("#rgbar").addEventListener("click", e => {
     render();
   }
 });
+
+// ---------- flow: one test's calls as boxes and arrows, with the values that moved along each arrow ----------
+// Each function the test ran is a box; its column is how deep in the calls it ran. An arrow goes from caller to
+// callee. Step through the calls in order: the arrow in use shows what was passed in and what came back.
+// Import-time module code and nested code (genexprs, lambdas) fold away, as on the other views.
+const FL = {step: 0, timer: null, cache: null};
+const tidy = s => String(s).replace(/<([\w.]+\.)?(\w+) object at 0x[0-9a-f]+>/g, "<$2>");
+const clip = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+const flowArgs = args => Object.entries(args || {}).filter(([name]) => name !== "self" && name !== ".0")
+  .map(([name, v]) => `${name}=${tidy(showVal(v))}`).join(", ");
+
+function flowSteps(rows) {
+  // keep the calls worth following; a dropped call's children hang off its nearest kept caller
+  const keep = new Map(), steps = [];
+  rows.forEach((r, k) => {
+    const unit = unitOf(r.function), parent = r.parent_seq === null || r.parent_seq === undefined ? null : r.parent_seq;
+    const parentStep = parent === null ? null : keep.get(parent) ?? null;
+    const inModule = parent !== null && keep.get(parent) === undefined && rows[parent] && FL_SKIP.has(parent);
+    if (unit.endsWith(":<module level>") || inModule) { FL_SKIP.add(k); return; }
+    if (parentStep !== null && steps[parentStep].unit === unit) { keep.set(k, parentStep); return; }  // nested code
+    keep.set(k, steps.length);
+    steps.push({unit, r, parent: parentStep});
+  });
+  return steps;
+}
+const FL_SKIP = new Set();
+
+function flowLayout(steps) {
+  const depth = [], nodes = new Map(), edges = new Map();
+  nodes.set("test", {key: "test", col: 0, row: 0, label: "the test", sub: shortTest(RP.test)});
+  steps.forEach((st, k) => {
+    depth[k] = st.parent === null ? 1 : depth[st.parent] + 1;
+    if (!nodes.has(st.unit)) nodes.set(st.unit, {key: st.unit, col: depth[k], first: k, label: short(st.unit).split(".").slice(-2).join("."), sub: file(st.unit)});
+    const from = st.parent === null ? "test" : steps[st.parent].unit, id = from + ">" + st.unit;
+    if (from === st.unit) return;
+    if (!edges.has(id)) edges.set(id, {id, from, to: st.unit, steps: []});
+    edges.get(id).steps.push(k);
+  });
+  const cols = [];
+  for (const n of nodes.values()) (cols[n.col] = cols[n.col] || []).push(n);
+  const CH = 7.3, GAP = FL_GAP, RH = 64, top = 18;
+  let x = 16;
+  cols.forEach((col = []) => {
+    col.sort((a, b) => (a.first ?? -1) - (b.first ?? -1));
+    const w = Math.max(120, ...col.map(n => Math.max(n.label.length, Math.min(n.sub.length, 26) * .82) * CH + 22));
+    col.forEach((n, i) => { n.x = x; n.y = top + i * RH; n.w = w; n.h = 38; });
+    x += w + GAP;
+  });
+  const H = top + Math.max(...cols.map(c => (c || []).length)) * RH + 30;
+  return {nodes, edges, W: x - GAP + 24, H, steps};
+}
+const FL_GAP = 250, FL_LABEL = 34;  // the gap between columns fits one arrow label of FL_LABEL characters
+const shortTest = t => clip((t || "").split("::").pop(), 30);
+
+function edgePath(a, b) {
+  if (b.x > a.x) {
+    const x1 = a.x + a.w, y1 = a.y + a.h / 2, x2 = b.x, y2 = b.y + b.h / 2, m = (x1 + x2) / 2;
+    return `M${x1},${y1} C${m},${y1} ${m},${y2} ${x2 - 2},${y2}`;
+  }
+  // a call back to a shallower column: loop underneath
+  const x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y + b.h, low = Math.max(y1, y2) + 40;
+  return `M${x1},${y1} C${x1},${low} ${x2},${low} ${x2},${y2 + 2}`;
+}
+
+function drawFlow() {
+  if (typeof d3 === "undefined") { $("#flbox").innerHTML = `<p class="note" style="padding:10px">The graph library did not load.</p>`; return; }
+  if (!RP.tests) { loadTests(); $("#flbar").innerHTML = `<span class="note">Loading the recorded tests…</span>`; return; }
+  if (!RP.tests.length) {
+    $("#flbar").innerHTML = `<span class="note">${live || D.replay !== null ? "No call order was recorded. Run <code>repomap record</code>, then <code>repomap graph update</code>." : "This page was exported without test replays (too many recorded calls). Use <code>repomap serve</code>."}</span>`;
+    $("#flbox").innerHTML = ""; $("#flstep").innerHTML = ""; $("#flsteps").innerHTML = ""; return;
+  }
+  if (!RP.run) { $("#flbar").innerHTML = `<span class="note">Loading ${esc(RP.test || "")}…</span>`; return; }
+  if (!FL.cache || FL.cache.test !== RP.test) {
+    FL_SKIP.clear();
+    const steps = flowSteps(RP.run.rows);
+    FL.cache = {test: RP.test, ...flowLayout(steps)};
+    buildFlow();
+  }
+  const {steps} = FL.cache, n = steps.length, step = Math.min(FL.step, Math.max(n - 1, 0));
+  $("#flbar").innerHTML = `<label>Test <input id="fltest" list="fltests" value="${esc(RP.test || "")}" aria-label="Test to follow"></label>
+    <datalist id="fltests">${RP.tests.map(([name, k]) => `<option value="${esc(name)}">${k} calls</option>`).join("")}</datalist>
+    <span class="row"><button id="flback" aria-label="Previous call">Back</button><button id="flplay" class="primary">${FL.timer ? "Pause" : "Play"}</button><button id="flnext" aria-label="Next call">Next</button></span>
+    <span class="note">call ${n ? step + 1 : 0} of ${n}${RP.run.truncated ? " · recording stopped at the cap on steps per test" : ""}</span>`;
+  styleFlow(step);
+}
+
+function buildFlow() {
+  const {nodes, edges, W, H, steps} = FL.cache, box = $("#flbox");
+  box.innerHTML = "";
+  if (!steps.length) { box.innerHTML = `<p class="note" style="padding:10px">This test called nothing in the package.</p>`; $("#flsteps").innerHTML = ""; return; }
+  const svg = d3.select(box).append("svg").attr("width", W).attr("height", H).attr("viewBox", `0 0 ${W} ${H}`)
+    .attr("role", "img").attr("aria-label", "The test's calls as boxes and arrows, with the values passed along each arrow");
+  svg.append("defs").append("marker").attr("id", "flah").attr("viewBox", "0 0 10 10").attr("refX", 9).attr("refY", 5)
+    .attr("markerWidth", 7).attr("markerHeight", 7).attr("orient", "auto").append("path").attr("d", "M0,0L10,5L0,10z").attr("fill", "var(--muted)");
+  const eg = svg.append("g").selectAll("g").data([...edges.values()]).join("g").attr("class", "fle");
+  eg.append("path").attr("d", e => edgePath(nodes.get(e.from), nodes.get(e.to))).attr("marker-end", "url(#flah)");
+  eg.each(function (e) {
+    const p = this.querySelector("path"), mid = p.getPointAtLength(p.getTotalLength() / 2);
+    e.mx = mid.x; e.my = mid.y;
+  });
+  eg.append("text").attr("class", "arg").attr("text-anchor", "middle").attr("x", e => e.mx).attr("y", e => e.my - 6);
+  eg.append("text").attr("class", "ret").attr("text-anchor", "middle").attr("x", e => e.mx).attr("y", e => e.my + 13);
+  FL.edgeSel = eg;
+  const ng = svg.append("g").selectAll("g").data([...nodes.values()]).join("g").attr("class", d => "fln" + (d.key === "test" ? " test" : ""))
+    .attr("transform", d => `translate(${d.x},${d.y})`).attr("tabindex", d => d.key === "test" ? null : 0)
+    .on("click", (e, d) => { if (d.key !== "test") { flowStop(); FL.step = d.first; render(); } })
+    .on("keydown", (e, d) => { if (d.key !== "test" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); flowStop(); FL.step = d.first; render(); } });
+  ng.append("rect").attr("width", d => d.w).attr("height", d => d.h).attr("rx", 6);
+  ng.append("text").attr("x", 10).attr("y", 16).text(d => d.label);
+  ng.append("text").attr("class", "sub").attr("x", 10).attr("y", 30).text(d => clip(d.sub, Math.floor((d.w - 16) / 6)));
+  ng.append("title").text(d => d.key === "test" ? RP.test : d.key);
+  FL.nodeSel = ng;
+  $("#flsteps").innerHTML = steps.map((st, k) => {
+    const indent = "&nbsp;&nbsp;".repeat(Math.min(depthOf(steps, k) - 1, 12)), args = flowArgs(st.r.args);
+    const out = st.r.raised ? `<span class="x">raised ${esc(clip(st.r.raised, 60))}</span>` : `<span class="r">${esc(clip(tidy(showVal(st.r.ret)), 60))}</span>`;
+    return `<li data-k="${k}"><span class="i">${k + 1}</span><span>${indent}${esc(nodes.get(st.unit).label)}(<span class="a">${esc(clip(args, 70))}</span>) → ${out}</span></li>`;
+  }).join("");
+}
+const depthOf = (steps, k) => { let d = 1; while (steps[k].parent !== null) { k = steps[k].parent; d++; } return d; };
+
+function styleFlow(step) {
+  const {steps} = FL.cache;
+  if (!steps.length) return;
+  const cur = steps[step], seen = new Set(steps.slice(0, step + 1).map(st => st.unit));
+  FL.nodeSel.attr("class", d => `fln${d.key === "test" ? " test" : ""}${d.key === cur.unit ? " cur" + (cur.r.raised ? " raised" : "") : ""}${d.key !== "test" && !seen.has(d.key) ? " future" : ""}`);
+  FL.edgeSel.attr("class", e => `fle${e.steps.includes(step) ? " cur" : e.steps.some(k => k < step) ? " done" : ""}`);
+  // on each arrow: what went in and what came back, for its latest call so far
+  // the arrow in use carries what went in and what came back; the list below has every call's values
+  FL.edgeSel.each(function (e) {
+    const r = e.steps.includes(step) ? cur.r : null;
+    d3.select(this).select("text.arg").text(r ? "→ " + clip(flowArgs(r.args) || "(nothing)", FL_LABEL) : "");
+    d3.select(this).select("text.ret").attr("class", r && r.raised ? "ret err" : "ret")
+      .text(!r ? "" : r.raised ? "✕ " + clip(r.raised.split(":")[0], FL_LABEL) : "← " + clip(tidy(showVal(r.ret)), FL_LABEL));
+  });
+  FL.edgeSel.filter(e => e.steps.includes(step)).raise();
+  const node = FL.cache.nodes.get(cur.unit), box = $("#flbox");
+  if (node.x + node.w > box.scrollLeft + box.clientWidth - 20 || node.x < box.scrollLeft)
+    box.scrollTo({left: Math.max(0, node.x - box.clientWidth / 2 + node.w / 2), behavior: reduceMotion ? "auto" : "smooth"});
+  const caller = cur.parent === null ? "the test" : FL.cache.nodes.get(steps[cur.parent].unit).label;
+  const args = Object.entries(cur.r.args || {}).filter(([name]) => name !== ".0")
+    .map(([name, v]) => `${esc(name)}=<span class="val">${esc(tidy(showVal(v)))}</span>`).join(", ");
+  $("#flstep").innerHTML = `<div class="call">${esc(caller)} → <b>${esc(FL.cache.nodes.get(cur.unit).label)}</b>(${args})</div>
+    <div class="call">${cur.r.raised ? `raised <span class="val">${esc(cur.r.raised)}</span>` : `returned <span class="val">${esc(tidy(showVal(cur.r.ret)))}</span>`}</div>
+    <div class="note mono">${esc(cur.unit)}</div>`;
+  for (const li of $("#flsteps").children) li.classList.toggle("on", +li.dataset.k === step);
+  const on = $("#flsteps").querySelector("li.on");
+  if (on) { const list = $("#flsteps"); if (on.offsetTop < list.scrollTop || on.offsetTop > list.scrollTop + list.clientHeight - 24) list.scrollTop = on.offsetTop - list.clientHeight / 2; }
+}
+
+function flowLegend() {
+  return `<span><i style="background:var(--accent-soft);border:1px solid var(--accent)"></i>the test</span><span><i style="background:var(--chg-soft);border:2px solid var(--chg)"></i>this call</span>` +
+    `<span><i style="border-top:2px solid var(--accent);height:0;border-radius:0"></i>called already</span><span class="mono" style="color:var(--accent)">→ passed in</span><span class="mono" style="color:var(--add)">← came back</span><span class="mono" style="color:var(--chg)">✕ raised</span>` +
+    `<span>Each box is a function, further right means deeper in the calls. Press Play, or click a box or a line in the list</span>`;
+}
+
+function flowStop() { if (FL.timer) { clearInterval(FL.timer); FL.timer = null; } }
+function flowBy(n) { const k = FL.cache ? FL.cache.steps.length : 0; FL.step = Math.max(0, Math.min(k - 1, FL.step + n)); render(); }
+$("#flbar").addEventListener("click", e => {
+  const id = e.target.id;
+  if (id === "flback") { flowStop(); flowBy(-1); }
+  else if (id === "flnext") { flowStop(); flowBy(1); }
+  else if (id === "flplay") {
+    if (FL.timer) { flowStop(); render(); return; }
+    if (FL.cache && FL.step >= FL.cache.steps.length - 1) FL.step = 0;
+    FL.timer = setInterval(() => { if (!FL.cache || FL.step >= FL.cache.steps.length - 1 || S.gview !== "flow" || S.view !== "graph") { flowStop(); render(); } else flowBy(1); }, 900);
+    render();
+  }
+});
+$("#flbar").addEventListener("change", e => {
+  if (e.target.id === "fltest" && RP.tests && RP.tests.some(([name]) => name === e.target.value)) { flowStop(); loadRun(e.target.value); }
+});
+$("#flsteps").addEventListener("click", e => { const li = e.target.closest("li"); if (li) { flowStop(); FL.step = +li.dataset.k; render(); } });
 
 boot();
 </script>

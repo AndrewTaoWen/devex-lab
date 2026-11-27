@@ -44,3 +44,7 @@ Tests that run it: 6 of 18
 - **Data changes select by file.** A change outside any function, such as a constant, can affect any code in that file, so repomap selects every test that runs code there.
 - **Shared setup counts.** Before the tracer credited class-scoped setup to every test in the class, the setup-class example would have selected only the first `TestCart` test.
 - **Untested code is called out.** When no test runs a changed function, the memory has nothing to go on, and `impact` says so.
+
+## A web request, from form to page
+
+`taskboard/` is a tiny Flask to-do app (5 modules, 14 tests). Each test is one or more requests: Flask calls a route, the route hands the form to a view, and the view reads the form, stores the task and renders the page. Recording it keeps every call in order with the values passed along, so one request can be followed from what the user typed to the HTML they get back. See `taskboard/README.md`.
