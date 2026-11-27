@@ -4,6 +4,8 @@
 //   neighborhood   after clicking FUNCTION_KEY: how many cells are lit as callers and callees, and the links drawn
 //   coupling       cell positions under the folder layout and under the coupling layout
 //   replay TEST N  replay TEST, press Next N times: the current call's text, the lit cell and the tree
+//   flow TEST N    the view a fresh page opens on; then follow TEST in the Flow view, press Next N times: the
+//                  boxes and arrows, the current box, the values on its arrow and the list of calls
 const {chromium} = require("playwright");
 (async () => {
   const [url, view, key] = process.argv.slice(2);
@@ -13,6 +15,28 @@ const {chromium} = require("playwright");
   page.on("pageerror", e => errors.push(e.message));
   page.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
   await page.goto(url);
+  if (view === "flow") {
+    await page.waitForSelector("#gsub:not([hidden])", {timeout: 20000});
+    const opened = await page.$eval("#gsub [data-gview].on", e => e.dataset.gview);
+    await page.waitForSelector("#fltest", {timeout: 20000});
+    await page.fill("#fltest", key);
+    await page.dispatchEvent("#fltest", "change");
+    await page.waitForFunction(k => document.querySelector("#fltest").value === k && document.querySelectorAll(".fln").length > 1 &&
+      document.querySelector(".fln title") && document.querySelector(".fln title").textContent === k, key);
+    for (let n = 0; n < +process.argv[5]; n++) await page.click("#flnext");
+    const report = {errors, opened,
+      boxes: await page.$$eval(".fln title", els => els.map(e => e.textContent)),
+      arrows: await page.$$eval(".fle", els => els.length),
+      current: await page.$$eval(".fln.cur title", els => els.map(e => e.textContent)),
+      onArrow: await page.$$eval(".fle.cur text", els => els.map(e => e.textContent)),
+      step: await page.$eval("#flstep", e => e.innerText),
+      calls: await page.$$eval("#flsteps li", els => els.length),
+      counter: await page.$eval("#flbar .note", e => e.innerText),
+      sideHidden: await page.$eval("aside", e => getComputedStyle(e).display === "none")};
+    console.log(JSON.stringify(report));
+    await browser.close();
+    return;
+  }
   await page.click('[data-view="graph"]');
   await page.click(`[data-gview="${view === "coupling" ? "overview" : view}"]`);
   if (view === "replay") {
